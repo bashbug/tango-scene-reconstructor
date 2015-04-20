@@ -78,6 +78,11 @@ public class PointCloudActivity extends Activity implements OnClickListener {
     private Button mThirdPersonButton;
     private Button mTopDownButton;
 
+    private PointCloudStorage mPointCloudStorage;
+    private Button mStartStorePCtoFileButton;
+    private Button mStopStorePCtoFileButton;
+    private boolean mIsStoringPCtoFile = false;
+
     private int count;
     private int mPreviousPoseStatus;
     private float mDeltaTime;
@@ -112,6 +117,12 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         mTopDownButton = (Button) findViewById(R.id.top_down_button);
         mTopDownButton.setOnClickListener(this);
 
+        // Store pc to file buttons
+        mStartStorePCtoFileButton = (Button) findViewById(R.id.start_StorePCtoFile_button);
+        mStopStorePCtoFileButton = (Button) findViewById(R.id.stop_StorePCtoFile_button);
+        mStartStorePCtoFileButton.setOnClickListener(this);
+        mStopStorePCtoFileButton.setOnClickListener(this);
+
         mTango = new Tango(this);
         mConfig = new TangoConfig();
         mConfig = mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT);
@@ -123,6 +134,8 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         mGLView.setEGLContextClientVersion(2);
         mGLView.setRenderer(mRenderer);
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+
+        mPointCloudStorage = new PointCloudStorage();
 
         PackageInfo packageInfo;
         try {
@@ -215,6 +228,15 @@ public class PointCloudActivity extends Activity implements OnClickListener {
             break;
         case R.id.top_down_button:
             mRenderer.setTopDownView();
+            break;
+        case R.id.start_StorePCtoFile_button:
+            mPointCloudStorage.createFile();
+            mIsStoringPCtoFile = true;
+            Log.w(TAG, "Start storage button click.");
+            break;
+        case R.id.stop_StorePCtoFile_button:
+            mIsStoringPCtoFile = false;
+            Log.w(TAG, "Stop storage button click.");
             break;
         default:
             Log.w(TAG, "Unrecognized button click.");
@@ -331,6 +353,9 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                     fileStream.read(buffer,
                             xyzIj.xyzParcelFileDescriptorOffset, buffer.length);
                     fileStream.close();
+                    if(mIsStoringPCtoFile) {
+                        mPointCloudStorage.updateFile(buffer);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
