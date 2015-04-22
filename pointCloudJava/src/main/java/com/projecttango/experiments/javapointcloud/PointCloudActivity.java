@@ -230,7 +230,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
             mRenderer.setTopDownView();
             break;
         case R.id.start_StorePCtoFile_button:
-            mPointCloudStorage.createFile();
+            mPointCloudStorage.createPCDFile();
             mIsStoringPCtoFile = true;
             Log.w(TAG, "Start storage button click.");
             break;
@@ -341,37 +341,67 @@ public class PointCloudActivity extends Activity implements OnClickListener {
             }
 
             @Override
+            // This callback is triggered every time a new point cloud is available from the depth sensor in the Tango service.
+            // The TangoXYZij class contains information returned from the depth sensor.
             public void onXyzIjAvailable(final TangoXyzIjData xyzIj) {
                 mCurrentTimeStamp = (float) xyzIj.timestamp;
                 final float frameDelta = (mCurrentTimeStamp - mXyIjPreviousTimeStamp)
                         * SECS_TO_MILLISECS;
                 mXyIjPreviousTimeStamp = mCurrentTimeStamp;
+
+                // new byte buffer for new point cloud
                 byte[] buffer = new byte[xyzIj.xyzCount * 3 * 4];
+
+                // check if new data of point cloud is readable. For reading a buffer is needed
+                // This ParcelFileDescriptor contains an array of packed coordinate triplet, x,y,z
+                // as floating point values.
                 FileInputStream fileStream = new FileInputStream(
                         xyzIj.xyzParcelFileDescriptor.getFileDescriptor());
                 try {
+                    // Reads up to len bytes of data from this input stream into an array of bytes.
+                    // If len is not zero, the method blocks until some input is available
                     fileStream.read(buffer,
                             xyzIj.xyzParcelFileDescriptorOffset, buffer.length);
                     fileStream.close();
-                    if(mIsStoringPCtoFile) {
-                        mPointCloudStorage.updateFile(buffer);
-                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+
                 try {
                     TangoPoseData pointCloudPose = mTango.getPoseAtTime(
                             mCurrentTimeStamp, framePairs.get(0));
 
+                    // update point cloud data with byte buffer of the new point cloud
+                    // that really clears old data.
                     mRenderer.getPointCloud().UpdatePoints(buffer,
                             xyzIj.xyzCount);
+
+
+                    // manage the calculation of a Model Matrix from the translation and quaternion
+                    // arrays obtained from an {@link TangoPose} object.
+                    // Updates the model matrix (rotation, translation).
                     mRenderer.getModelMatCalculator()
                             .updatePointCloudModelMatrix(
                                     pointCloudPose.getTranslationAsFloats(),
                                     pointCloudPose.getRotationAsFloats());
+
+                    // overwrite outdated model matrix
                     mRenderer.getPointCloud().setModelMatrix(
                             mRenderer.getModelMatCalculator()
                                     .getPointCloudModelMatrixCopy());
+
+                    // The number of points in depth_data_buffer populated successfully is variable
+                    // with each call to the function, and is returned in (x,y,z) triplets populated
+                    // (e.g. 2 points populated returned means 6 floats, or 6*4 bytes used).
+
+                    if(mIsStoringPCtoFile) {
+                        mPointCloudStorage.updateFile(buffer, xyzIj.xyzCount, pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats());
+                    }
+                    /*if(mIsStoringPCtoFile) {
+                        mPointCloudStorage.updateFile(mRenderer.getPointCloud().getModelMatrix());
+                    }*/
+
+
                 } catch (TangoErrorException e) {
                     Toast.makeText(getApplicationContext(),
                             R.string.TangoError, Toast.LENGTH_SHORT).show();
