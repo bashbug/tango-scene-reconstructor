@@ -28,23 +28,32 @@ import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.concurrent.Semaphore;
 
 /**
  * Main Activity class for the Point Cloud Sample. Handles the connection to the
@@ -78,10 +87,13 @@ public class PointCloudActivity extends Activity implements OnClickListener {
     private Button mThirdPersonButton;
     private Button mTopDownButton;
 
+    // Switch to store pcl data
     private PointCloudStorage mPointCloudStorage;
-    private Button mStartStorePCtoFileButton;
-    private Button mStopStorePCtoFileButton;
-    private boolean mIsStoringPCtoFile = false;
+    private Switch mPointCloudStorageSwitch;
+    private boolean mIsRecordingPCLtoFile;
+    private int mStoreEachThirdPCL;
+    private Semaphore mutex_on_mIsRecording;
+
 
     private int count;
     private int mPreviousPoseStatus;
@@ -117,11 +129,13 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         mTopDownButton = (Button) findViewById(R.id.top_down_button);
         mTopDownButton.setOnClickListener(this);
 
-        // Store pc to file buttons
-        mStartStorePCtoFileButton = (Button) findViewById(R.id.start_StorePCtoFile_button);
-        mStopStorePCtoFileButton = (Button) findViewById(R.id.stop_StorePCtoFile_button);
-        mStartStorePCtoFileButton.setOnClickListener(this);
-        mStopStorePCtoFileButton.setOnClickListener(this);
+        // Store pcl to file buttons
+        mPointCloudStorageSwitch = (Switch) findViewById(R.id.record_pcl_data_switch);
+        mPointCloudStorageSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                record_SwitchChanged(isChecked);
+            }
+        });
 
         mTango = new Tango(this);
         mConfig = new TangoConfig();
@@ -150,6 +164,9 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         mServiceVersion = mConfig.getString("tango_service_library_version");
         mTangoServiceVersionTextView.setText(mServiceVersion);
         mIsTangoServiceConnected = false;
+        mIsRecordingPCLtoFile = false;
+        mStoreEachThirdPCL = 0;
+        mutex_on_mIsRecording = new Semaphore(1,true);
     }
 
     @Override
@@ -229,15 +246,6 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         case R.id.top_down_button:
             mRenderer.setTopDownView();
             break;
-        case R.id.start_StorePCtoFile_button:
-            mPointCloudStorage.createPCDFile();
-            mIsStoringPCtoFile = true;
-            Log.w(TAG, "Start storage button click.");
-            break;
-        case R.id.stop_StorePCtoFile_button:
-            mIsStoringPCtoFile = false;
-            Log.w(TAG, "Stop storage button click.");
-            break;
         default:
             Log.w(TAG, "Unrecognized button click.");
             return;
@@ -285,9 +293,12 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         // Configure the Tango coordinate frame pair
         final ArrayList<TangoCoordinateFramePair> framePairs = 
                 new ArrayList<TangoCoordinateFramePair>();
+
+        // Process pose data from device with respect to start of service.
         framePairs.add(new TangoCoordinateFramePair(
                 TangoPoseData.COORDINATE_FRAME_START_OF_SERVICE,
                 TangoPoseData.COORDINATE_FRAME_DEVICE));
+
         // Listen for new Tango data
         mTango.connectListener(framePairs, new OnTangoUpdateListener() {
 
@@ -344,13 +355,15 @@ public class PointCloudActivity extends Activity implements OnClickListener {
             // This callback is triggered every time a new point cloud is available from the depth sensor in the Tango service.
             // The TangoXYZij class contains information returned from the depth sensor.
             public void onXyzIjAvailable(final TangoXyzIjData xyzIj) {
+                Log.e("onXyzIjAvailable", "new data available");
+                mStoreEachThirdPCL++;
                 mCurrentTimeStamp = (float) xyzIj.timestamp;
                 final float frameDelta = (mCurrentTimeStamp - mXyIjPreviousTimeStamp)
                         * SECS_TO_MILLISECS;
                 mXyIjPreviousTimeStamp = mCurrentTimeStamp;
 
                 // new byte buffer for new point cloud
-                byte[] buffer = new byte[xyzIj.xyzCount * 3 * 4];
+                final byte[] pointCloudBuffer = new byte[xyzIj.xyzCount * 3 * 4];
 
                 // check if new data of point cloud is readable. For reading a buffer is needed
                 // This ParcelFileDescriptor contains an array of packed coordinate triplet, x,y,z
@@ -360,20 +373,20 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                 try {
                     // Reads up to len bytes of data from this input stream into an array of bytes.
                     // If len is not zero, the method blocks until some input is available
-                    fileStream.read(buffer,
-                            xyzIj.xyzParcelFileDescriptorOffset, buffer.length);
+                    fileStream.read(pointCloudBuffer,
+                            xyzIj.xyzParcelFileDescriptorOffset, pointCloudBuffer.length);
                     fileStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 try {
-                    TangoPoseData pointCloudPose = mTango.getPoseAtTime(
+                    final TangoPoseData pointCloudPose = mTango.getPoseAtTime(
                             mCurrentTimeStamp, framePairs.get(0));
 
                     // update point cloud data with byte buffer of the new point cloud
                     // that really clears old data.
-                    mRenderer.getPointCloud().UpdatePoints(buffer,
+                    mRenderer.getPointCloud().UpdatePoints(pointCloudBuffer,
                             xyzIj.xyzCount);
 
 
@@ -394,14 +407,6 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                     // with each call to the function, and is returned in (x,y,z) triplets populated
                     // (e.g. 2 points populated returned means 6 floats, or 6*4 bytes used).
 
-                    if(mIsStoringPCtoFile) {
-                        mPointCloudStorage.updateFile(buffer, xyzIj.xyzCount, pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats());
-                    }
-                    /*if(mIsStoringPCtoFile) {
-                        mPointCloudStorage.updateFile(mRenderer.getPointCloud().getModelMatrix());
-                    }*/
-
-
                 } catch (TangoErrorException e) {
                     Toast.makeText(getApplicationContext(),
                             R.string.TangoError, Toast.LENGTH_SHORT).show();
@@ -409,6 +414,36 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                     Toast.makeText(getApplicationContext(),
                             R.string.TangoError, Toast.LENGTH_SHORT).show();
                 }
+
+                // Store data asynchronously
+                class SendCommandTask extends AsyncTask<Void, Void, Boolean> {
+                    @Override
+                    protected Boolean doInBackground(Void... params) {
+
+                        try {
+                            mutex_on_mIsRecording.acquire();
+                            final TangoPoseData pointCloudPose = mTango.getPoseAtTime(
+                                    mCurrentTimeStamp, framePairs.get(0));
+                            if (mIsRecordingPCLtoFile && mStoreEachThirdPCL % 3 == 0) {
+                                mPointCloudStorage.createPCDFile();
+                                mPointCloudStorage.updateFile(pointCloudBuffer, xyzIj.xyzCount,
+                                        pointCloudPose.getTranslationAsFloats(),
+                                        pointCloudPose.getRotationAsFloats());
+                            }
+                        } catch (InterruptedException e) {
+                            Log.e("StoreDataAsynchronously", String.valueOf(e));
+                        }
+
+                        mutex_on_mIsRecording.release();
+                        return true;
+                    }
+
+                    @Override
+                    protected void onPostExecute(Boolean done) {
+
+                    }
+                }
+                new SendCommandTask().execute();
 
                 // Must run UI changes on the UI thread. Running in the Tango
                 // service thread
@@ -446,5 +481,16 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                 // We are not using onFrameAvailable for this application.
             }
         });
+    }
+
+    // This function is called when the Record Switch is changed
+    private void record_SwitchChanged(boolean isChecked) {
+        try {
+            mutex_on_mIsRecording.acquire();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        mIsRecordingPCLtoFile = isChecked;
+        mutex_on_mIsRecording.release();
     }
 }
