@@ -39,7 +39,7 @@ main (int argc, char** argv)
   // -----------------------
   // -----Read pcd file-----
   // -----------------------
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("test_pcd.pcd", *cloud_ptr) == -1) //* load the file
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("pcd-20150427-064440.PCD", *cloud_ptr) == -1) //* load the file
   {
     PCL_ERROR ("Couldn't read file test_pcd.pcd \n");
     return (-1);
@@ -77,7 +77,7 @@ main (int argc, char** argv)
   viewer.setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 1, "range image");
   viewer.addCoordinateSystem ();
 
-  pcl::visualization::PointCloudColorHandlerCustom<PointType> point_cloud_color_handler (cloud_ptr, 1000, 1000, 1000);
+  pcl::visualization::PointCloudColorHandlerCustom<PointType> point_cloud_color_handler (cloud_ptr, 150, 150, 150);
   viewer.addPointCloud (cloud_ptr, point_cloud_color_handler, "original point cloud");
   viewer.initCameraParameters ();
   setViewerPose(viewer, range_image.getTransformationToWorldSystem ());

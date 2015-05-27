@@ -29,9 +29,8 @@ public final class R {
         public static final int pose=0x7f070008;
         public static final int posecount=0x7f070006;
         public static final int quat=0x7f070009;
-        public static final int start_StorePCtoFile_button=0x7f070010;
+        public static final int record_pcl_data_switch=0x7f070010;
         public static final int status=0x7f070005;
-        public static final int stop_StorePCtoFile_button=0x7f070011;
         public static final int tangoevent=0x7f070004;
         public static final int third_person_button=0x7f07000e;
         public static final int top_down_button=0x7f07000f;

@@ -12,7 +12,7 @@ find_package(VTK REQUIRED)
 include(${VTK_USE_FILE})
 
 # add the executable
-add_executable(pcd_write_test pcdFileReader.cpp)
+add_executable(pcl_to_vtk pclToMesh.cpp)
 
 #link installed & local libraries
-target_link_libraries(pcd_write_test ${PCL_LIBRARIES} ${VTK_LIBRARIES})
+target_link_libraries(pcl_to_vtk ${PCL_LIBRARIES} ${VTK_LIBRARIES})
