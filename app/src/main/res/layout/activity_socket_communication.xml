@@ -1,0 +1,37 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_alignParentBottom="true"
+    android:layout_alignEnd="@+id/ip_address_input"
+    tools:context="bashbug.tangopctopclfile.SocketCommunication">
+
+    <EditText android:id="@+id/ip_address_input" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="dstAddress"/>
+    <EditText android:id="@+id/port_input" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="dstPort"/>
+    <Button android:id="@+id/connect_button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Connect..."/>
+
+    <TextView android:id="@+id/response_view" android:layout_width="372dp" android:layout_height="wrap_content"
+        android:hint="Response from server socket" />
+
+    <Button android:id="@+id/clear_button" android:layout_width="110dp" android:layout_height="wrap_content" android:text="Clear"
+        android:layout_gravity="right" />
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:inputType="textMultiLine"
+        android:ems="10"
+        android:id="@+id/editText"
+        android:hint="Message to sever socket" />
+
+    <Button
+        android:layout_width="110dp"
+        android:layout_height="wrap_content"
+        android:text="send"
+        android:id="@+id/send_button"
+        android:layout_gravity="right" />
+
+</LinearLayout>
+

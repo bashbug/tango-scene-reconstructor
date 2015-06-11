@@ -1,3 +1,25 @@
 <resources>
     <string name="app_name">TangoPCtoPCLFile</string>
+    <string name="title_activity_socket_communication">SocketCommunication</string>
+
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="action_websearch">Web search</string>
+    <string name="app_not_available">Sorry, there\'s no web browser available</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="title_section1">Help</string>
+    <string name="title_section2">Connect</string>
+    <string name="title_section3">Record</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_example">Example action</string>
+    <string name="action_settings">Settings</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="usageText">1. Connect with server socket \n 2. Record point clouds</string>
+    <string name="headline">Usage</string>
 </resources>

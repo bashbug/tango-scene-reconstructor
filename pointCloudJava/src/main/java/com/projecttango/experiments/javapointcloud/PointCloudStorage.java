@@ -56,8 +56,8 @@ public class PointCloudStorage {
         return file;
     }
 
-    public void createPCDFile() {
-        mPointCloudFile = new File(getDir(), "pcd-" + timeAsString() + ".PCD");
+    public void createPCDFile(int count) {
+        mPointCloudFile = new File(getDir(), "pcd-" + timeAsString() + "-" + Integer.toString(count) + ".PCD");
         Log.e("PointCloudStorage", "create File");
         setHeader(mPointCloudFile);
     }
@@ -83,12 +83,22 @@ public class PointCloudStorage {
 
     public void updateFile(byte[] data, int pointCount, float[] translation, float[] rotation) {
 
+
+        // pcl: translation x,y,z rotation w,x,y,z
+        // tango: translation x,y,z rotation x,y,z,w
         String header = "WIDTH " + String.valueOf(pointCount) + "\n" + "HEIGHT 1\nVIEWPOINT ";
         for (int i=0; i < translation.length; i++) {
             header += String.valueOf(translation[i]) + " ";
         }
-        for (int i=0; i < rotation.length; i++) {
+        for (int i=0; i < rotation.length; i=i+4) {
+            // w
+            header += String.valueOf(rotation[i+3]) + " ";
+            // x
             header += String.valueOf(rotation[i]) + " ";
+            // y
+            header += String.valueOf(rotation[i+1]) + " ";
+            // z
+            header += String.valueOf(rotation[i+2]) + " ";
         }
         header += "\nPOINTS " + pointCount +"\nDATA ascii\n";
 
@@ -98,10 +108,17 @@ public class PointCloudStorage {
             fw.write(header);
 
             FloatBuffer mPointCloudFloatBuffer;
-            mPointCloudFloatBuffer = ByteBuffer.wrap(data)
+            mPointCloudFloatBuffer = ByteBuffer.wrap(data) // Wraps a byte array into a buffer
                     .order(ByteOrder.nativeOrder()).asFloatBuffer();
 
             // write point cloud data into pcd file in ascii format
+
+/*
+            for (int i=0; i < mPointCloudFloatBuffer.array().length; i++) {
+                fw.write(String.valueOf(mPointCloudFloatBuffer.array()[i]));
+            }
+*/
+
             for (int i = 0; i <= mPointCloudFloatBuffer.capacity() - 3; i = i + 3) {
                 // x
                 fw.write(String.valueOf(mPointCloudFloatBuffer.get(i))+" ");

@@ -96,6 +96,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
 
 
     private int count;
+    private int mPclFileCounter;
     private int mPreviousPoseStatus;
     private float mDeltaTime;
     private float mPosePreviousTimeStamp;
@@ -150,6 +151,7 @@ public class PointCloudActivity extends Activity implements OnClickListener {
         mGLView.setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 
         mPointCloudStorage = new PointCloudStorage();
+        mPclFileCounter = 1;
 
         PackageInfo packageInfo;
         try {
@@ -425,10 +427,11 @@ public class PointCloudActivity extends Activity implements OnClickListener {
                             final TangoPoseData pointCloudPose = mTango.getPoseAtTime(
                                     mCurrentTimeStamp, framePairs.get(0));
                             if (mIsRecordingPCLtoFile && mStoreEachThirdPCL % 3 == 0) {
-                                mPointCloudStorage.createPCDFile();
+                                mPointCloudStorage.createPCDFile(mPclFileCounter);
                                 mPointCloudStorage.updateFile(pointCloudBuffer, xyzIj.xyzCount,
                                         pointCloudPose.getTranslationAsFloats(),
                                         pointCloudPose.getRotationAsFloats());
+                                mPclFileCounter++;
                             }
                         } catch (InterruptedException e) {
                             Log.e("StoreDataAsynchronously", String.valueOf(e));
