@@ -2,27 +2,33 @@ package bashbug.tangopctopclfile;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.FileObserver;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.view.View;
 import android.view.View.OnClickListener;
 import android.os.AsyncTask;
-import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.InetAddress;
+import java.io.StringReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+
 import android.util.Log;
+import android.widget.Toast;
 
 
 /**
@@ -40,12 +46,20 @@ public class ClientSocketFragment extends android.support.v4.app.Fragment {
 
     // TODO: Rename and change types of parameters
     private int mPosition;
-    private static final String TAG = SocketCommunication.class.getSimpleName();
+    private static final String TAG = ClientSocketFragment.class.getSimpleName();
 
     private TextView mTextResponse;
     private EditText mEditTextAddress, mEditTextPort;
     private Button mButtonConnect, mButtonClear, mButtonSend;
     private OnFragmentInteractionListener mListener;
+
+    private MainActivity mMainActivity;
+
+    private String mServerSocketAddress;
+    private int mServerSocketPort;
+
+    MonitoringAndWritingFileViaSocket mFileObserver;
+    File mFileDirection;
 
     /**
      * Use this factory method to create a new instance of
@@ -69,16 +83,31 @@ public class ClientSocketFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.e("ClientSocketFragment", "onCreate");
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             mPosition = getArguments().getInt(POSITION, 0);
         }
+
+        mFileDirection = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "TangoPointCloud");
+
+        if (!mFileDirection.mkdirs() && !mFileDirection.isDirectory()) {
+            Log.e("ClientSocketFragment", "Directory not created");
+        } else {
+            Log.e("ClientSocketFragment", "Directory created");
+        }
+
+        mFileObserver = new MonitoringAndWritingFileViaSocket(mFileDirection.getPath());
+        mFileObserver.startWatching();
+        mListener.FileObserverCreated(mFileObserver);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        Log.e("ClientSocketFragment", "onCreateView");
 
         View view = inflater.inflate(R.layout.activity_socket_communication, container, false);
 
@@ -117,10 +146,21 @@ public class ClientSocketFragment extends android.support.v4.app.Fragment {
     OnClickListener buttonConnectOnClickListener = new OnClickListener() {
         @Override
         public void onClick(View v) {
-            ClientThread client = new ClientThread(
+            mServerSocketAddress = mEditTextAddress.getText().toString();
+            mServerSocketPort = Integer.parseInt(mEditTextPort.getText().toString());
+            mFileObserver.setServerAddress(mServerSocketAddress);
+            mFileObserver.setServerSocketPort(mServerSocketPort);
+            ClientTask client = new ClientTask(
                     mEditTextAddress.getText().toString(),
-                    Integer.parseInt(mEditTextPort.getText().toString()));
-            client.execute();
+                    Integer.parseInt(mEditTextPort.getText().toString()), "##1##");
+            mListener.ClientTaskCreated(client);
+            // doInBackground will not fire, because some android versions run tasks parallel
+            // and others sequential
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+            } else {
+                client.execute();
+            }
         }
     };
 
@@ -133,7 +173,9 @@ public class ClientSocketFragment extends android.support.v4.app.Fragment {
 
     @Override
     public void onAttach(Activity activity) {
+        Log.e("ClientSocketFragment", "onAttach");
         super.onAttach(activity);
+        Log.e("ClientSocketFragment", "attached");
         try {
             mListener = (OnFragmentInteractionListener) activity;
 
@@ -144,10 +186,29 @@ public class ClientSocketFragment extends android.support.v4.app.Fragment {
             throw new ClassCastException(activity.toString()
                     + " must implement OnFragmentInteractionListener");
         }
+/*        Log.e("ClientSocketFragment", "onAttach");
+        mFileDirection = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "TangoPointCloud");
+
+        if (!mFileDirection.mkdirs() && !mFileDirection.isDirectory()) {
+            Log.e("ClientSocketFragment", "Directory not created");
+        } else {
+            Log.e("ClientSocketFragment", "Directory created");
+        }
+
+        mFileObserver = new MonitoringAndWritingFileViaSocket(mFileDirection.getPath());
+        mFileObserver.startWatching();*/
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        Log.e("ClientSocketFragment", "onActivityCreated");
+        super.onActivityCreated(savedInstanceState);
     }
 
     @Override
     public void onDetach() {
+        Log.e("ClientSocketFragment", "onDetach");
         super.onDetach();
         mListener = null;
     }
@@ -166,67 +227,9 @@ public class ClientSocketFragment extends android.support.v4.app.Fragment {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
 
+        public void ClientTaskCreated(ClientTask ct);
+
+        public void FileObserverCreated(FileObserver fo);
+
     }
-
-    class ClientThread extends AsyncTask<Void, Void, Void> {
-
-        String dstAddress;
-        int dstPort;
-        String response = "test";
-
-        ClientThread(String addr, int port){
-            dstAddress = addr;
-            dstPort = port;
-        }
-
-        @Override
-        protected Void doInBackground(Void... arg0) {
-
-            Socket socket = null;
-
-            try {
-                socket = new Socket(dstAddress, dstPort);
-
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(1024);
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-
-                InputStream inputStream = socket.getInputStream();
-                Log.e(TAG, "socket establised");
-
-                while ((bytesRead = inputStream.read(buffer)) != -1){
-                    Log.e(TAG, "read inputstream");
-                    byteArrayOutputStream.write(buffer, 0, bytesRead);
-                    response += byteArrayOutputStream.toString("UTF-8");
-                    Log.e(TAG, "response:" + response);
-                }
-
-            } catch (UnknownHostException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                response = "UnknownHostException: " + e.toString();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-                response = "IOException: " + e.toString();
-            } finally {
-                if(socket != null){
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void result) {
-            mTextResponse.setText(response);
-            super.onPostExecute(result);
-        }
-    }
-
 }

@@ -1,7 +1,9 @@
 package bashbug.tangopctopclfile;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
+import android.os.FileObserver;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -13,13 +15,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
+import android.util.Log;
+import android.widget.Toast;
+
+import com.google.atap.tangoservice.Tango;
+import com.google.atap.tangoservice.TangoConfig;
 
 public class MainActivity extends ActionBarActivity
         implements NavigationDrawerFragment.NavigationDrawerCallbacks,
-        ClientSocketFragment.OnFragmentInteractionListener {
+        ClientSocketFragment.OnFragmentInteractionListener,
+        PointCloudFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -30,6 +35,12 @@ public class MainActivity extends ActionBarActivity
      * Used to store the last screen title. For use in {@link #restoreActionBar()}.
      */
     private CharSequence mTitle;
+    private Tango mTango;
+    private TangoConfig mConfig;
+    public FileObserver mFileObserver;
+    public ClientTask mClientTask;
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,22 +56,38 @@ public class MainActivity extends ActionBarActivity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        // Tango initialization
+        mTango = new Tango(this);
+        mConfig = new TangoConfig();
+        mConfig = mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT);
+        mConfig.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
     }
 
     @Override
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getSupportFragmentManager();
+        PlaceholderFragment phf = PlaceholderFragment.newInstance(position + 1);
+        ClientSocketFragment csf = new ClientSocketFragment().newInstance(position + 1);
+        PointCloudFragment pca = new PointCloudFragment().newInstance(mTango, mConfig, position + 1);
+
         switch (position) {
             case 0:
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                        .replace(R.id.container, phf, "phf")
                         .commit();
                 break;
+
             case 1:
-                ClientSocketFragment csf = new ClientSocketFragment().newInstance(position + 1);
                 fragmentManager.beginTransaction()
-                        .replace(R.id.container, csf)
+                        .replace(R.id.container, csf, "csf")
+                        .commit();
+                break;
+
+            case 2:
+                fragmentManager.beginTransaction()
+                        .replace(R.id.container, pca, "pca")
                         .commit();
                 break;
         }
@@ -87,6 +114,17 @@ public class MainActivity extends ActionBarActivity
         actionBar.setTitle(mTitle);
     }
 
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.e("MainActivity", "onStop");
+    }
+
+    @Override
+    public void onAttachFragment(android.app.Fragment fragment) {
+        Log.e("MainActivity", "onAttachFragment: " + fragment.getTag());
+        super.onAttachFragment(fragment);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -117,6 +155,14 @@ public class MainActivity extends ActionBarActivity
     }
 
     public void onFragmentInteraction(Uri uri) {
+    }
+
+    public void ClientTaskCreated(ClientTask ct) {
+        mClientTask = ct;
+    }
+
+    public void FileObserverCreated(FileObserver fo) {
+        mFileObserver = fo;
     }
 
     /**
