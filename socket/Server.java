@@ -2,6 +2,9 @@ import java.lang.*;
 import java.io.*;
 import java.net.*;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 class Server {
 
    static void copy(InputStream in, OutputStream out) throws IOException {
@@ -32,17 +35,34 @@ class Server {
       try {
          byte[] byteArray = new byte[400000];
          ServerSocket server = new ServerSocket(port);
-         Socket socket = server.accept();
-         System.out.print("Server has connected!\n");
+         int counter = 1;
 
-         InputStream is = socket.getInputStream();
-         OutputStream os = new FileOutputStream("out.txt");
+         while(true) {
+            Socket socket = server.accept();
+            System.out.print("Server has connected!\n");
 
-         // recieved file data
-         copy(is, os);
+            InputStream isClient = socket.getInputStream();
+            OutputStream osClient = socket.getOutputStream();
 
-         is.close();
-         os.close();
+            Date date = new Date() ;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-hhmmss") ;
+            OutputStream osServer = new FileOutputStream("pcd-" + dateFormat.format(date) + "-" + Integer.toString(counter) + ".PCD");
+
+/*            String ans = "Connection established!";
+            osClient.write(ans.getBytes("UTF-8"));
+
+
+            ans = "File written!";
+            osClient.write(ans.getBytes("UTF-8"));*/
+
+            // recieved file data
+            copy(isClient, osServer);
+            counter++;
+
+            isClient.close();
+            osClient.close();
+            osServer.close();
+         }
 
       } catch(Exception e) {
          System.out.println("Can't establish socket on port: " + port);
