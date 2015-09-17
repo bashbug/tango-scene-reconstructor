@@ -4,4 +4,9 @@
         android:icon="@drawable/ic_description"
         android:title="show description"
         android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/ic_file_upload"
+        android:icon="@drawable/ic_file_upload"
+        android:title="upload files"
+        android:showAsAction="ifRoom" />
 </menu>

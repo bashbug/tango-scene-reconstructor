@@ -29,7 +29,8 @@ if (project.hasProperty("Tango.signing")
 }
 
 dependencies {
-    compile files('libs/TangoSDK_Turing_Java.jar')
+    //compile files('libs/TangoSDK_Turing_Java.jar')
+    compile files('libs/TangoSDK_Weyl_Java.jar')
     compile(name: 'TangoUtils', ext: 'aar')
     compile(name: 'TangoUX_Turing_Java', ext: 'aar')
     compile 'com.android.support:support-v4:22.2.1'

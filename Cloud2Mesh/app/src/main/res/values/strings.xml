@@ -72,9 +72,16 @@
     <!-- Action Bar Titles -->
     <string-array name="activities">
         <item>Learn Area</item>
-        <item>Record Point Cloud</item>
+        <item>Record Point Cloud with ADF</item>
+        <item>Record Point Cloud without ADF</item>
         <item>Send Point Clouds</item>
     </string-array>
+
+    <!-- SOCKET -->
+    <string name="set_socket_dialogTitle">Set the Server attributes</string>
+    <string name="address">Destination address</string>
+    <string name="port">Destination port</string>
+    <string name="connect">Connect</string>
 
     <!-- AREA LEARNING -->
     <string name="set_name_dialogTitle">Set the ADF name</string>

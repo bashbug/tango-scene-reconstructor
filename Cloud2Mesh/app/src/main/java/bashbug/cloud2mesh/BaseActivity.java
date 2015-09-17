@@ -1,6 +1,8 @@
 package bashbug.cloud2mesh;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.content.ClipData;
 import android.content.Intent;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.view.GravityCompat;
@@ -17,6 +19,9 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.google.atap.tangoservice.TangoAreaDescriptionMetaData;
+import com.google.atap.tangoservice.TangoErrorException;
+
 /**
  * Basic Activity to handle a navigation drawer for multiple activities
  * Adds an icon for extra information dialog while area learning and point cloud activity
@@ -30,6 +35,7 @@ public class BaseActivity extends Activity {
     protected FrameLayout content;
     private ActionBarDrawerToggle drawerToggle;
     private boolean mShowDescription = false;
+    protected MenuItem mUploadFileButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +68,12 @@ public class BaseActivity extends Activity {
 
     }
 
+    private void showSetServerSocketAddresssAndIPDialog() {
+        FragmentManager manager = getFragmentManager();
+        SetServerSocketAddressAndIPDialog setServerSocketAddressAndIPDialog = new SetServerSocketAddressAndIPDialog();
+        setServerSocketAddressAndIPDialog.show(manager, "SocketAddIPDialog");
+    }
+
     protected void setupNavDrawer() {
 
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -77,11 +89,16 @@ public class BaseActivity extends Activity {
             Intent nextActivity = null;
 
             switch(pos){
-                case 0: //Nearby Cabs
+                case 0: // Area learning
                     nextActivity = new Intent(getApplicationContext(), AreaLearningActivity.class);
                     break;
-                case 1: //Cab Companies
+                case 1: // Record point cloud with ADF
                     nextActivity = new Intent(getApplicationContext(), PointCloudActivity.class);
+                    nextActivity.putExtra("withADF", true);
+                    break;
+                case 2: // Record point cloud without ADF
+                    nextActivity = new Intent(getApplicationContext(), PointCloudActivity.class);
+                    nextActivity.putExtra("withADF", false);
                     break;
             }
 
@@ -114,6 +131,11 @@ public class BaseActivity extends Activity {
         // Handle presses on the action bar items
         if(item.getItemId() == R.id.ic_description) {
             openDescription();
+        }
+
+        // Handle presses on the action bar items
+        if(item.getItemId() == R.id.ic_file_upload) {
+            showSetServerSocketAddresssAndIPDialog();
         }
 
         // Handle item selection

@@ -134,6 +134,8 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     private TangoUx mTangoUx;
     private TangoUxLayout mTangoUxLayout;
 
+    private boolean mRecordWithADF;
+
     private static final int UPDATE_INTERVAL_MS = 100;
     private static final DecimalFormat threeDec = new DecimalFormat("00.000");
     public static Object poseLock = new Object();
@@ -191,7 +193,20 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_jpoint_cloud);
-        setTitle("Record Point Cloud");
+
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+
+        if(bundle != null)
+        {
+            if((boolean)bundle.get("withADF") == true ){
+                mRecordWithADF = true;
+                setTitle("Record Point Cloud with ADF");
+            } else {
+                mRecordWithADF = false;
+                setTitle("Record Point Cloud without ADF");
+            }
+        }
 
         mSavedPCLFilesTextView = (TextView) findViewById(R.id.saved_pcl_files_textview);
 
@@ -255,21 +270,19 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         mConfig = new TangoConfig();
         mConfig = mTango.getConfig(TangoConfig.CONFIG_TYPE_CURRENT);
 
-        ArrayList<String> fullUUIDList = new ArrayList<String>();
-        // Returns a list of ADFs with their UUIDs
-        fullUUIDList = mTango.listAreaDescriptions();
-          /*  if (fullUUIDList.size() == 0) {
-                mUUIDTextView.setText(R.string.no_uuid);
-            }*/
+        if (mRecordWithADF) {
+            // Returns a list of ADFs with their UUIDs
+            ArrayList<String> fullUUIDList = mTango.listAreaDescriptions();
 
-        // Load the latest ADF if ADFs are found.
-        if (fullUUIDList.size() > 0) {
-            mConfig.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
-                    fullUUIDList.get(fullUUIDList.size() - 1));
-            TangoAreaDescriptionMetaData metaData = mTango.loadAreaDescriptionMetaData(fullUUIDList.get(fullUUIDList.size() - 1));
-            //mLatestADFFileView.setText(String.valueOf(metaData.get("name"));
-            Log.e("ADF File", fullUUIDList.get(fullUUIDList.size() - 1) + " .... loaded");
-            mCurrentUUID = fullUUIDList.get(fullUUIDList.size() - 1);
+            // Load the latest ADF if ADFs are found.
+            if (fullUUIDList.size() > 0) {
+                mConfig.putString(TangoConfig.KEY_STRING_AREADESCRIPTION,
+                        fullUUIDList.get(fullUUIDList.size() - 1));
+                TangoAreaDescriptionMetaData metaData = mTango.loadAreaDescriptionMetaData(fullUUIDList.get(fullUUIDList.size() - 1));
+                //mLatestADFFileView.setText(String.valueOf(metaData.get("name"));
+                Log.e("ADF File", fullUUIDList.get(fullUUIDList.size() - 1) + " .... loaded");
+                mCurrentUUID = fullUUIDList.get(fullUUIDList.size() - 1);
+            }
         }
 
         mConfig.putBoolean(TangoConfig.KEY_BOOLEAN_DEPTH, true);
