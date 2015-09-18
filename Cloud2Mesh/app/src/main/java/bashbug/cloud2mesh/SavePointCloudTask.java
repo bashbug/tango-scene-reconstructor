@@ -10,12 +10,15 @@ import com.google.atap.tangoservice.TangoCoordinateFramePair;
 import com.google.atap.tangoservice.TangoPoseData;
 import com.google.atap.tangoservice.TangoXyzIjData;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Asynchronous task to write point clouds to .PCD files
@@ -24,12 +27,12 @@ import java.util.Date;
 class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
 
     ArrayList<TangoCoordinateFramePair> mFramePairs;
-    TangoXyzIjData mXyzIj;
+    float[] mXyzIj;
     int mPclFileCounter;
     float[] mQuaternion;
     TangoPoseData mPoseData;
 
-    File mPointCloudFile_ascii;
+    BufferedWriter mPointCloudFile_ascii;
 
     TangoCameraIntrinsics mIntrinsics;
 
@@ -38,12 +41,11 @@ class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
     private float[] mCam2dev_Transform = new float[16];
 
 
-    public SavePointCloudTask(float[] cam2dev_Transform, TangoPoseData poseData, TangoXyzIjData xyzIj, int pclFileCounter) {
+    public SavePointCloudTask(TangoPoseData poseData, float[] xyzIj, int pclFileCounter) {
         Log.e("SendCommandTask", "created");
         mXyzIj = xyzIj;
         mPclFileCounter = pclFileCounter;
         mPoseData = poseData;
-        mCam2dev_Transform = cam2dev_Transform;
     }
 
 
@@ -103,21 +105,19 @@ class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
     @Override
     protected Boolean doInBackground(Void... params) {
 
-        mPointCloudFile_ascii = new File(getDir(), "pcd-" + timeAsString() + "-" + Integer.toString(mPclFileCounter) + "-ascii.PCD");
+        String filename = "pcd-" + timeAsString() + "-" + Integer.toString(mPclFileCounter) + "-ascii.PCD";
+        try {
+            mPointCloudFile_ascii = new BufferedWriter(new FileWriter(new File(getDir(), filename)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-        Log.e("PointCloudStorage", "start writing file local");
+        Date startDate = new Date();
+        Log.e("PointCloudStorage", "start writing file '"+filename+"' local");
         // pcl: translation x,y,z rotation w,x,y,z
         // tango: translation x,y,z rotation x,y,z,w
         String header = "VERSION .7\nFIELDS x y z\nSIZE 4 4 4\nTYPE F F F\nCOUNT 1 1 1\n" +
-                "WIDTH " + mXyzIj.xyzCount + "\n" + "HEIGHT 1\nVIEWPOINT ";
-
-        /*header += String.valueOf(mQuaternion[0]) + " " + //tx
-                String.valueOf(mQuaternion[1]) + " " + //ty
-                String.valueOf(mQuaternion[2]) + " " + //tz
-                String.valueOf(mQuaternion[3]) + " " + //rw
-                String.valueOf(mQuaternion[4]) + " " + //rx
-                String.valueOf(mQuaternion[5]) + " " + //ry
-                String.valueOf(mQuaternion[6]); //rz*/
+                "WIDTH " + mXyzIj.length/3 + "\n" + "HEIGHT 1\nVIEWPOINT ";
 
         float[] translation = mPoseData.getTranslationAsFloats();
         float[] rotation = mPoseData.getRotationAsFloats();
@@ -131,34 +131,31 @@ class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
                 String.valueOf(rotation[2]); //rz
 
         String header_ascii = header;
-        header_ascii += "\nPOINTS " + mXyzIj.xyzCount +"\nDATA ascii\n";
+        header_ascii += "\nPOINTS " + mXyzIj.length/3 +"\nDATA ascii\n";
 
 
 
         try{
 
             // write point cloud data into pcd file in ascii format
-            FileWriter fw = new FileWriter(mPointCloudFile_ascii, true); //the true will append the new data
-            fw.write(header_ascii);
+            //FileWriter fw = new FileWriter(mPointCloudFile_ascii, true); //the true will append the new data
+            mPointCloudFile_ascii.write(header_ascii);
 
-            for (int i = 0; i <= mXyzIj.xyz.capacity() - 3; i = i + 3) {
-                float[] point2Cam = new float[3];
-                point2Cam[0] = mXyzIj.xyz.get(i);
-                point2Cam[1] = mXyzIj.xyz.get(i+1);
-                point2Cam[2] = mXyzIj.xyz.get(i+2);
-
-                float[] point2Dev = transformPointsToDeviceFrame(point2Cam);
+            for (int i = 0; i <= mXyzIj.length - 3; i = i + 3) {
                 // x = x
-                fw.write(String.valueOf(point2Dev[0])+" ");
+                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i]) + " ");
                 // y = -y
-                fw.write(String.valueOf(point2Dev[1])+" ");
+                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 1] * -1) + " ");
                 // z = -z
-                fw.write(String.valueOf(point2Dev[2])+"\n");
+                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 2] * -1) + "\n");
             }
 
-            fw.close();
+            mPointCloudFile_ascii.close();
 
-            Log.e("PointCloudStorage", "stop writing file local");
+            Date stopDate = new Date();
+            long difference = stopDate.getTime() - startDate.getTime();
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(difference);
+            Log.e("PointCloudStorage", "stop writing file '"+filename+"' local ("+ difference+"ms)");
 
         } catch (IOException e) {
             e.printStackTrace();

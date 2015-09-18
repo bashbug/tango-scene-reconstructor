@@ -56,6 +56,7 @@ import com.projecttango.tangoutils.ModelMatCalculator;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -85,8 +86,6 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     private int mPclFileCounter;
     private int mStoreEachThirdPCL;
 
-    private float[] mCam2dev_Transform;
-
     private int mD2ADF;
     private int mD2START;
     private int mADF2START;
@@ -97,8 +96,6 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     private int count;
     private int mPreviousPoseStatus;
     private int mPointCount;
-    private double mPosePreviousTimeStamp;
-    private double mXyIjPreviousTimeStamp;
     private double mCurrentTimeStamp;
     private TangoPoseData[] mPoses;
 
@@ -140,6 +137,8 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     private static final DecimalFormat threeDec = new DecimalFormat("00.000");
     public static Object poseLock = new Object();
     public static Object depthLock = new Object();
+
+    private static int CAPTURE_EVERY_N = 3;
 
     /*
      * This is an advanced way of using UX exceptions. In most cases developers can just use the in
@@ -431,35 +430,6 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         }
         mRenderer.getModelMatCalculator().SetColorCamera2IMUMatrix(
                 color2IMUPose.getTranslationAsFloats(), color2IMUPose.getRotationAsFloats());
-
-
-        // Get the Camera2Device transform
-        float[] rot_Dev2IMU = device2IMUPose.getRotationAsFloats();
-        float[] trans_Dev2IMU = device2IMUPose.getTranslationAsFloats();
-        float[] rot_Cam2IMU = color2IMUPose.getRotationAsFloats();
-        float[] trans_Cam2IMU = color2IMUPose.getTranslationAsFloats();
-
-        float[] dev2IMU = new float[16];
-        Matrix.setIdentityM(dev2IMU, 0);
-        dev2IMU = ModelMatCalculator.quaternionMatrixOpenGL(rot_Dev2IMU);
-        dev2IMU[12] += trans_Dev2IMU[0];
-        dev2IMU[13] += trans_Dev2IMU[1];
-        dev2IMU[14] += trans_Dev2IMU[2];
-
-        float[] IMU2dev = new float[16];
-        Matrix.setIdentityM(IMU2dev, 0);
-        Matrix.invertM(IMU2dev, 0, dev2IMU, 0);
-
-        float[] cam2IMU = new float[16];
-        Matrix.setIdentityM(cam2IMU, 0);
-        cam2IMU = ModelMatCalculator.quaternionMatrixOpenGL(rot_Cam2IMU);
-        cam2IMU[12] += trans_Cam2IMU[0];
-        cam2IMU[13] += trans_Cam2IMU[1];
-        cam2IMU[14] += trans_Cam2IMU[2];
-
-        mCam2dev_Transform = new float[16];
-        Matrix.setIdentityM(mCam2dev_Transform, 0);
-        Matrix.multiplyMM(mCam2dev_Transform, 0, IMU2dev, 0, cam2IMU, 0);
     }
 
     public static double round(double value, int places) {
@@ -585,30 +555,48 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
                     try {
 
                         TangoPoseData pointCloudPose;
-                        if (mIsRelocalized) {
-                            // get pose of ADF
+                        if (mRecordWithADF) {
+                            if (mIsRelocalized) {
+                                // get pose of ADF
+                                pointCloudPose = mTango.getPoseAtTime(mCurrentTimeStamp,
+                                        framePairs.get(mD2ADF));
 
+                                if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
+                                    if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
+                                        SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose, copyXyz(xyzIj.xyz), mPclFileCounter);
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                            sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                        } else {
+                                            sPCLt.execute();
+                                        }
+                                        mPclFileCounter++;
+
+                                    }
+                                }
+                            }else {
+                                pointCloudPose = mTango.getPoseAtTime(mCurrentTimeStamp,
+                                        framePairs.get(mD2START));
+                            }
+                        } else {
+                            // get pose of Device
                             pointCloudPose = mTango.getPoseAtTime(mCurrentTimeStamp,
-                                    framePairs.get(mD2ADF));
+                                    framePairs.get(mD2START));
 
                             if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
-                                if (mRecordPCL && mStoreEachThirdPCL % 3 == 0) {
-                                    SavePointCloudTask sPCLt = new SavePointCloudTask(mCam2dev_Transform, pointCloudPose, xyzIj, mPclFileCounter);
+                                if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
+                                    SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose, copyXyz(xyzIj.xyz), mPclFileCounter);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                         sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                                        //sDIt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                     } else {
                                         sPCLt.execute();
-                                        //sDIt.execute();
                                     }
+
                                     mPclFileCounter++;
 
                                 }
                             }
-                        }else {
-                            pointCloudPose = mTango.getPoseAtTime(mCurrentTimeStamp,
-                                    framePairs.get(mD2START));
                         }
 
                         if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
@@ -663,6 +651,15 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         });
     }
 
+    private float[] copyXyz(FloatBuffer xyz) {
+        float[] newValues = new float[xyz.capacity()];
+        for (int i = 0; i < xyz.capacity(); i++)
+        {
+            newValues[i] = xyz.get(i);
+        }
+        return newValues;
+    }
+
     /**
      * Create a separate thread to update Log information on UI at the specified interval of
      * UPDATE_INTERVAL_MS. This function also makes sure to have access to the mPose atomically.
@@ -689,7 +686,7 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
                                 synchronized (depthLock) {
                                     // Display number of points in the point cloud
                                     //mPointCountTextView.setText(Integer.toString(mPointCount));
-                                    mSavedPCLFilesTextView.setText("Saved PCL Files: " + Integer.toString(mPclFileCounter));
+                                    mSavedPCLFilesTextView.setText("Buffered PCL Files: " + Integer.toString(mPclFileCounter));
                                 }
                             }
                         });
