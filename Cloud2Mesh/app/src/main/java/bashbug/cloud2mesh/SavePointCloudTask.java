@@ -26,41 +26,20 @@ import java.util.concurrent.TimeUnit;
 
 class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
 
-    ArrayList<TangoCoordinateFramePair> mFramePairs;
     float[] mXyzIj;
     int mPclFileCounter;
-    float[] mQuaternion;
-    TangoPoseData mPoseData;
+    float[] mRotation;
+    float[] mTranslation;
 
     BufferedWriter mPointCloudFile_ascii;
 
-    TangoCameraIntrinsics mIntrinsics;
-
-    private static final float[] inVec = new float[4];
-    private static final float[] outVec = new float[4];
-    private float[] mCam2dev_Transform = new float[16];
-
-
-    public SavePointCloudTask(TangoPoseData poseData, float[] xyzIj, int pclFileCounter) {
+    public SavePointCloudTask(float[] translation, float[] rotation, float[] xyzIj, int pclFileCounter) {
         Log.e("SendCommandTask", "created");
         mXyzIj = xyzIj;
         mPclFileCounter = pclFileCounter;
-        mPoseData = poseData;
+        mRotation = rotation;
+        mTranslation = translation;
     }
-
-
-    public float[] transformPointsToDeviceFrame(float[] point)
-    {
-        inVec[0] = point[0];
-        inVec[1] = point[1];
-        inVec[2] = point[2];
-        inVec[3] = 1;
-
-        Matrix.multiplyMV(outVec, 0, mCam2dev_Transform, 0, inVec, 0);
-
-        return outVec;
-    }
-
 
     /* Checks if external storage is available for read and write */
     private boolean isExternalStorageWritable() {
@@ -119,26 +98,19 @@ class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
         String header = "VERSION .7\nFIELDS x y z\nSIZE 4 4 4\nTYPE F F F\nCOUNT 1 1 1\n" +
                 "WIDTH " + mXyzIj.length/3 + "\n" + "HEIGHT 1\nVIEWPOINT ";
 
-        float[] translation = mPoseData.getTranslationAsFloats();
-        float[] rotation = mPoseData.getRotationAsFloats();
-
-        header += String.valueOf(translation[0]) + " " + //tx
-                String.valueOf(translation[1]) + " " + //ty
-                String.valueOf(translation[2]) + " " + //tz
-                String.valueOf(rotation[3]) + " " + //rw
-                String.valueOf(rotation[0]) + " " + //rx
-                String.valueOf(rotation[1]) + " " + //ry
-                String.valueOf(rotation[2]); //rz
+        header += String.valueOf(mTranslation[0]) + " " + //tx
+                String.valueOf(mTranslation[1]) + " " + //ty
+                String.valueOf(mTranslation[2]) + " " + //tz
+                String.valueOf(mRotation[3]) + " " + //rw
+                String.valueOf(mRotation[0]) + " " + //rx
+                String.valueOf(mRotation[1]) + " " + //ry
+                String.valueOf(mRotation[2]); //rz
 
         String header_ascii = header;
         header_ascii += "\nPOINTS " + mXyzIj.length/3 +"\nDATA ascii\n";
 
-
-
         try{
-
             // write point cloud data into pcd file in ascii format
-            //FileWriter fw = new FileWriter(mPointCloudFile_ascii, true); //the true will append the new data
             mPointCloudFile_ascii.write(header_ascii);
 
             for (int i = 0; i <= mXyzIj.length - 3; i = i + 3) {

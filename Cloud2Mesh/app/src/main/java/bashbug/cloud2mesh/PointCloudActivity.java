@@ -122,8 +122,6 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     private int mAdf2DevicePreviousPoseStatus;
     private int mAdf2StartPreviousPoseStatus;
 
-    private double mAdf2StartPreviousPoseTimeStamp;
-
     private boolean mIsRelocalized = false;
     private String mCurrentUUID;
 
@@ -132,6 +130,8 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     private TangoUxLayout mTangoUxLayout;
 
     private boolean mRecordWithADF;
+
+    private float[] mdev2Cam_Transform;
 
     private static final int UPDATE_INTERVAL_MS = 100;
     private static final DecimalFormat threeDec = new DecimalFormat("00.000");
@@ -430,6 +430,44 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         }
         mRenderer.getModelMatCalculator().SetColorCamera2IMUMatrix(
                 color2IMUPose.getTranslationAsFloats(), color2IMUPose.getRotationAsFloats());
+
+        // depth frame wrt to imu frame
+        TangoPoseData depth2IMUPose = new TangoPoseData();
+        framePair.baseFrame = TangoPoseData.COORDINATE_FRAME_IMU;
+        framePair.targetFrame = TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH;
+        try {
+            depth2IMUPose = mTango.getPoseAtTime(0.0, framePair);
+        } catch (TangoErrorException e) {
+            Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
+        }
+
+        // transform between device and depth camera
+        float[] rot_Dev2IMU = device2IMUPose.getRotationAsFloats();
+        float[] trans_Dev2IMU = device2IMUPose.getTranslationAsFloats();
+        float[] rot_Cam2IMU = depth2IMUPose.getRotationAsFloats();
+        float[] trans_Cam2IMU = depth2IMUPose.getTranslationAsFloats();
+
+        float[] dev2IMU = new float[16];
+        Matrix.setIdentityM(dev2IMU, 0);
+        dev2IMU = ModelMatCalculator.quaternionMatrixOpenGL(rot_Dev2IMU);
+        dev2IMU[12] += trans_Dev2IMU[0];
+        dev2IMU[13] += trans_Dev2IMU[1];
+        dev2IMU[14] += trans_Dev2IMU[2];
+
+        float[] cam2IMU = new float[16];
+        Matrix.setIdentityM(cam2IMU, 0);
+        cam2IMU = ModelMatCalculator.quaternionMatrixOpenGL(rot_Cam2IMU);
+        cam2IMU[12] += trans_Cam2IMU[0];
+        cam2IMU[13] += trans_Cam2IMU[1];
+        cam2IMU[14] += trans_Cam2IMU[2];
+
+        float[] IMU2dev = new float[16];
+        Matrix.setIdentityM(IMU2dev, 0);
+        Matrix.invertM(IMU2dev, 0, cam2IMU, 0);
+
+        mdev2Cam_Transform = new float[16];
+        Matrix.setIdentityM(mdev2Cam_Transform, 0);
+        Matrix.multiplyMM(mdev2Cam_Transform, 0, IMU2dev, 0, cam2IMU, 0);
     }
 
     public static double round(double value, int places) {
@@ -563,7 +601,9 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
                                 if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
                                     if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
-                                        SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose, copyXyz(xyzIj.xyz), mPclFileCounter);
+                                        float[] trans_pose = transformPoseToCam2IMUFrame(pointCloudPose.getRotationAsFloats());
+
+                                        SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), trans_pose, copyXyz(xyzIj.xyz), mPclFileCounter);
 
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                             sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -585,7 +625,9 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
                             if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
                                 if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
-                                    SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose, copyXyz(xyzIj.xyz), mPclFileCounter);
+                                    float[] trans_pose = transformPoseToCam2IMUFrame(pointCloudPose.getRotationAsFloats());
+
+                                    SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), trans_pose, copyXyz(xyzIj.xyz), mPclFileCounter);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                         sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -658,6 +700,14 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
             newValues[i] = xyz.get(i);
         }
         return newValues;
+    }
+
+    public float[] transformPoseToCam2IMUFrame(float[] rotation)  {
+        float[] outVec = new float[4];
+
+        Matrix.multiplyMV(outVec, 0, mdev2Cam_Transform, 0, rotation, 0);
+
+        return outVec;
     }
 
     /**
