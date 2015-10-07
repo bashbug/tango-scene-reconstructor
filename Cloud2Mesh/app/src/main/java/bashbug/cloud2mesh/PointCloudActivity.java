@@ -131,7 +131,7 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
     private boolean mRecordWithADF;
 
-    private float[] mdev2Cam_Transform;
+    private float[] mcam2dev_Transform;
 
     private static final int UPDATE_INTERVAL_MS = 100;
     private static final DecimalFormat threeDec = new DecimalFormat("00.000");
@@ -411,6 +411,13 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         framePair.targetFrame = TangoPoseData.COORDINATE_FRAME_DEVICE;
         try {
             device2IMUPose = mTango.getPoseAtTime(0.0, framePair);
+            Log.e("Orientation", "device2IMUPose");
+            for (int i = 0 ; i < device2IMUPose.getRotationAsFloats().length; i++) {
+                Log.e("rot", String.valueOf(device2IMUPose.getRotationAsFloats()[i]));
+            }
+            for (int i = 0 ; i < device2IMUPose.getTranslationAsFloats().length; i++) {
+                Log.e("trans", String.valueOf(device2IMUPose.getTranslationAsFloats()[i]));
+            }
         } catch (TangoErrorException e) {
             Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
         }
@@ -437,6 +444,13 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
         framePair.targetFrame = TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH;
         try {
             depth2IMUPose = mTango.getPoseAtTime(0.0, framePair);
+            Log.e("Orientation", "depth2IMU");
+            for (int i = 0 ; i < depth2IMUPose.getRotationAsFloats().length; i++) {
+                Log.e("rot", String.valueOf(depth2IMUPose.getRotationAsFloats()[i]));
+            }
+            for (int i = 0 ; i < depth2IMUPose.getTranslationAsFloats().length; i++) {
+                Log.e("trans", String.valueOf(depth2IMUPose.getTranslationAsFloats()[i]));
+            }
         } catch (TangoErrorException e) {
             Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
         }
@@ -463,11 +477,11 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
         float[] IMU2dev = new float[16];
         Matrix.setIdentityM(IMU2dev, 0);
-        Matrix.invertM(IMU2dev, 0, cam2IMU, 0);
+        Matrix.invertM(IMU2dev, 0, dev2IMU, 0);
 
-        mdev2Cam_Transform = new float[16];
-        Matrix.setIdentityM(mdev2Cam_Transform, 0);
-        Matrix.multiplyMM(mdev2Cam_Transform, 0, IMU2dev, 0, cam2IMU, 0);
+        mcam2dev_Transform = new float[16];
+        Matrix.setIdentityM(mcam2dev_Transform, 0);
+        Matrix.multiplyMM(mcam2dev_Transform, 0, IMU2dev, 0, cam2IMU, 0);
     }
 
     public static double round(double value, int places) {
@@ -601,9 +615,8 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
                                 if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
                                     if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
-                                        float[] trans_pose = transformPoseToCam2IMUFrame(pointCloudPose.getRotationAsFloats());
 
-                                        SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), trans_pose, copyXyz(xyzIj.xyz), mPclFileCounter);
+                                        SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz(xyzIj.xyz), mPclFileCounter);
 
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                             sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -625,9 +638,8 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
                             if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
                                 if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
-                                    float[] trans_pose = transformPoseToCam2IMUFrame(pointCloudPose.getRotationAsFloats());
 
-                                    SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), trans_pose, copyXyz(xyzIj.xyz), mPclFileCounter);
+                                    SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz(xyzIj.xyz), mPclFileCounter);
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                         sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -695,19 +707,25 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
     private float[] copyXyz(FloatBuffer xyz) {
         float[] newValues = new float[xyz.capacity()];
-        for (int i = 0; i < xyz.capacity(); i++)
+
+        float[] transformedPoint = new float[4];
+        float[] point = new float[4];
+
+        for (int i = 0; i < xyz.capacity() - 3; i = i + 3)
         {
-            newValues[i] = xyz.get(i);
+            point[0] = xyz.get(i);
+            point[1] = xyz.get(i+1);
+            point[2] = xyz.get(i+2);
+            point[3] = 1;
+
+            Matrix.multiplyMV(transformedPoint, 0, mcam2dev_Transform, 0, point, 0);
+
+            newValues[i] = transformedPoint[0];
+            newValues[i+1] = transformedPoint[1];
+            newValues[i+2] = transformedPoint[2];
         }
+
         return newValues;
-    }
-
-    public float[] transformPoseToCam2IMUFrame(float[] rotation)  {
-        float[] outVec = new float[4];
-
-        Matrix.multiplyMV(outVec, 0, mdev2Cam_Transform, 0, rotation, 0);
-
-        return outVec;
     }
 
     /**
