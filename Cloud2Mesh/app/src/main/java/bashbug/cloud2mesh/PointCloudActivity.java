@@ -17,6 +17,7 @@ package bashbug.cloud2mesh;
  */
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -92,6 +93,9 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     // Camera
     private TangoCameraPreview mCameraView;
 
+    // depth image
+    TangoCameraIntrinsics mDepthCameraIntrinsics;
+
     // PCL
     private int count;
     private int mPreviousPoseStatus;
@@ -131,12 +135,15 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
 
     private boolean mRecordWithADF;
 
-    private float[] mcam2dev_Transform;
+    private float[] device_T_depth;
+    private float[] imu_T_depth;
+    private float[] imu_T_device;
 
     private static final int UPDATE_INTERVAL_MS = 100;
     private static final DecimalFormat threeDec = new DecimalFormat("00.000");
     public static Object poseLock = new Object();
     public static Object depthLock = new Object();
+    public static Object imageLock = new Object();
 
     private static int CAPTURE_EVERY_N = 3;
 
@@ -403,85 +410,91 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
     }
 
     private void setUpExtrinsics() {
-        TangoPoseData device2IMUPose = new TangoPoseData();
+        TangoPoseData pose_imu_T_device = new TangoPoseData();
         TangoCoordinateFramePair framePair = new TangoCoordinateFramePair();
 
         // Set device to imu matrix in Model Matrix Calculator.
         framePair.baseFrame = TangoPoseData.COORDINATE_FRAME_IMU;
         framePair.targetFrame = TangoPoseData.COORDINATE_FRAME_DEVICE;
         try {
-            device2IMUPose = mTango.getPoseAtTime(0.0, framePair);
-            Log.e("Orientation", "device2IMUPose");
-            for (int i = 0 ; i < device2IMUPose.getRotationAsFloats().length; i++) {
-                Log.e("rot", String.valueOf(device2IMUPose.getRotationAsFloats()[i]));
-            }
-            for (int i = 0 ; i < device2IMUPose.getTranslationAsFloats().length; i++) {
-                Log.e("trans", String.valueOf(device2IMUPose.getTranslationAsFloats()[i]));
-            }
+            pose_imu_T_device = mTango.getPoseAtTime(0.0, framePair);
         } catch (TangoErrorException e) {
             Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
         }
 
         mRenderer.getModelMatCalculator().SetDevice2IMUMatrix(
-                device2IMUPose.getTranslationAsFloats(), device2IMUPose.getRotationAsFloats());
+                pose_imu_T_device.getTranslationAsFloats(), pose_imu_T_device.getRotationAsFloats());
 
         // Set color camera to imu matrix in Model Matrix Calculator.
-        TangoPoseData color2IMUPose = new TangoPoseData();
+        TangoPoseData pose_imu_T_cam = new TangoPoseData();
 
         framePair.baseFrame = TangoPoseData.COORDINATE_FRAME_IMU;
         framePair.targetFrame = TangoPoseData.COORDINATE_FRAME_CAMERA_COLOR;
         try {
-            color2IMUPose = mTango.getPoseAtTime(0.0, framePair);
+           pose_imu_T_cam = mTango.getPoseAtTime(0.0, framePair);
         } catch (TangoErrorException e) {
             Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
         }
         mRenderer.getModelMatCalculator().SetColorCamera2IMUMatrix(
-                color2IMUPose.getTranslationAsFloats(), color2IMUPose.getRotationAsFloats());
+                pose_imu_T_cam.getTranslationAsFloats(), pose_imu_T_cam.getRotationAsFloats());
 
         // depth frame wrt to imu frame
-        TangoPoseData depth2IMUPose = new TangoPoseData();
+        TangoPoseData pose_imu_T_depth = new TangoPoseData();
         framePair.baseFrame = TangoPoseData.COORDINATE_FRAME_IMU;
         framePair.targetFrame = TangoPoseData.COORDINATE_FRAME_CAMERA_DEPTH;
         try {
-            depth2IMUPose = mTango.getPoseAtTime(0.0, framePair);
-            Log.e("Orientation", "depth2IMU");
-            for (int i = 0 ; i < depth2IMUPose.getRotationAsFloats().length; i++) {
-                Log.e("rot", String.valueOf(depth2IMUPose.getRotationAsFloats()[i]));
-            }
-            for (int i = 0 ; i < depth2IMUPose.getTranslationAsFloats().length; i++) {
-                Log.e("trans", String.valueOf(depth2IMUPose.getTranslationAsFloats()[i]));
-            }
+            pose_imu_T_depth = mTango.getPoseAtTime(0.0, framePair);
         } catch (TangoErrorException e) {
             Toast.makeText(getApplicationContext(), R.string.TangoError, Toast.LENGTH_SHORT).show();
         }
 
         // transform between device and depth camera
-        float[] rot_Dev2IMU = device2IMUPose.getRotationAsFloats();
-        float[] trans_Dev2IMU = device2IMUPose.getTranslationAsFloats();
-        float[] rot_Cam2IMU = depth2IMUPose.getRotationAsFloats();
-        float[] trans_Cam2IMU = depth2IMUPose.getTranslationAsFloats();
+        float[] rotation_imu_T_device = pose_imu_T_device.getRotationAsFloats();
+        float[] translation_imu_T_device = pose_imu_T_device.getTranslationAsFloats();
+        float[] rotation_imu_T_depth = pose_imu_T_depth.getRotationAsFloats();
+        float[] translation_imu_T_depth = pose_imu_T_depth.getTranslationAsFloats();
 
-        float[] dev2IMU = new float[16];
-        Matrix.setIdentityM(dev2IMU, 0);
-        dev2IMU = ModelMatCalculator.quaternionMatrixOpenGL(rot_Dev2IMU);
-        dev2IMU[12] += trans_Dev2IMU[0];
-        dev2IMU[13] += trans_Dev2IMU[1];
-        dev2IMU[14] += trans_Dev2IMU[2];
+        imu_T_device = new float[16];
+        Matrix.setIdentityM(imu_T_device, 0);
+        imu_T_device = ModelMatCalculator.quaternionMatrixOpenGL(rotation_imu_T_device);
+        imu_T_device[12] += translation_imu_T_device[0];
+        imu_T_device[13] += translation_imu_T_device[1];
+        imu_T_device[14] += translation_imu_T_device[2];
 
-        float[] cam2IMU = new float[16];
-        Matrix.setIdentityM(cam2IMU, 0);
-        cam2IMU = ModelMatCalculator.quaternionMatrixOpenGL(rot_Cam2IMU);
-        cam2IMU[12] += trans_Cam2IMU[0];
-        cam2IMU[13] += trans_Cam2IMU[1];
-        cam2IMU[14] += trans_Cam2IMU[2];
+        imu_T_depth = new float[16];
+        Matrix.setIdentityM(imu_T_depth, 0);
+        imu_T_depth = ModelMatCalculator.quaternionMatrixOpenGL(rotation_imu_T_depth);
+        imu_T_depth[12] += translation_imu_T_depth[0];
+        imu_T_depth[13] += translation_imu_T_depth[1];
+        imu_T_depth[14] += translation_imu_T_depth[2];
 
-        float[] IMU2dev = new float[16];
-        Matrix.setIdentityM(IMU2dev, 0);
-        Matrix.invertM(IMU2dev, 0, dev2IMU, 0);
+        float[] device_T_imu = new float[16];
+        Matrix.setIdentityM(device_T_imu, 0);
+        Matrix.invertM(device_T_imu, 0, imu_T_device, 0);
 
-        mcam2dev_Transform = new float[16];
-        Matrix.setIdentityM(mcam2dev_Transform, 0);
-        Matrix.multiplyMM(mcam2dev_Transform, 0, IMU2dev, 0, cam2IMU, 0);
+        device_T_depth = new float[16];
+        Matrix.setIdentityM(device_T_depth, 0);
+        Matrix.multiplyMM(device_T_depth, 0, device_T_imu, 0, imu_T_depth, 0);
+
+        mDepthCameraIntrinsics = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+
+        /*TangoCameraIntrinsics depth = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_DEPTH);
+
+        Log.e("depth", "");
+        Log.e("", String.valueOf(depth.width));
+        Log.e("",String.valueOf(depth.height));
+
+        TangoCameraIntrinsics color = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+        Log.e("color", "");
+        Log.e("",String.valueOf(color.width));
+        Log.e("",String.valueOf(color.height));
+
+        TangoCameraIntrinsics rgbir = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_RGBIR);
+        Log.e("rgbir", "");
+        Log.e("",String.valueOf(rgbir.width));
+        Log.e("",String.valueOf(rgbir.height));*/
+
+
     }
 
     public static double round(double value, int places) {
@@ -616,14 +629,14 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
                                 if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
                                     if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
 
-                                        SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz(xyzIj.xyz), mPclFileCounter);
+                                        /*SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz(xyzIj.xyz), mPclFileCounter, true);
 
                                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                                             sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                         } else {
                                             sPCLt.execute();
                                         }
-                                        mPclFileCounter++;
+                                        mPclFileCounter++;*/
 
                                     }
                                 }
@@ -639,12 +652,18 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
                             if (pointCloudPose.statusCode == TangoPoseData.POSE_VALID) {
                                 if (mRecordPCL && mStoreEachThirdPCL % CAPTURE_EVERY_N == 0) {
 
-                                    SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz(xyzIj.xyz), mPclFileCounter);
+                                    //SavePointCloudTask sPCLt = new SavePointCloudTask(transformPose(pointCloudPose), copyXyz2(xyzIj.xyz), (int) (mCurrentTimeStamp*1000));
+                                    //SavePointCloudTask sPCLt = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz(xyzIj.xyz), (int) (mCurrentTimeStamp*1000), true);
+                                    //SavePointCloudTask sPCLt2 = new SavePointCloudTask(pointCloudPose.getTranslationAsFloats(), pointCloudPose.getRotationAsFloats(), copyXyz2(xyzIj.xyz), (int) (mCurrentTimeStamp*1000), false);
+
+                                    SaveDepthImageTask saveDepthImageTask = new SaveDepthImageTask(transformPose(pointCloudPose), copyXyz2(xyzIj.xyz), mDepthCameraIntrinsics, (int) (mCurrentTimeStamp*1000));
 
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                        sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                        //sPCLt.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                                        saveDepthImageTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
                                     } else {
-                                        sPCLt.execute();
+                                        //sPCLt.execute();
+                                        saveDepthImageTask.execute();
                                     }
 
                                     mPclFileCounter++;
@@ -699,10 +718,154 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
                 // We are not using onFrameAvailable for this application.
                 if (cameraId == TangoCameraIntrinsics.TANGO_CAMERA_COLOR) {
                     mCameraView.onFrameAvailable();
-                    TangoCameraIntrinsics i = mTango.getCameraIntrinsics(TangoCameraIntrinsics.TANGO_CAMERA_COLOR);
+                    Bitmap bitmap = mCameraView.getDrawingCache();
+                    double timestamp = mCameraView.getTimestamp() * 1000;
+
+                    synchronized (imageLock) {
+
+
+                    }
                 }
             }
         });
+    }
+
+    private float[] transformPose(TangoPoseData pose_start_service_T_device) {
+        float[] rotation_start_service_T_device = pose_start_service_T_device.getRotationAsFloats();
+        float[] translation_start_service_T_device = pose_start_service_T_device.getTranslationAsFloats();
+
+        float[] start_service_T_device = new float[16];
+        Matrix.setIdentityM(start_service_T_device, 0);
+        start_service_T_device = ModelMatCalculator.quaternionMatrixOpenGL(rotation_start_service_T_device);
+        start_service_T_device[12] += translation_start_service_T_device[0];
+        start_service_T_device[13] += translation_start_service_T_device[1];
+        start_service_T_device[14] += translation_start_service_T_device[2];
+
+        float[] start_service_T_depth = new float[16];
+        Matrix.setIdentityM(start_service_T_depth, 0);
+        Matrix.multiplyMM(start_service_T_depth, 0, start_service_T_device, 0, device_T_depth, 0);
+
+        float tr = start_service_T_depth[0] + start_service_T_depth[5] + start_service_T_depth[10];
+
+        float qw, qx, qy, qz;
+
+        if (tr > 0) {
+            float s = (float) Math.sqrt(1 + tr) * 2;
+            qw = (float) (0.25 * s);
+            qx = (start_service_T_depth[6] - start_service_T_depth[9]) / s;
+            qy = (start_service_T_depth[8] - start_service_T_depth[2]) / s;
+            qz = (start_service_T_depth[1] - start_service_T_depth[4]) / s;
+
+        // check which of the diagonal entries is the largest and use it for calculation
+        // Qxx is largest
+        } else if (start_service_T_depth[0] > start_service_T_depth[5] &&
+                start_service_T_depth[0] > start_service_T_depth[10]){
+            Log.e("TSXX", String.valueOf(start_service_T_device[0]));
+            float s = (float) Math.sqrt(1 + start_service_T_depth[0] -
+                    start_service_T_depth[5] - start_service_T_depth[10]) * 2;
+            qw = (start_service_T_depth[6] - start_service_T_depth[9]) / s;
+            qx = (float) (0.25 * s);
+            qy = (start_service_T_depth[4] + start_service_T_depth[1]) / s;
+            qz = (start_service_T_depth[8] + start_service_T_depth[2]) / s;
+
+        }
+        // Qyy is largest
+        else if (start_service_T_depth[5] > start_service_T_depth[10]){
+            Log.e("TSYY", String.valueOf(start_service_T_device[5]));
+            float s = (float) Math.sqrt(1 + start_service_T_depth[5] -
+                    start_service_T_depth[0] - start_service_T_depth[10]) * 2;
+            qw = (start_service_T_depth[8] - start_service_T_depth[2]) / s;
+            qx = (start_service_T_depth[4] + start_service_T_depth[1]) / s;
+            qy = (float) (0.25 * s);
+            qz = (start_service_T_depth[9] + start_service_T_depth[6]) / s;
+        }
+        // Qzz is largest
+        else {
+            Log.e("TSZZ", String.valueOf(start_service_T_device[10]));
+            float s = (float) Math.sqrt(1 + start_service_T_depth[10] -
+                    start_service_T_depth[0] - start_service_T_depth[5]) * 2;
+            qw = (start_service_T_depth[1] - start_service_T_depth[4]) * s;
+            qx = (start_service_T_depth[8] + start_service_T_depth[2]) * s;
+            qy = (start_service_T_depth[9] + start_service_T_depth[6]) * s;
+            qz = (float) (0.25 * s);
+        }
+
+        // SS_T_DEVICE for testing
+
+
+       /* float[] depth_T_device = new float[16];
+        Matrix.setIdentityM(depth_T_device, 0);
+        Matrix.invertM(depth_T_device, 0, device_T_depth, 0);
+
+        float[] start_service_T_device_test = new float[16];
+        Matrix.setIdentityM(start_service_T_device_test, 0);
+        Matrix.multiplyMM(start_service_T_device_test, 0, start_service_T_depth, 0, depth_T_device, 0);
+
+
+        tr = start_service_T_device_test[0] + start_service_T_device_test[5] + start_service_T_device_test[10];
+        if (tr > 0) {
+            Log.e("TB", String.valueOf(tr));
+            float s = (float) Math.sqrt(1 + tr) * 2;
+            qw = (float) (0.25 * s);
+            qx = (start_service_T_device_test[6] - start_service_T_device_test[9]) / s;
+            qy = (start_service_T_device_test[8] - start_service_T_device_test[2]) / s;
+            qz = (start_service_T_device_test[1] - start_service_T_device_test[4]) / s;
+
+            // check which of the diagonal entries is the largest and use it for calculation
+            // Qxx is largest
+        } else if (start_service_T_device_test[0] > start_service_T_device_test[5] &&
+                start_service_T_device_test[0] > start_service_T_device_test[10]){
+            Log.e("TS", String.valueOf(start_service_T_device_test[0]));
+            float s = (float) Math.sqrt(1 + start_service_T_device_test[0] -
+                    start_service_T_device_test[5] - start_service_T_device_test[10]) * 2;
+            qw = (start_service_T_device_test[6] - start_service_T_device_test[9]) / s;
+            qx = (float) (0.25 * s);
+            qy = (start_service_T_device_test[4] + start_service_T_device_test[1]) / s;
+            qz = (start_service_T_device_test[8] + start_service_T_device_test[2]) / s;
+
+        }
+        // Qyy is largest
+        else if (start_service_T_device_test[5] > start_service_T_device_test[10]){
+            Log.e("TS", String.valueOf(start_service_T_device_test[5]));
+            float s = (float) Math.sqrt(1 + start_service_T_device_test[5] -
+                    start_service_T_device_test[0] - start_service_T_device_test[10]) * 2;
+            qw = (start_service_T_device_test[8] - start_service_T_device_test[2]) / s;
+            qx = (start_service_T_device_test[4] + start_service_T_device_test[1]) / s;
+            qy = (float) (0.25 * s);
+            qz = (start_service_T_device_test[9] + start_service_T_device_test[6]) / s;
+        }
+        // Qzz is largest
+        else {
+            Log.e("TS", String.valueOf(start_service_T_device_test[10]));
+            float s = (float) Math.sqrt(1 + start_service_T_device_test[10] -
+                    start_service_T_device_test[0] - start_service_T_device_test[5]) * 2;
+            qw = (start_service_T_device_test[1] - start_service_T_device_test[4]) * s;
+            qx = (start_service_T_device_test[8] + start_service_T_device_test[2]) * s;
+            qy = (start_service_T_device_test[9] + start_service_T_device_test[6]) * s;
+            qz = (float) (0.25 * s);
+        }
+
+        Log.e("START2DEVICETEST", "Rotation");
+        Log.e("QW", String.valueOf(qw));
+        Log.e("QX", String.valueOf(qx));
+        Log.e("QY", String.valueOf(qy));
+        Log.e("QZ", String.valueOf(qz));
+
+        Log.e("START2DEVICETEST", "Translation");
+        Log.e("TX", String.valueOf(start_service_T_device_test[12]));
+        Log.e("TY", String.valueOf(start_service_T_device_test[13]));
+        Log.e("TZ", String.valueOf(start_service_T_device_test[14]));*/
+
+        float[] quaternion = new float[7];
+        quaternion[0] = start_service_T_depth[12]; //tx
+        quaternion[1] = start_service_T_depth[13]; //ty
+        quaternion[2] = start_service_T_depth[14]; //tz
+        quaternion[3] = qw; //rw
+        quaternion[4] = qx; //rx
+        quaternion[5] = qy; //ry
+        quaternion[6] = qz; //rz
+
+        return quaternion;
     }
 
     private float[] copyXyz(FloatBuffer xyz) {
@@ -718,11 +881,42 @@ public class PointCloudActivity extends BaseActivity implements View.OnClickList
             point[2] = xyz.get(i+2);
             point[3] = 1;
 
-            Matrix.multiplyMV(transformedPoint, 0, mcam2dev_Transform, 0, point, 0);
+            Matrix.multiplyMV(transformedPoint, 0, device_T_depth, 0, point, 0);
 
             newValues[i] = transformedPoint[0];
             newValues[i+1] = transformedPoint[1];
             newValues[i+2] = transformedPoint[2];
+
+            /*newValues[i] = point[0];
+            newValues[i+1] = point[1];
+            newValues[i+2] = point[2];*/
+        }
+
+        return newValues;
+    }
+
+    private float[] copyXyz2(FloatBuffer xyz) {
+        float[] newValues = new float[xyz.capacity()];
+
+        float[] transformedPoint = new float[4];
+        float[] point = new float[4];
+
+        for (int i = 0; i < xyz.capacity() - 3; i = i + 3)
+        {
+            point[0] = xyz.get(i);
+            point[1] = xyz.get(i+1);
+            point[2] = xyz.get(i+2);
+            point[3] = 1;
+
+            /*Matrix.multiplyMV(transformedPoint, 0, mcam2dev_Transform, 0, point, 0);
+
+            newValues[i] = transformedPoint[0];
+            newValues[i+1] = transformedPoint[1];
+            newValues[i+2] = transformedPoint[2];*/
+
+            newValues[i] = point[0];
+            newValues[i+1] = point[1];
+            newValues[i+2] = point[2];
         }
 
         return newValues;

@@ -27,20 +27,17 @@ import java.util.concurrent.TimeUnit;
 class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
 
     float[] mXyzIj;
-    int mPclFileCounter;
-    float[] mRotation;
-    float[] mTranslation;
+    int mTimestamp;
+    float[] mQuaternion;
 
     BufferedWriter mPointCloudFile_ascii;
 
-    public SavePointCloudTask(float[] translation, float[] rotation, float[] xyzIj, int pclFileCounter) {
+    public SavePointCloudTask(float[] quaternion, float[] xyzIj, int timestamp) {
         Log.e("SendCommandTask", "created");
         mXyzIj = xyzIj;
-        mPclFileCounter = pclFileCounter;
-        mRotation = rotation;
-        mTranslation = translation;
+        mTimestamp = timestamp;
+        mQuaternion = quaternion;
     }
-
     /* Checks if external storage is available for read and write */
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
@@ -81,10 +78,14 @@ class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
         return dateFormat.format(date);
     }
 
-    @Override
+    /*@Override
     protected Boolean doInBackground(Void... params) {
-
-        String filename = "pcd-" + timeAsString() + "-" + Integer.toString(mPclFileCounter) + "-ascii.PCD";
+        String filename;
+        if(mWithTranslation) {
+            filename = "pcd-" + Integer.toString(mTimestamp) + "-ascii.PCD";
+        } else {
+            filename = "pcd2-" + Integer.toString(mTimestamp) + "-ascii.PCD";
+        }
         try {
             mPointCloudFile_ascii = new BufferedWriter(new FileWriter(new File(getDir(), filename)));
         } catch (IOException e) {
@@ -113,13 +114,80 @@ class SavePointCloudTask extends AsyncTask<Void, Void, Boolean> {
             // write point cloud data into pcd file in ascii format
             mPointCloudFile_ascii.write(header_ascii);
 
+            if (mWithTranslation) {
+                for (int i = 0; i <= mXyzIj.length - 3; i = i + 3) {
+                    // x = x
+                    mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i]) + " ");
+                    // y = -y
+                    mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 1]) + " ");
+                    // z = -z
+                    mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 2]) + "\n");
+                }
+            } else {
+                for (int i = 0; i <= mXyzIj.length - 3; i = i + 3) {
+                    // x = x
+                    mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i]) + " ");
+                    // y = -y
+                    mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 1]*-1) + " ");
+                    // z = -z
+                    mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 2]*-1) + "\n");
+                }
+            }
+
+            mPointCloudFile_ascii.close();
+
+            Date stopDate = new Date();
+            long difference = stopDate.getTime() - startDate.getTime();
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(difference);
+            Log.e("PointCloudStorage", "stop writing file '"+filename+"' local ("+ difference+"ms)");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
+    }*/
+
+    @Override
+    protected Boolean doInBackground(Void... params) {
+
+        String filename = "pcd-" + Integer.toString(mTimestamp) + "-ascii.PCD";
+
+        try {
+            mPointCloudFile_ascii = new BufferedWriter(new FileWriter(new File(getDir(), filename)));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Date startDate = new Date();
+        Log.e("PointCloudStorage", "start writing file '"+filename+"' local");
+        // pcl: translation x,y,z rotation w,x,y,z
+        // tango: translation x,y,z rotation x,y,z,w
+        String header = "VERSION .7\nFIELDS x y z\nSIZE 4 4 4\nTYPE F F F\nCOUNT 1 1 1\n" +
+                "WIDTH " + mXyzIj.length/3 + "\n" + "HEIGHT 1\nVIEWPOINT ";
+
+        header += String.valueOf(mQuaternion[0]) + " " + //tx
+                String.valueOf(mQuaternion[1]) + " " + //ty
+                String.valueOf(mQuaternion[2]) + " " + //tz
+                String.valueOf(mQuaternion[3]) + " " + //rw
+                String.valueOf(mQuaternion[4]) + " " + //rx
+                String.valueOf(mQuaternion[5]) + " " + //ry
+                String.valueOf(mQuaternion[6]); //rz
+
+        String header_ascii = header;
+        header_ascii += "\nPOINTS " + mXyzIj.length/3 +"\nDATA ascii\n";
+
+        try{
+            // write point cloud data into pcd file in ascii format
+            mPointCloudFile_ascii.write(header_ascii);
+
             for (int i = 0; i <= mXyzIj.length - 3; i = i + 3) {
-                // x = x
+                // x
                 mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i]) + " ");
-                // y = -y
-                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 1] * -1) + " ");
-                // z = -z
-                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 2] * -1) + "\n");
+                // y
+                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 1]) + " ");
+                // z
+                mPointCloudFile_ascii.write(String.valueOf(mXyzIj[i + 2]) + "\n");
             }
 
             mPointCloudFile_ascii.close();
