@@ -1,4 +1,4 @@
-# RGB Point Cloud Builder
+# RGBPointCloudBuilder
 
 This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-c
 
@@ -17,7 +17,7 @@ This project is based on the samples from the Google Tango API. You can find it 
 
 # SocketCommunication
 
-Is used for sending binary rgb PCD data of via socket
+Is used for sending binary rgb PCD data of via socket in RGBPointCloudBuilder application
 usage: ./socket port
 
 # Cloud2Mesh
