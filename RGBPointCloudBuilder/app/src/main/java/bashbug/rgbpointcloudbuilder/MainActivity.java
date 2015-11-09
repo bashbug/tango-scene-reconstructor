@@ -17,6 +17,7 @@
 package bashbug.rgbpointcloudbuilder;
 
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -24,8 +25,13 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.StrictMode;
 import android.util.Log;
 import android.view.Display;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -34,6 +40,8 @@ import android.widget.CompoundButton;
 import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
+
+import java.io.File;
 
 /**
  * Activity that load up the main screen of the app, this is the launcher activity.
@@ -60,11 +68,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private GLSurfaceView mGLView;
 
     private SeekBar mDepthOverlaySeekbar;
-    private CheckBox mdebugOverlayCheckbox;
-    private CheckBox mGPUUpsampleCheckbox;
+    private CheckBox mRGBMapCheckbox;
+    private CheckBox mDepthMapCheckbox;
 
-    private Switch mRecordPCLSwitch;
+    private Switch mSendPCDwitch;
+    private Switch mSavePCDwitch;
     private Button mSaveImage;
+
+    File mFileDirectionPCD, mFileDirectionPPM;
 
     private boolean mIsConnectedService = false;
 
@@ -87,7 +98,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private class DebugOverlayCheckboxListener implements CheckBox.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if (buttonView == mdebugOverlayCheckbox) {
+            if (buttonView == mRGBMapCheckbox) {
                 if (isChecked) {
                     float progress = mDepthOverlaySeekbar.getProgress();
                     float max = mDepthOverlaySeekbar.getMax();
@@ -104,13 +115,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private class GPUUpsampleListener implements CheckBox.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            JNIInterface.setGPUUpsample(isChecked);
+            JNIInterface.setDepthMap(isChecked);
         }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
 
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
@@ -136,11 +150,27 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mDepthOverlaySeekbar.setOnSeekBarChangeListener(new DepthOverlaySeekbarListener());
         mDepthOverlaySeekbar.setVisibility(View.GONE);
         
-        mdebugOverlayCheckbox = (CheckBox) findViewById(R.id.debug_overlay_checkbox);
-        mdebugOverlayCheckbox.setOnCheckedChangeListener(new DebugOverlayCheckboxListener());
+        mRGBMapCheckbox = (CheckBox) findViewById(R.id.rgb_map_checkbox);
+        mRGBMapCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+            if (isChecked) {
+                mDepthMapCheckbox.setChecked(false);
+                JNIInterface.setDepthMap(false);
+            }
+            JNIInterface.setRGBMap(isChecked);
+            }
+        });
 
-        mGPUUpsampleCheckbox = (CheckBox) findViewById(R.id.gpu_upsample_checkbox);
-        mGPUUpsampleCheckbox.setOnCheckedChangeListener(new GPUUpsampleListener());
+        mDepthMapCheckbox = (CheckBox) findViewById(R.id.depth_map_checkbox);
+        mDepthMapCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+            if (isChecked) {
+                mRGBMapCheckbox.setChecked(false);
+                JNIInterface.setRGBMap(false);
+            }
+            JNIInterface.setDepthMap(isChecked);
+            }
+        });
 
         // OpenGL view where all of the graphics are drawn
         mGLView = (GLSurfaceView) findViewById(R.id.gl_surface_view);
@@ -150,18 +180,72 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mRenderer = new GLSurfaceRenderer(this);
         mGLView.setRenderer(mRenderer);
 
-        // Store pcl to file buttons
-        mRecordPCLSwitch = (Switch) findViewById(R.id.record_pcl_switch);
-        mRecordPCLSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+
+        // Send pcl to file buttons
+        mSendPCDwitch = (Switch) findViewById(R.id.send_pcl_switch);
+        mSendPCDwitch.setEnabled(false);
+        mSendPCDwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                JNIInterface.setPointCloudRecord(isChecked);
+                JNIInterface.setPCDSend(isChecked);
+            }
+        });
+
+        // Save pcl to file buttons
+        mSavePCDwitch = (Switch) findViewById(R.id.save_pcl_switch);
+        mSavePCDwitch.setActivated(false);
+        mSavePCDwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                JNIInterface.setPCDSave(isChecked);
             }
         });
 
         mSaveImage = (Button) findViewById(R.id.save_image);
         mSaveImage.setOnClickListener(this);
+
+        // Make sure that the directories exists before saving files. Otherwise it will
+        // throw an exception
+        mFileDirectionPCD = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD");
+
+        mFileDirectionPPM = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PPM");
+
+        if(!mFileDirectionPCD.isDirectory()) {
+            mFileDirectionPCD.mkdirs();
+            Log.e(TAG, "RGBPointCloudBuilder/PCD Directory not exists");
+        }
+        if(!mFileDirectionPPM.isDirectory()) {
+            mFileDirectionPPM.mkdirs();
+            Log.e(TAG, "RGBPointCloudBuilder/PPM Directory not exists");
+        }
+        if (!mFileDirectionPCD.isDirectory()) {
+            Log.e(TAG, "RGBPointCloudBuilder/PPM Directory not created");
+        }
+        if (!mFileDirectionPPM.isDirectory()) {
+            Log.e(TAG, "RGBPointCloudBuilder/PPM Directory not created");
+        }
     }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.ic_file_upload:
+                showSetServerSocketAddresssAndIPDialog();
+                return true;
+
+            default:
+                // If we got here, the user's action was not recognized.
+                // Invoke the superclass to handle it.
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void onClick(View v) {
@@ -273,5 +357,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // After the permission activity is dismissed, we will receive a callback
         // function onActivityResult() with user's result.
         startActivityForResult(intent, 0);
+    }
+
+    private void showSetServerSocketAddresssAndIPDialog() {
+        FragmentManager manager = getFragmentManager();
+        SetServerSocketAddressAndIPDialog setServerSocketAddressAndIPDialog = new SetServerSocketAddressAndIPDialog();
+        setServerSocketAddressAndIPDialog.show(manager, "SocketAddIPDialog");
+    }
+
+    public void setmSendPCDwitch(boolean on) {
+        mSendPCDwitch.setEnabled(on);
     }
 }

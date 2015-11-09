@@ -115,6 +115,7 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/color_image.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/depth_image.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/util.h \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/thread \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/mutex
 
@@ -347,6 +348,8 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/depth_image.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/util.h:
 
 /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/thread:
 

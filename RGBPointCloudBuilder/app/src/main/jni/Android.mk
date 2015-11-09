@@ -32,7 +32,9 @@ LOCAL_SRC_FILES := camera_texture_drawable.cc \
                    color_image.cc \
                    depth_image.cc \
                    jni_interface.cc \
+                   point_cloud_data.cc \
                    rgb_depth_sync_application.cc \
+                   tcp_client.cc \
                    scene.cc \
                    util.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/bounding_box.cpp \

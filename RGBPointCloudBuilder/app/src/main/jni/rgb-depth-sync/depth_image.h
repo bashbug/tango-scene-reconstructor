@@ -19,6 +19,7 @@
 
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
+#include <rgb-depth-sync/util.h>
 #include <thread>
 #include <mutex>
 namespace rgb_depth_sync {
@@ -29,6 +30,16 @@ class DepthImage {
  public:
   explicit DepthImage();
   ~DepthImage();
+
+  std::string socket_addr_;
+  int socket_port_;
+
+  void RenderRGBPointCloud(
+      glm::mat4 &color_t1_T_depth_t0,
+      glm::mat4 &start_service_T_color_t1,
+      const std::vector <float> render_point_cloud_buffer,
+      const std::vector <uint32_t> render_rgb_image_buffer,
+      double timestamp, bool savePCDtoFile, bool sendPCDviaSocket);
 
   // Update the depth texture with current transformation and current depth map.
   // @param  color_t1_T_depth_t0: The transformation between the color camera frame on timestamp i
@@ -41,32 +52,10 @@ class DepthImage {
   //
   // @param render_point_cloud_buffer: This contains the latest point cloud data
   // that gets projected on to the image plane and fills up the depth_map_buffer
-  void UpdateAndUpsampleDepth(
+  void RenderRGBMap(
       glm::mat4& color_t1_T_depth_t0,
-      glm::mat4& start_service_T_color_t1,
       const std::vector<float> render_point_cloud_buffer,
-      const std::vector<uint32_t> render_rgb_image_buffer,
-      double timestamp, bool store_point_clouds);
-
-  float ConvertINTtoFLOAT(uint32_t significand);
-  std::string intToString(int value);
-  std::string floatToString(float value);
-  std::string timestampToString(double value);
-
-  int count = 0;
-
-  void SaveUnorderedPointCloud(const std::vector<float> point_cloud,
-                                          const glm::vec3 translation,
-                                          const glm::quat rotation, const double timestamp);
-
-  void SaveOrderedPointCloud(const std::vector<float> point_cloud,
-                                           const glm::vec3 translation,
-                                           const glm::quat rotation,
-                                           int width, int height,
-                                           const double timestamp);
-
-  glm::vec3 GetTranslationFromMatrix(const glm::mat4 transformation);
-  glm::quat GetRotationFromMatrix(const glm::mat4 transformation);
+      const std::vector<uint8_t> rgb_buffer);
 
   // Update the depth texture by direct rendering.
   // @param  color_t1_T_depth_t0: The transformation between the color camera frame on timestamp i
@@ -82,7 +71,7 @@ class DepthImage {
   //
   // @param new_points Indicates if the point data has been updated and needs to
   // be uploaded to the GPU.
-  void RenderDepthToTexture(glm::mat4& color_t1_T_depth_t0,
+  void RenderDepthMap(glm::mat4& color_t1_T_depth_t0,
                             const std::vector<float>& render_point_cloud_buffer,
                             bool new_points);
 
@@ -100,7 +89,9 @@ class DepthImage {
   // was bound.
   bool CreateOrBindGPUTexture();
 
-  // Initialize the OpenGL structures needed for the CPU texture generation.
+  float RGBIntToFloat(uint8_t val);
+
+    // Initialize the OpenGL structures needed for the CPU texture generation.
   // Returns true if the texture was created and false if an existing texture
   // was bound.
   bool CreateOrBindCPUTexture();
@@ -120,20 +111,26 @@ class DepthImage {
   //
   // @param grayscale_buffer: The image buffer in which upsampling needs to be
   // done.
-  void UpSampleDepthAroundPoint(float rgb_value, uint8_t color_value, float depth_value,
-                                int pixel_x, int pixel_y,
-                                std::vector<float>* rgb_display_buffer,
-                                std::vector<uint8_t>* grayscale_buffer,
+
+  void UpSampleRGBAroundPoint(uint8_t r, uint8_t g, uint8_t b, float depth_value, int pixel_x,
+                              int pixel_y, std::vector<float>* rgb_display_buffer,
+                              std::vector<float>* depth_map_buffer);
+
+  void UpSampleDepthAroundPoint(uint8_t grayscale_value, float depth_value, int pixel_x,
+                                int pixel_y, std::vector<uint8_t>* grayscale_buffer,
                                 std::vector<float>* depth_map_buffer);
 
   // The defined max distance for a depth value.
-  static const int kMaxDepthDistance = 4000;
+  static const int kMaxDepthDistance = 6000;
 
   // The meter to millimeter conversion.
   static const int kMeterToMillimeter = 1000;
 
   // Window size for splatter upsample
-  static const int kWindowSize = 2;
+  static const int kWindowSize = 7;
+
+  // Counter of available point clouds. Store only each third point cloud.
+  int count = 0;
 
   // The depth texture id. This is used for other rendering class to
   // render, in this class, we only write value to this texture via
@@ -149,6 +146,7 @@ class DepthImage {
   std::vector<float> depth_map_buffer_;
   std::vector<float> depth_display_buffer_;
   std::vector<float> rgb_display_buffer_;
+  std::vector<float> rgb_pcd_buffer_;
 
   // Color map buffer is for the texture render purpose, this value is written
   // to the texture id buffer, and display as GL_LUMINANCE value.
@@ -168,6 +166,9 @@ class DepthImage {
   GLuint vertex_buffer_handle_;
   GLuint vertices_handle_;
   GLuint mvp_handle_;
+
+  bool store_ordered_point_cloud_ = false;
+  bool store_unordered_point_cloud_ = false;
 
   std::mutex point_cloud_mutex_;
 

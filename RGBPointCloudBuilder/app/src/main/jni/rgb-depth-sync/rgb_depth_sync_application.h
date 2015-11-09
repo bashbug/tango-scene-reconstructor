@@ -56,9 +56,11 @@ class SynchronizationApplication {
   // The activity object is used for checking if the API version is outdated
   int TangoInitialize(JNIEnv* env, jobject caller_activity);
 
-  int TangoSetPointCloudRecord(bool isChecked);
+  int TangoSetPCDSave(bool isChecked);
 
-  int TangoStoreImage(bool store);
+ int TangoSetPCDSend(bool isChecked);
+
+ int TangoStoreImage(bool store);
 
   // Setup the configuration file for the Tango Service. .
   int TangoSetupConfig();
@@ -100,9 +102,13 @@ class SynchronizationApplication {
   void SetDepthAlphaValue(float alpha);
 
   // Set whether to use GPU or CPU upsampling
-  void SetGPUUpsample(bool on);
+  void SetDepthMap(bool on);
 
-  // Callback for image data that come in from the Tango service.
+  void SetRGBMap(bool on);
+
+  void SetSocket(std::string addr, int port);
+
+ // Callback for image data that come in from the Tango service.
   //
   // @param buffer The image data returned by the service.
   //
@@ -180,16 +186,14 @@ class SynchronizationApplication {
   // accordingly.
   bool swap_point_cloud_buffer_signal_;
 
-  bool gpu_upsample_;
+  bool depth_map_;
+  bool rgb_map_;
+  bool image_;
 
   std::vector<uint8_t> yuv_buffer_;
   std::vector<uint8_t> yuv_buffer_tmp_;
-  std::vector<uint8_t> rgb_buffer_;
-  std::vector<uint32_t> rgb_image_buffer_;
-  std::vector<uint32_t> rgb_image_buffer_tmp_;
-  std::vector<uint32_t> shared_rgb_image_buffer_;
-  std::vector<uint32_t> callback_rgb_image_buffer_;
-  std::vector<uint32_t> render_rgb_image_buffer_;
+  std::vector<uint8_t> rgb_map_buffer_;
+  std::vector<uint32_t> rgb_pcd_buffer_;
 
   bool swap_rgb_buffer_signal_;
   bool swap_yuv_buffer_signal_;
@@ -206,8 +210,9 @@ class SynchronizationApplication {
   size_t yuv_size_;
   size_t uv_buffer_offset_;
 
-  bool store_point_clouds_ = false;
-  bool store_image_ = false;
+  bool store_point_clouds_;
+  bool store_image_;
+  bool send_point_clouds_;
 
 };
 }  // namespace rgb_depth_sync

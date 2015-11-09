@@ -11,28 +11,53 @@ public final class R {
     public static final class attr {
     }
     public static final class dimen {
-        public static final int activity_horizontal_margin=0x7f040000;
-        public static final int activity_vertical_margin=0x7f040001;
+        public static final int activity_horizontal_margin=0x7f050000;
+        public static final int activity_vertical_margin=0x7f050001;
+    }
+    public static final class drawable {
+        public static final int ic_description=0x7f020000;
+        public static final int ic_file_upload=0x7f020001;
+        public static final int ic_menu=0x7f020002;
     }
     public static final class id {
-        public static final int debug_overlay_checkbox=0x7f070005;
-        public static final int depth_overlay_alpha_seekbar=0x7f070001;
-        public static final int gl_surface_view=0x7f070000;
-        public static final int gpu_upsample_checkbox=0x7f070004;
-        public static final int record_pcl_switch=0x7f070002;
-        public static final int save_image=0x7f070003;
+        public static final int Button_Cancel=0x7f090008;
+        public static final int Button_Connect=0x7f09000d;
+        public static final int RelativeLayout1=0x7f090007;
+        public static final int depth_map_checkbox=0x7f090005;
+        public static final int depth_overlay_alpha_seekbar=0x7f090001;
+        public static final int destAddress=0x7f09000a;
+        public static final int destPort=0x7f090009;
+        public static final int gl_surface_view=0x7f090000;
+        public static final int ic_description=0x7f09000e;
+        public static final int ic_file_upload=0x7f09000f;
+        public static final int name=0x7f09000c;
+        public static final int rgb_map_checkbox=0x7f090006;
+        public static final int save_image=0x7f090002;
+        public static final int save_pcl_switch=0x7f090003;
+        public static final int send_pcl_switch=0x7f090004;
+        public static final int uuidDisplay=0x7f09000b;
     }
     public static final class layout {
-        public static final int activity_main=0x7f030000;
+        public static final int activity_main=0x7f040000;
+        public static final int set_server_socket_address_and_ip_dialog=0x7f040001;
+    }
+    public static final class menu {
+        public static final int main=0x7f080000;
     }
     public static final class mipmap {
-        public static final int ic_launcher=0x7f020000;
+        public static final int ic_launcher=0x7f030000;
     }
     public static final class string {
-        public static final int app_name=0x7f050000;
-        public static final int save_image=0x7f050001;
+        public static final int address=0x7f060000;
+        public static final int app_name=0x7f060001;
+        public static final int cancel=0x7f060002;
+        public static final int connect=0x7f060003;
+        public static final int ok=0x7f060004;
+        public static final int port=0x7f060005;
+        public static final int save_image=0x7f060006;
+        public static final int set_socket_dialogTitle=0x7f060007;
     }
     public static final class style {
-        public static final int AppTheme=0x7f060000;
+        public static final int AppTheme=0x7f070000;
     }
 }

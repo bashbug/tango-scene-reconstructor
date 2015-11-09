@@ -6,8 +6,14 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/values/strings.xml -->
     <eat-comment/>
+    <string name="address">Destination address</string>
     <string name="app_name">RGB Point Cloud Builder</string>
+    <string name="cancel">Cancel</string>
+    <string name="connect">Connect</string>
+    <string name="ok">OK</string>
+    <string name="port">Destination port</string>
     <string name="save_image">Save Image</string>
+    <string name="set_socket_dialogTitle">Set the Server attributes</string>
     <!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/values/styles.xml -->
     <eat-comment/>
     <style name="AppTheme" parent="android:Theme.Holo.Light">

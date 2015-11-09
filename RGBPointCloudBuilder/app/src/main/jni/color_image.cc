@@ -19,18 +19,11 @@
 namespace rgb_depth_sync {
 
 ColorImage::ColorImage() {
-  // bind an android view to texture
   glGenTextures(1, &texture_id_);
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_id_);
   glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
-  // bind to frame buffer
-  glGenFramebuffers(1, &fbo_handle_);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                         GL_TEXTURE_EXTERNAL_OES,
-                         texture_id_, 0);
-  LOGE("glFramebufferTexture2D() returned error %d", glGetError());
 }
 
 ColorImage::~ColorImage() { glDeleteTextures(1, &texture_id_); }

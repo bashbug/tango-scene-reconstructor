@@ -31,6 +31,15 @@
 
 namespace rgb_depth_sync {
 
+  inline void clamp(uint8_t* num) {
+    if (*num < 0) {
+      *num = 0;
+    }
+    if (*num > 255) {
+      *num = 255;
+    }
+  }
+
 // We could do this conversion in a fragment shader if all we care about is
 // rendering, but we show it here as an example of how people can use RGB data
 // on the CPU.
@@ -40,26 +49,9 @@ void SynchronizationApplication::Yuv2Rgb(uint8_t yValue, uint8_t uValue, uint8_t
   *g = yValue - (0.698001f * (vValue - 128.0f)) - (0.337633f * (uValue - 128.0f));
   *b = yValue + (1.732446f * (uValue - 128.0f));
 
-  if(*r < 0) {
-    *r = 0;
-  }
-  if(*r > 255) {
-    *r = 255;
-  }
-
-  if(*g < 0) {
-    *g = 0;
-  }
-  if(*g > 255) {
-    *g = 255;
-  }
-
-  if(*b < 0) {
-    *b = 0;
-  }
-  if(*b > 255) {
-    *b = 255;
-  }
+  clamp(&(*r));
+  clamp(&(*g));
+  clamp(&(*b));
 
   *rgb = ((uint32_t) (*r)) << 16 | ((uint32_t) (*g)) << 8 | (uint32_t) (*b);
 }
@@ -73,80 +65,6 @@ void SynchronizationApplication::WriteByteToPPM(const char* filename, std::vecto
     fwrite(&rgb_bytebuffer[0], rgb_bytebuffer.size(), sizeof(uint8_t), file);
     fclose(file);
 };
-
-void SynchronizationApplication::WriteByteArrayToBitmap(char* filename, std::vector<uint8_t> rgb_bytebuffer, size_t width, size_t height) {
-
-    /*size_t padding = 4 - ((width * 3) % 4);
-    if (padding == 4) {
-      padding = 0;
-    }
-
-    size_t bmp_file_size = ((width * 3) + padding) * height + 54; // 54 = header size
-
-    size_t bmp_file_header[3];
-    bmp_file_header[0] = bmp_file_size;
-    bmp_file_header[1] = 0; // reserved 2x2bytes
-    bmp_file_header[2] = 54; // start of raw rgb image data offset
-
-    size_t bmp_info_header[9];
-    bmp_info_header[0] = 40; // size of this header in bytes
-    bmp_info_header[1] = width; // witdh of image in pixel
-    bmp_info_header[2] = height; // height of image in pixel
-    bmp_info_header[3] = 0; // no compression
-    bmp_info_header[4] = bmp_file_size - 54; // size of raw image data without header
-    bmp_info_header[5] = 0; // the horizontal resolution of the image. (pixel per meter, signed integer)
-    bmp_info_header[6] = 0; // the vertical resolution of the image. (pixel per meter, signed integer)
-    bmp_info_header[7] = 0; // number of colors in the color palette. (0 default)
-    bmp_info_header[8] = 0; // number of important colors used, (default 0, every color is important)
-
-    FILE* file = fopen(filename, "wb");
-
-    // Write header
-    fprintf(file, "BM"); // header field used to identify the bmp
-
-    // write file header
-    for (int i = 0; i <= 4; i++) {
-        fprintf(file, "%c", bmp_file_header[i] & 0x000000FF); // 1. byte
-        fprintf(file, "%c", (bmp_file_header[i] & 0x0000FF00) >> 8); // 2. byte
-        fprintf(file, "%c", (bmp_file_header[i] & 0x00FF0000) >> 16); // 3. byte
-        fprintf(file, "%c", (bmp_file_header[i] & 0xFF000000) >> 24); // 4. byte
-    }
-
-    // write info header first part
-    for (int i = 0; i <= 1; i++) {
-        fprintf(file, "%c", bmp_info_header[i] & 0x000000FF); // 1. byte
-        fprintf(file, "%c", (bmp_info_header[i] & 0x0000FF00) >> 8); // 2. byte
-        fprintf(file, "%c", (bmp_info_header[i] & 0x00FF0000) >> 16); // 3. byte
-        fprintf(file, "%c", (bmp_info_header[i] & 0xFF000000) >> 24); // 4. byte
-    }
-
-    fprintf(file, "%c", 1); // color plane (1 default) 1 byte
-    fprintf(file, "%c", 0); // 1 byte
-    fprintf(file, "%c", 24); // 1 byte
-    fprintf(file, "%c", 0); // 1 byte
-
-    // write info header
-    for (int i = 0; i <= 1; i++) {
-        fprintf(file, "%c", bmp_info_header[i] & 0x000000FF); // 1. byte
-        fprintf(file, "%c", (bmp_info_header[i] & 0x0000FF00) >> 8); // 2. byte
-        fprintf(file, "%c", (bmp_info_header[i] & 0x00FF0000) >> 16); // 3. byte
-        fprintf(file, "%c", (bmp_info_header[i] & 0xFF000000) >> 24); // 4. byte
-    }*/
-
-    FILE* file = fopen(filename, "wb");
-
-    // write raw image data
-    for (int i = 0; i <= rgb_bytebuffer.size()-3; i = i+3) {
-        unsigned char red = rgb_bytebuffer.at(i);
-        unsigned char green = rgb_bytebuffer.at(i+1);
-        unsigned char blue = rgb_bytebuffer.at(i+2);
-        fprintf(file, "%c", red);
-        fprintf(file, "%c", green);
-        fprintf(file, "%c", blue);
-    }
-
-    fclose(file);
-}
 
 void OnFrameAvailableRouter(void* context, TangoCameraId,
                             const TangoImageBuffer* buffer) {
@@ -166,7 +84,7 @@ void SynchronizationApplication::OnFrameAvailable(const TangoImageBuffer* buffer
     // Reserve and resize the buffer size for RGB and YUV data.
     yuv_buffer_.resize(yuv_size_);
     yuv_buffer_tmp_.resize(yuv_size_);
-    rgb_buffer_.resize(yuv_width_ * yuv_height_ * 3);
+    rgb_map_buffer_.resize(yuv_width_ * yuv_height_ * 3);
 
     std::lock_guard<std::mutex> lock(yuv_buffer_mutex_);
     memcpy(&yuv_buffer_tmp_[0], buffer->data, yuv_size_);
@@ -202,9 +120,14 @@ void SynchronizationApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
 
   SynchronizationApplication::SynchronizationApplication() :
     swap_point_cloud_buffer_signal_(false),
-    gpu_upsample_(false),
+    depth_map_(false),
+    rgb_map_(false),
+    image_(true),
     swap_yuv_buffer_signal_(false),
-    swap_rgb_buffer_signal_(false) {
+    swap_rgb_buffer_signal_(false),
+    store_image_(false),
+    store_point_clouds_(false),
+    send_point_clouds_(false) {
   // We'll store the fixed transform between the opengl frame convention.
   // (Y-up, X-right) and tango frame convention. (Z-up, X-right).
   OW_T_SS_ = tango_gl::conversions::opengl_world_T_tango_world();
@@ -220,14 +143,19 @@ int SynchronizationApplication::TangoInitialize(JNIEnv* env,
   return TangoService_initialize(env, caller_activity);
 }
 
-int SynchronizationApplication::TangoSetPointCloudRecord(bool isChecked) {
-    store_point_clouds_ = isChecked;
-    return 1;
+int SynchronizationApplication::TangoSetPCDSave(bool isChecked) {
+  store_point_clouds_ = isChecked;
+  return 1;
+}
+
+int SynchronizationApplication::TangoSetPCDSend(bool isChecked) {
+  send_point_clouds_ = isChecked;
+  return 1;
 }
 
 int SynchronizationApplication::TangoStoreImage(bool store) {
-    store_image_ = store;
-    return 1;
+  store_image_ = store;
+  return 1;
 }
 
 int SynchronizationApplication::TangoSetupConfig() {
@@ -419,7 +347,6 @@ void SynchronizationApplication::SetViewPort(int width, int height) {
 }
 
 void SynchronizationApplication::Render() {
-
   double rgb_timestamp = 0.0;
   double color_timestamp = 0.0;
   double point_cloud_timestamp = 0.0;
@@ -514,8 +441,8 @@ void SynchronizationApplication::Render() {
 
   if(rgb_timestamp == color_timestamp) {
 
-        rgb_buffer_.resize(yuv_width_ * yuv_height_ * 3);
-        rgb_image_buffer_.resize(yuv_width_ * yuv_height_);
+        rgb_map_buffer_.resize(yuv_width_ * yuv_height_ * 3);
+        rgb_pcd_buffer_.resize(yuv_width_ * yuv_height_);
 
         for (size_t i = 0; i < yuv_height_; i++) {
             for (size_t j = 0; j < yuv_width_; j++) {
@@ -532,10 +459,10 @@ void SynchronizationApplication::Render() {
                 Yuv2Rgb(yuv_buffer_[i * yuv_width_ + j],
                         yuv_buffer_[uv_buffer_offset_ + (i / 2) * yuv_width_ + x_index + 1],
                         yuv_buffer_[uv_buffer_offset_ + (i / 2) * yuv_width_ + x_index],
-                        &rgb_buffer_[rgb_index],
-                        &rgb_buffer_[rgb_index + 1],
-                        &rgb_buffer_[rgb_index + 2],
-                        &rgb_image_buffer_[i * yuv_width_ + j]);
+                        &rgb_map_buffer_[rgb_index],
+                        &rgb_map_buffer_[rgb_index + 1],
+                        &rgb_map_buffer_[rgb_index + 2],
+                        &rgb_pcd_buffer_[i * yuv_width_ + j]);
             }
         }
 
@@ -544,8 +471,8 @@ void SynchronizationApplication::Render() {
             current_timestamp_ = (int) std::ceil(rgb_timestamp*1000);
             if(current_timestamp_ != previous_timestamp_) {
                 ss << current_timestamp_;
-                std::string filename = "/storage/sdcard0/Documents/Tango/PPM/" + ss.str() + ".ppm";
-                WriteByteToPPM(filename.c_str(), rgb_buffer_, yuv_width_, yuv_height_);
+                std::string filename = "/storage/emulated/0/Documents/RGBPointCloudBuilder/PPM/" + ss.str() + ".ppm";
+                WriteByteToPPM(filename.c_str(), rgb_map_buffer_, yuv_width_, yuv_height_);
             }
             previous_timestamp_ = current_timestamp_;
             store_image_ = false;
@@ -565,17 +492,28 @@ void SynchronizationApplication::Render() {
           color_t1_T_device_t1 * glm::inverse(start_service_T_device_t1) *
           start_service_T_device_t0 * device_t0_T_depth_t0;
 
-        if(gpu_upsample_) {
-            depth_image_->RenderDepthToTexture(color_image_t1_T_depth_image_t0,
-                                               render_point_cloud_buffer_, new_points);
+        if(depth_map_) {
+          depth_image_->RenderDepthMap(color_image_t1_T_depth_image_t0,
+                                       render_point_cloud_buffer_, new_points);
+          image_ = false;
+          main_scene_->SetDepthAlphaValue(1.0f);
+        } else if(rgb_map_) {
+          depth_image_->RenderRGBMap(color_image_t1_T_depth_image_t0,
+                                     render_point_cloud_buffer_,
+                                     rgb_map_buffer_);
+          main_scene_->SetDepthAlphaValue(1.0f);
+          image_ = false;
         } else {
-            depth_image_->UpdateAndUpsampleDepth(color_image_t1_T_depth_image_t0,
-                                                 start_service_T_color_t1,
-                                                 render_point_cloud_buffer_,
-                                                 rgb_image_buffer_,
-                                                 color_timestamp,
-                                                 store_point_clouds_);
+          image_ = true;
+          main_scene_->SetDepthAlphaValue(0.0f);
         }
+
+      if(store_point_clouds_ || send_point_clouds_) {
+        depth_image_->RenderRGBPointCloud(color_image_t1_T_depth_image_t0,
+                                          start_service_T_color_t1,
+                                          render_point_cloud_buffer_,
+                                          rgb_pcd_buffer_, color_timestamp, store_point_clouds_, send_point_clouds_);
+      }
     } else {
       LOGE("Invalid pose for ss_t_depth at time: %lf", point_cloud_timestamp);
     }
@@ -592,11 +530,20 @@ void SynchronizationApplication::FreeGLContent() {
 }
 
 void SynchronizationApplication::SetDepthAlphaValue(float alpha) {
-  main_scene_->SetDepthAlphaValue(alpha);
+  //main_scene_->SetDepthAlphaValue(alpha);
 }
 
-void SynchronizationApplication::SetGPUUpsample(bool on) {
-  gpu_upsample_ = on;
+void SynchronizationApplication::SetDepthMap(bool on) {
+  depth_map_ = on;
+}
+
+void SynchronizationApplication::SetRGBMap(bool on) {
+  rgb_map_ = on;
+}
+
+void SynchronizationApplication::SetSocket(std::string addr, int port) {
+  depth_image_->socket_addr_ = addr;
+  depth_image_->socket_port_ = port;
 }
 
 }  // namespace rgb_depth_sync

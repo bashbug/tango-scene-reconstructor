@@ -31,7 +31,9 @@ public class JNIInterface {
     public static native int tangoSetupConfig();
 
     // Set point cloud record true, if record switch button is checked
-    public static native int setPointCloudRecord(boolean isChecked);
+    public static native int setPCDSave(boolean isChecked);
+
+    public static native int setPCDSend(boolean isChecked);
 
     public static native int storeImage(boolean store);
 
@@ -55,5 +57,10 @@ public class JNIInterface {
 
     public static native void setDepthAlphaValue(float alpha);
 
-    public static native void setGPUUpsample(boolean on);
+    public static native void setDepthMap(boolean on);
+
+    public static native void setRGBMap(boolean on);
+
+    public static native void setSocket(String addr, int port);
+
 }

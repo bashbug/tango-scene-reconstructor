@@ -32,10 +32,17 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoInitialize(
 }
 
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setPointCloudRecord(
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setPCDSend(
         JNIEnv*, jobject, bool is_checked) {
-    return app.TangoSetPointCloudRecord(is_checked);
+    return app.TangoSetPCDSend(is_checked);
 }
+
+JNIEXPORT jint JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setPCDSave(
+    JNIEnv*, jobject, bool is_checked) {
+  return app.TangoSetPCDSave(is_checked);
+}
+
 
 JNIEXPORT jint JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_storeImage(
@@ -109,10 +116,34 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_setDepthAlphaValue(
 }
 
 JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setGPUUpsample(
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setDepthMap(
     JNIEnv*, jobject, jboolean on) {
-  return app.SetGPUUpsample(on);
+  return app.SetDepthMap(on);
 }
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setRGBMap(
+    JNIEnv*, jobject, jboolean on) {
+  return app.SetRGBMap(on);
+}
+
+std::string ConvertJString(JNIEnv* env, jstring str)  {
+  //if ( !str ) LString();
+  const jsize len = env->GetStringUTFLength(str);
+  const char* strChars = env->GetStringUTFChars(str, (jboolean *)0);
+  std::string Result(strChars, len);
+  env->ReleaseStringUTFChars(str, strChars);
+  return Result;
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setSocket(
+    JNIEnv* env, jobject, jstring addr, jint port) {
+
+  std::string s_addr = ConvertJString(env, addr);
+  return app.SetSocket(s_addr, port);
+}
+
 
 #ifdef __cplusplus
 }

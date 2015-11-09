@@ -29,4 +29,24 @@ glm::mat4 util::GetMatrixFromPose(const TangoPoseData* pose_data) {
          glm::mat4_cast(rotation);
 }
 
+glm::quat util::GetRotationFromMatrix(glm::mat4 transformation) {
+  glm::vec3 translation;
+  glm::quat rotation;
+  glm::vec3 scale;
+
+  tango_gl::util::DecomposeMatrix(transformation, translation, rotation, scale);
+
+  return  rotation;
+}
+
+glm::vec3 util::GetTranslationFromMatrix(glm::mat4 transformation) {
+  glm::vec3 translation;
+  glm::quat rotation;
+  glm::vec3 scale;
+
+  tango_gl::util::DecomposeMatrix(transformation, translation, rotation, scale);
+
+  return translation;
+}
+
 }  // namespace rgb_depth_sync

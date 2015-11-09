@@ -26,6 +26,8 @@ namespace util {
 // Returns a transformation matrix from a given TangoPoseData structure.
 // - pose_data: The original pose is used for the conversion.
 glm::mat4 GetMatrixFromPose(const TangoPoseData* pose_data);
+glm::vec3 GetTranslationFromMatrix(const glm::mat4 transformation);
+glm::quat GetRotationFromMatrix(const glm::mat4 transformation);
 }  // namespace util
 }  // namespace rgb_depth_sync
 

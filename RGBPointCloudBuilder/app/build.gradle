@@ -37,7 +37,3 @@ task ndkBuild(type: Exec) {
     def ndkbuild = properties.getProperty('ndk.dir', null)+"/ndk-build"
     commandLine ndkbuild, '-C', file('src/main/jni').absolutePath
 }
-
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-}
