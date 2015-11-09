@@ -1,0 +1,56 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/RelativeLayout1"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/Button_Cancel"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/cancel"
+        android:layout_below="@+id/destPort"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="24dp" />
+
+    <EditText
+        android:id="@+id/destAddress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:hint="@string/address"
+        android:inputType="number|textCapWords"
+        android:selectAllOnFocus="true" >
+    </EditText>
+
+    <EditText
+        android:id="@+id/destPort"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="@string/port"
+        android:inputType="number|textCapWords"
+        android:selectAllOnFocus="true"
+        android:layout_below="@+id/destAddress"
+        android:layout_alignParentStart="true">
+    </EditText>
+
+    <TextView
+        android:id="@+id/uuidDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/name"
+        android:fontFamily="sans-serif" />
+
+    <Button
+        android:id="@+id/Button_Connect"
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/connect"
+        android:layout_alignTop="@+id/Button_Cancel"
+        android:layout_alignParentRight="true"/>
+
+</RelativeLayout><!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/layout/set_server_socket_address_and_ip_dialog.xml -->

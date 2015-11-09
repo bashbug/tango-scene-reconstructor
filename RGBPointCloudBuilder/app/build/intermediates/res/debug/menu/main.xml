@@ -1,0 +1,13 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- Search, should appear as action button -->
+    <item android:id="@+id/ic_description"
+        android:icon="@drawable/ic_description"
+        android:title="show description"
+        android:showAsAction="ifRoom" />
+
+    <item android:id="@+id/ic_file_upload"
+        android:icon="@drawable/ic_file_upload"
+        android:title="upload files"
+        android:showAsAction="always" />
+</menu>
+<!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/menu/main.xml -->
