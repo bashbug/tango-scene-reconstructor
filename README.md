@@ -7,15 +7,18 @@ This project is based on the samples from the Google Tango API. You can find it 
 - Using pose of image and point cloud timestamp.
 - Store rgb point cloud as timestamp.PCD binary file.
 
+**Send Point Clouds**
+- Socket to send point cloud *.PCD files to a server (uses SocketCommunication/socket.cpp)
+
 ### Todo
 **visualize with OpenGL**
 - Merged rgb point clouds in real time with OpenGL
-
-**Send Point Clouds**
-- Socket to send point cloud *.PCD files to a server
 - Create mesh of point clouds with pcl http://pointclouds.org/
 
+# SocketCommunication
 
+Is used for sending binary rgb PCD data of via socket
+usage: ./socket port
 
 # Cloud2Mesh
 
