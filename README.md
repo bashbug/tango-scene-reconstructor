@@ -26,6 +26,7 @@ This project is based on the samples from the Google Tango API. You can find it 
 - recieves binary rgb point cloud data and stores it in ./PCD/ as a timestamp.PCD file
 
 Is used for sending binary rgb PCD data via socket in RGBPointCloudBuilder application
+
 usage: ./socket port
 
 # Cloud2Mesh
