@@ -21,200 +21,158 @@
 
 #include <tango_client_api.h>
 #include <rgb-depth-sync/color_image.h>
-#include <rgb-depth-sync/depth_image.h>
-#include <rgb-depth-sync/scene.h>
+#include <rgb-depth-sync/range_image.h>
+#include "rgb-depth-sync/point_cloud_data.h"
 #include <rgb-depth-sync/util.h>
 #include <tango-gl/util.h>
 
 namespace rgb_depth_sync {
 
-// This thread safe class is the main application for Synchronization.
-// It can be instantiated in the JNI layer and use to pass information back and
-// forth between Java. The class also manages the application's lifecycle and
-// interaction with the Tango service. Primarily, this involves registering for
-// callbacks and passing on the necessary information to stored objects. It also
-// takes care of passing a vector container which has a pointer to the
-// latest point cloud buffer that is to used for rendering.
-//  To reduce the number of point cloud data copies between callback and render
-// threads we use three buffers which are synchronously exchanged between each
-// other so that the render loop always contains the latest point cloud data.
-// 1. Callback buffer : The buffer to which pointcloud data received from Tango
-// Service callback is copied out.
-// 2. Shared buffer: This buffer is used to share the data between Service
-// callback and Render loop
-// 3. Render Buffer: This buffer is used in the renderloop to project point
-// cloud data to a 2D image plane which is of the same size as RGB image. We
-// also make sure that this buffer contains the latest point cloud data that is
-//  received from the call back.
-class SynchronizationApplication {
- public:
-  SynchronizationApplication();
-  ~SynchronizationApplication();
+  // This thread safe class is the main application for Synchronization.
+  // It can be instantiated in the JNI layer and use to pass information back and
+  // forth between Java. The class also manages the application's lifecycle and
+  // interaction with the Tango service. Primarily, this involves registering for
+  // callbacks and passing on the necessary information to stored objects. It also
+  // takes care of passing a vector container which has a pointer to the
+  // latest point cloud buffer that is to used for rendering.
+  //  To reduce the number of point cloud data copies between callback and render
+  // threads we use three buffers which are synchronously exchanged between each
+  // other so that the render loop always contains the latest point cloud data.
+  // 1. Callback buffer : The buffer to which pointcloud data received from Tango
+  // Service callback is copied out.
+  // 2. Shared buffer: This buffer is used to share the data between Service
+  // callback and Render loop
+  // 3. Render Buffer: This buffer is used in the renderloop to project point
+  // cloud data to a 2D image plane which is of the same size as RGB image. We
+  // also make sure that this buffer contains the latest point cloud data that is
+  //  received from the call back.
 
-  // Initialize the Tango Service, this function starts the communication
-  // between the application and the Tango Service.
-  // The activity object is used for checking if the API version is outdated
-  int TangoInitialize(JNIEnv* env, jobject caller_activity);
+  class SynchronizationApplication {
+    public:
+      SynchronizationApplication();
+      ~SynchronizationApplication();
+      // Initialize the Tango Service, this function starts the communication
+      // between the application and the Tango Service.
+      // The activity object is used for checking if the API version is outdated
+      int TangoInitialize(JNIEnv* env, jobject caller_activity);
+      int TangoSetPCDSave(bool isChecked);
+      int TangoSetPCDSend(bool isChecked);
+      int TangoStoreImage(bool store);
+      // Setup the configuration file for the Tango Service. .
+      int TangoSetupConfig();
+      // Associate the texture generated from an Opengl context to which the color
+      // image will be updated to.
+      int TangoConnectTexture();
+      // Sets the callbacks for OnXYZijAvailable
+      int TangoConnectCallbacks();
+      // Connect to Tango Service.
+      // This function will start the Tango Service pipeline, in this case, it will
+      // start Depth Sensing callbacks.
+      int TangoConnect();
+      // Queries and sets the camera transforms between different sensors of
+      // Project Tango Device that are required to project Point cloud onto
+      // Image plane.
+      int TangoSetIntrinsicsAndExtrinsics();
+      // Disconnect from Tango Service.
+      void TangoDisconnect();
+      // Inititalizes all the OpenGL resources required to render a Depth Image on
+      // Top of an RGB image.
+      void InitializeGLContent();
+      // Setup the view port width and height.
+      void SetViewPort(int width, int height);
+      // Main Render loop.
+      void Render();
+      // Release all OpenGL resources that are allocated in this app.
+      void FreeGLContent();
+      // Set whether to use GPU or CPU upsampling
+      void SetDepthMap(bool on);
+      void SetRGBMap(bool on);
+      void SetSocket(std::string addr, int port);
+      // Callback for image data that come in from the Tango service.
+      // @param buffer The image data returned by the service.
+      void OnFrameAvailable(const TangoImageBuffer* buffer);
+      // Callback for point clouds that come in from the Tango service.
+      // @param xyz_ij The point cloud returned by the service.
+      void OnXYZijAvailable(const TangoXYZij* xyz_ij);
+    private:
+      void Yuv2Rgb(uint8_t yValue, uint8_t uValue, uint8_t vValue,
+                   uint8_t* r, uint8_t* g, uint8_t* b, uint32_t* rgb);
+      void WriteByteToPPM(const char* filename,
+                          std::vector<uint8_t> rgb_bytebuffer, size_t w, size_t h);
+      void WriteByteArrayToBitmap(char* filename,
+                                  std::vector<GLubyte> rgb_bytebuffer,
+                                  size_t width, size_t height);
+      // RGB image
+      ColorImage* color_image_;
+      RangeImage* range_image_;
+      // Tango configration file, this object is for configuring Tango Service setup
+      // before connect to service. For example, we turn on the depth sensing in
+      // this example.
+      TangoConfig tango_config_;
+      // Extrinsic transformation of color frame wrt device frame.
+      glm::mat4 device_T_color_;
+      // Extrinsic transformation of depth frame wrt device frame.
+      glm::mat4 device_T_depth_;
+      // OpenGL to Start of Service
+      glm::mat4 OW_T_SS_;
+      float screen_width_;
+      float screen_height_;
+      // This is the buffer to which point cloud data from TangoService callback
+      // gets copied out to.
+      // The data is an array of packed coordinate triplets, x,y,z as floating point
+      // values. With the unit in landscape orientation, screen facing the user:
+      // +Z points in the direction of the camera's optical axis, and is measured
+      // perpendicular to the plane of the camera.
+      // +X points toward the user's right, and +Y points toward the bottom of
+      // the screen.
+      // The origin is the focal centre of the color camera.
+      // The output is in units of metres.
+      std::vector<float> callback_point_cloud_buffer_;
+      // The buffer of point cloud data which is shared between TangoService
+      // callback and render loop.
+      std::vector<float> shared_point_cloud_buffer_;
+      // This buffer is used in the render loop to project point cloud data to
+      // a 2D image plane which is of the same size as RGB image.
+      std::vector<float> render_point_cloud_buffer_;
+      // Time of capture of the current depth data (in seconds).
+      double point_cloud_timestamp_;
+      double color_timestamp_;
+      double rgb_timestamp_;
+      // Mutex for protecting the point cloud data. The point cloud data is shared
+      // between update call which is called from render loop and
+      // TangoService callback thread.
+      std::mutex point_cloud_mutex_;
+      // This signal is used to notify update call if there is a new
+      // point cloud buffer available and swap the shared and render buffers
+      // accordingly.
+      bool swap_point_cloud_buffer_signal_;
+      bool render_depth_map_;
+      bool render_range_image_;
+      bool render_image_;
+      std::vector<uint8_t> callback_yuv_buffer_;
+      std::vector<uint8_t> shared_yuv_buffer_;
+      std::vector<uint8_t> render_yuv_buffer_;
+      std::vector<uint8_t> rgb_map_buffer_;
+      std::vector<uint32_t> rgb_pcd_buffer_;
+      bool swap_rgb_buffer_signal_;
+      bool swap_yuv_buffer_signal_;
+      std::mutex yuv_buffer_mutex_;
+      std::mutex rgb_buffer_mutex_;
+      int count = 0;
+      PointCloudData* pcd_;
+      int current_timestamp_;
+      int previous_timestamp_;
+      size_t yuv_width_;
+      size_t yuv_height_;
+      size_t yuv_size_;
+      size_t uv_buffer_offset_;
+      bool store_point_clouds_;
+      bool store_image_;
+      bool send_point_clouds_;
+      std::string socket_addr_;
+      int socket_port_;
+  };
 
-  int TangoSetPCDSave(bool isChecked);
+} // namespace rgb_depth_sync
 
- int TangoSetPCDSend(bool isChecked);
-
- int TangoStoreImage(bool store);
-
-  // Setup the configuration file for the Tango Service. .
-  int TangoSetupConfig();
-
-  // Associate the texture generated from an Opengl context to which the color
-  // image will be updated to.
-  int TangoConnectTexture();
-
-  // Sets the callbacks for OnXYZijAvailable
-  int TangoConnectCallbacks();
-
-  // Connect to Tango Service.
-  // This function will start the Tango Service pipeline, in this case, it will
-  // start Depth Sensing callbacks.
-  int TangoConnect();
-
-  // Queries and sets the camera transforms between different sensors of
-  // Project Tango Device that are required to project Point cloud onto
-  // Image plane.
-  int TangoSetIntrinsicsAndExtrinsics();
-
-  // Disconnect from Tango Service.
-  void TangoDisconnect();
-
-  // Inititalizes all the OpenGL resources required to render a Depth Image on
-  // Top of an RGB image.
-  void InitializeGLContent();
-
-  // Setup the view port width and height.
-  void SetViewPort(int width, int height);
-
-  // Main Render loop.
-  void Render();
-
-  // Release all OpenGL resources that are allocated in this app.
-  void FreeGLContent();
-
-  // Set the transparency of Depth Image.
-  void SetDepthAlphaValue(float alpha);
-
-  // Set whether to use GPU or CPU upsampling
-  void SetDepthMap(bool on);
-
-  void SetRGBMap(bool on);
-
-  void SetSocket(std::string addr, int port);
-
- // Callback for image data that come in from the Tango service.
-  //
-  // @param buffer The image data returned by the service.
-  //
-  void OnFrameAvailable(const TangoImageBuffer* buffer);
-
-  // Callback for point clouds that come in from the Tango service.
-  //
-  // @param xyz_ij The point cloud returned by the service.
-  //
-  void OnXYZijAvailable(const TangoXYZij* xyz_ij);
-
- private:
-
-  void Yuv2Rgb(uint8_t yValue, uint8_t uValue, uint8_t vValue, uint8_t* r, uint8_t* g, uint8_t* b, uint32_t* rgb);
-  void WriteByteToPPM(const char* filename, std::vector<uint8_t> rgb_bytebuffer, size_t w, size_t h);
-  void WriteByteArrayToBitmap(char* filename, std::vector<GLubyte> rgb_bytebuffer, size_t width, size_t height);
-
-  // RGB image
-  ColorImage* color_image_;
-
-  // Depth image created by projecting Point Cloud onto RGB image plane.
-  DepthImage* depth_image_;
-
-  // Main scene which contains all the renderable objects.
-  Scene* main_scene_;
-
-  // Tango configration file, this object is for configuring Tango Service setup
-  // before connect to service. For example, we turn on the depth sensing in
-  // this example.
-  TangoConfig tango_config_;
-
-  // Extrinsic transformation of color frame wrt device frame.
-  glm::mat4 device_T_color_;
-
-  // Extrinsic transformation of depth frame wrt device frame.
-  glm::mat4 device_T_depth_;
-
-  // OpenGL to Start of Service
-  glm::mat4 OW_T_SS_;
-  float screen_width_;
-  float screen_height_;
-
-  // This is the buffer to which point cloud data from TangoService callback
-  // gets copied out to.
-  // The data is an array of packed coordinate triplets, x,y,z as floating point
-  // values. With the unit in landscape orientation, screen facing the user:
-  // +Z points in the direction of the camera's optical axis, and is measured
-  // perpendicular to the plane of the camera.
-  // +X points toward the user's right, and +Y points toward the bottom of
-  // the screen.
-  // The origin is the focal centre of the color camera.
-  // The output is in units of metres.
-  std::vector<float> callback_point_cloud_buffer_;
-
-  // The buffer of point cloud data which is shared between TangoService
-  // callback and render loop.
-  std::vector<float> shared_point_cloud_buffer_;
-
-  // This buffer is used in the render loop to project point cloud data to
-  // a 2D image plane which is of the same size as RGB image.
-  std::vector<float> render_point_cloud_buffer_;
-
-  // Time of capture of the current depth data (in seconds).
-  double point_cloud_timestamp_;
-  double color_timestamp_;
-  double rgb_timestamp_;
-
-  // Mutex for protecting the point cloud data. The point cloud data is shared
-  // between update call which is called from render loop and
-  // TangoService callback thread.
-  std::mutex point_cloud_mutex_;
-
-  // This signal is used to notify update call if there is a new
-  // point cloud buffer available and swap the shared and render buffers
-  // accordingly.
-  bool swap_point_cloud_buffer_signal_;
-
-  bool depth_map_;
-  bool rgb_map_;
-  bool image_;
-
-  std::vector<uint8_t> yuv_buffer_;
-  std::vector<uint8_t> yuv_buffer_tmp_;
-  std::vector<uint8_t> rgb_map_buffer_;
-  std::vector<uint32_t> rgb_pcd_buffer_;
-
-  bool swap_rgb_buffer_signal_;
-  bool swap_yuv_buffer_signal_;
-  std::mutex yuv_buffer_mutex_;
-  std::mutex rgb_buffer_mutex_;
-
-  int count = 0;
-
-  int current_timestamp_;
-  int previous_timestamp_;
-
-  size_t yuv_width_;
-  size_t yuv_height_;
-  size_t yuv_size_;
-  size_t uv_buffer_offset_;
-
-  bool store_point_clouds_;
-  bool store_image_;
-  bool send_point_clouds_;
-
-};
-}  // namespace rgb_depth_sync
-
-#endif  // RGB_DEPTH_SYNC_APPLICATION_H_
+#endif // RGB_DEPTH_SYNC_APPLICATION_H_

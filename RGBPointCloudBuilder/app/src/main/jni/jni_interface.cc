@@ -110,12 +110,6 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_freeGLContent(
 }
 
 JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setDepthAlphaValue(
-    JNIEnv*, jobject, jfloat alpha) {
-  return app.SetDepthAlphaValue(alpha);
-}
-
-JNIEXPORT void JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_setDepthMap(
     JNIEnv*, jobject, jboolean on) {
   return app.SetDepthMap(on);

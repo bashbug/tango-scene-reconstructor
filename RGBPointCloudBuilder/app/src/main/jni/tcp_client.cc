@@ -1,7 +1,3 @@
-//
-// Created by anastasia on 05.11.15.
-//
-
 #include "rgb-depth-sync/tcp_client.h"
 #include <tango-gl/util.h>
 #include <vector>
@@ -109,7 +105,6 @@ namespace rgb_depth_sync {
   }
 
   bool tcp_client::sendpcd(std::vector<float> pcd) {
-
     if (!senddata(pcd.data(), (pcd.size() * sizeof(float)))) {
       LOGE("pcd data send failed");
       return false;

@@ -28,15 +28,18 @@ LOCAL_C_INCLUDES := $(PROJECT_ROOT)/tango-service-sdk/include/ \
                     $(PROJECT_ROOT)/tango-gl/include \
                     $(PROJECT_ROOT)/third-party/glm/
 
-LOCAL_SRC_FILES := camera_texture_drawable.cc \
+LOCAL_SRC_FILES := shader.cc \
+                   texture.cc \
+                   texture_drawable.cc \
                    color_image.cc \
-                   depth_image.cc \
+                   range_image.cc \
                    jni_interface.cc \
+                   mesh.cc \
                    point_cloud_data.cc \
                    rgb_depth_sync_application.cc \
                    tcp_client.cc \
-                   scene.cc \
                    util.cc \
+                   write_color_image.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/bounding_box.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/camera.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/conversions.cpp \

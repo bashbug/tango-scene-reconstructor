@@ -67,7 +67,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private GLSurfaceRenderer mRenderer;
     private GLSurfaceView mGLView;
 
-    private SeekBar mDepthOverlaySeekbar;
     private CheckBox mRGBMapCheckbox;
     private CheckBox mDepthMapCheckbox;
 
@@ -80,37 +79,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private boolean mIsConnectedService = false;
 
     private static final String TAG = "RGBDepthSync";
-
-    private class DepthOverlaySeekbarListener implements SeekBar.OnSeekBarChangeListener {
-        @Override
-        public void onProgressChanged(SeekBar seekBar, int progress,
-                boolean fromUser) {
-            JNIInterface.setDepthAlphaValue((float) progress / (float) seekBar.getMax());
-        }
-
-        @Override
-        public void onStartTrackingTouch(SeekBar seekBar) {}
-
-        @Override
-        public void onStopTrackingTouch(SeekBar seekBar) {}
-    }
-
-    private class DebugOverlayCheckboxListener implements CheckBox.OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if (buttonView == mRGBMapCheckbox) {
-                if (isChecked) {
-                    float progress = mDepthOverlaySeekbar.getProgress();
-                    float max = mDepthOverlaySeekbar.getMax();
-                    JNIInterface.setDepthAlphaValue(progress / max);
-                    mDepthOverlaySeekbar.setVisibility(View.VISIBLE);
-                } else {
-                    JNIInterface.setDepthAlphaValue(0.0f);
-                    mDepthOverlaySeekbar.setVisibility(View.GONE);
-                }
-            }
-        }
-    }
 
     private class GPUUpsampleListener implements CheckBox.OnCheckedChangeListener {
         @Override
@@ -145,10 +113,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
           }
         }
         setContentView(R.layout.activity_main);
-
-        mDepthOverlaySeekbar = (SeekBar) findViewById(R.id.depth_overlay_alpha_seekbar);
-        mDepthOverlaySeekbar.setOnSeekBarChangeListener(new DepthOverlaySeekbarListener());
-        mDepthOverlaySeekbar.setVisibility(View.GONE);
         
         mRGBMapCheckbox = (CheckBox) findViewById(R.id.rgb_map_checkbox);
         mRGBMapCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {

@@ -8,15 +8,6 @@
         android:layout_height="fill_parent"
         android:layout_gravity="top"
         android:layout_alignParentTop="true" />
-    <SeekBar
-        android:id="@+id/depth_overlay_alpha_seekbar"
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-        android:max="100"
-        android:progress="50"
-        android:indeterminate="false"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"/>
     <Button
         android:id="@+id/save_image"
         android:layout_width="100dp"

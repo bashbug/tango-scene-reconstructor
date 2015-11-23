@@ -15,16 +15,28 @@
  */
 
 #include "rgb-depth-sync/color_image.h"
+#include "rgb-depth-sync/shader.h"
 
 namespace rgb_depth_sync {
 
-ColorImage::ColorImage() {
-  glGenTextures(1, &texture_id_);
-  glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_id_);
-  glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
-}
+  ColorImage::ColorImage() {
+    glGenTextures(1, &texture_id_);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, texture_id_);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_EXTERNAL_OES, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
 
-ColorImage::~ColorImage() { glDeleteTextures(1, &texture_id_); }
-}  // namespace rgb_depth_sync
+    texture_drawable_ = new rgb_depth_sync::TextureDrawable(shader::kColorCameraVertex,
+                                                            shader::kColorCameraFragment);
+  }
+
+  void ColorImage::Draw(int width, int height) {
+    if (height == 0 || width == 0) {
+      LOGE("The Scene received an invalid height of 0 in SetupViewPort.");
+    }
+    texture_drawable_->RenderImage(width, height, texture_id_);
+  }
+
+  ColorImage::~ColorImage() { glDeleteTextures(1, &texture_id_); }
+
+} // namespace rgb_depth_sync

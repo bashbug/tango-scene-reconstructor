@@ -55,8 +55,6 @@ public class JNIInterface {
 
     public static native void render();
 
-    public static native void setDepthAlphaValue(float alpha);
-
     public static native void setDepthMap(boolean on);
 
     public static native void setRGBMap(boolean on);

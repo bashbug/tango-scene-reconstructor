@@ -20,22 +20,21 @@ public final class R {
         public static final int ic_menu=0x7f020002;
     }
     public static final class id {
-        public static final int Button_Cancel=0x7f090008;
-        public static final int Button_Connect=0x7f09000d;
-        public static final int RelativeLayout1=0x7f090007;
-        public static final int depth_map_checkbox=0x7f090005;
-        public static final int depth_overlay_alpha_seekbar=0x7f090001;
-        public static final int destAddress=0x7f09000a;
-        public static final int destPort=0x7f090009;
+        public static final int Button_Cancel=0x7f090007;
+        public static final int Button_Connect=0x7f09000c;
+        public static final int RelativeLayout1=0x7f090006;
+        public static final int depth_map_checkbox=0x7f090004;
+        public static final int destAddress=0x7f090009;
+        public static final int destPort=0x7f090008;
         public static final int gl_surface_view=0x7f090000;
-        public static final int ic_description=0x7f09000e;
-        public static final int ic_file_upload=0x7f09000f;
-        public static final int name=0x7f09000c;
-        public static final int rgb_map_checkbox=0x7f090006;
-        public static final int save_image=0x7f090002;
-        public static final int save_pcl_switch=0x7f090003;
-        public static final int send_pcl_switch=0x7f090004;
-        public static final int uuidDisplay=0x7f09000b;
+        public static final int ic_description=0x7f09000d;
+        public static final int ic_file_upload=0x7f09000e;
+        public static final int name=0x7f09000b;
+        public static final int rgb_map_checkbox=0x7f090005;
+        public static final int save_image=0x7f090001;
+        public static final int save_pcl_switch=0x7f090002;
+        public static final int send_pcl_switch=0x7f090003;
+        public static final int uuidDisplay=0x7f09000a;
     }
     public static final class layout {
         public static final int activity_main=0x7f040000;

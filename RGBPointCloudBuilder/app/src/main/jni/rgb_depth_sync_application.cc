@@ -28,6 +28,8 @@
 #include <math.h>
 
 #include <rgb-depth-sync/rgb_depth_sync_application.h>
+#include "rgb-depth-sync/write_color_image.h"
+#include "rgb-depth-sync/point_cloud_data.h"
 
 namespace rgb_depth_sync {
 
@@ -77,18 +79,22 @@ void SynchronizationApplication::OnFrameAvailable(const TangoImageBuffer* buffer
     yuv_width_ = buffer->width;
     yuv_height_ = buffer->height;
     uv_buffer_offset_ = yuv_width_ * yuv_height_;
-    rgb_timestamp_ = buffer->timestamp;
-
     yuv_size_ = yuv_width_ * yuv_height_ + yuv_width_ * yuv_height_ / 2;
 
-    // Reserve and resize the buffer size for RGB and YUV data.
-    yuv_buffer_.resize(yuv_size_);
-    yuv_buffer_tmp_.resize(yuv_size_);
-    rgb_map_buffer_.resize(yuv_width_ * yuv_height_ * 3);
+    size_t yuv_size = buffer->width * buffer->height + buffer->width * buffer->height / 2;
 
-    std::lock_guard<std::mutex> lock(yuv_buffer_mutex_);
-    memcpy(&yuv_buffer_tmp_[0], buffer->data, yuv_size_);
-    swap_rgb_buffer_signal_ = true;
+
+    // Reserve and resize the buffer size for RGB and YUV data.
+    callback_yuv_buffer_.resize(yuv_size_);
+    render_yuv_buffer_.resize(yuv_size_);
+
+    memcpy(&callback_yuv_buffer_[0], buffer->data, yuv_size_);
+    {
+      std::lock_guard<std::mutex> lock(yuv_buffer_mutex_);
+      rgb_timestamp_ = buffer->timestamp;
+      callback_yuv_buffer_.swap(shared_yuv_buffer_);
+      swap_yuv_buffer_signal_ = true;
+    }
 
 }
 
@@ -120,9 +126,9 @@ void SynchronizationApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
 
   SynchronizationApplication::SynchronizationApplication() :
     swap_point_cloud_buffer_signal_(false),
-    depth_map_(false),
-    rgb_map_(false),
-    image_(true),
+    render_depth_map_(false),
+    render_range_image_(false),
+    render_image_(true),
     swap_yuv_buffer_signal_(false),
     swap_rgb_buffer_signal_(false),
     store_image_(false),
@@ -131,9 +137,12 @@ void SynchronizationApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
   // We'll store the fixed transform between the opengl frame convention.
   // (Y-up, X-right) and tango frame convention. (Z-up, X-right).
   OW_T_SS_ = tango_gl::conversions::opengl_world_T_tango_world();
+    LOGE("Create SynchronizationApplication");
 }
 
-SynchronizationApplication::~SynchronizationApplication() {}
+SynchronizationApplication::~SynchronizationApplication() {
+  LOGE("Destroy SynchronizationApplication");
+}
 
 int SynchronizationApplication::TangoInitialize(JNIEnv* env,
                                                 jobject caller_activity) {
@@ -249,9 +258,7 @@ int SynchronizationApplication::TangoSetIntrinsicsAndExtrinsics() {
         "camera.");
     return ret;
   }
-  depth_image_->SetCameraIntrinsics(color_camera_intrinsics);
-  main_scene_->SetCameraIntrinsics(color_camera_intrinsics);
-
+  range_image_->SetCameraIntrinsics(color_camera_intrinsics);
   float image_width = static_cast<float>(color_camera_intrinsics.width);
   float image_height = static_cast<float>(color_camera_intrinsics.height);
   float image_plane_ratio = image_height / image_width;
@@ -335,15 +342,14 @@ void SynchronizationApplication::TangoDisconnect() {
 }
 
 void SynchronizationApplication::InitializeGLContent() {
-  depth_image_ = new rgb_depth_sync::DepthImage();
   color_image_ = new rgb_depth_sync::ColorImage();
-  main_scene_ = new rgb_depth_sync::Scene(color_image_, depth_image_);
+  range_image_ = new rgb_depth_sync::RangeImage();
+  pcd_ = new rgb_depth_sync::PointCloudData();
 }
 
 void SynchronizationApplication::SetViewPort(int width, int height) {
   screen_width_ = static_cast<float>(width);
   screen_height_ = static_cast<float>(height);
-  main_scene_->SetupViewPort(width, height);
 }
 
 void SynchronizationApplication::Render() {
@@ -351,7 +357,6 @@ void SynchronizationApplication::Render() {
   double color_timestamp = 0.0;
   double point_cloud_timestamp = 0.0;
   bool new_points = false;
-
   {
     std::lock_guard<std::mutex> lock(point_cloud_mutex_);
       point_cloud_timestamp = point_cloud_timestamp_;
@@ -365,9 +370,9 @@ void SynchronizationApplication::Render() {
   {
     std::lock_guard<std::mutex> lock(yuv_buffer_mutex_);
     rgb_timestamp = rgb_timestamp_;
-    if (swap_rgb_buffer_signal_) {
-        yuv_buffer_tmp_.swap(yuv_buffer_);
-        swap_rgb_buffer_signal_ = false;
+    if (swap_yuv_buffer_signal_) {
+        shared_yuv_buffer_.swap(render_yuv_buffer_);
+        swap_yuv_buffer_signal_ = false;
     }
   }
 
@@ -413,12 +418,11 @@ void SynchronizationApplication::Render() {
   //
   // Device frame at timestamp t0 (depth timestamp) with respect to start of
   // service.
-  glm::mat4 start_service_T_device_t0 =
-      util::GetMatrixFromPose(&pose_start_service_T_device_t0);
+  glm::mat4 start_service_T_device_t0 = util::GetMatrixFromPose(&pose_start_service_T_device_t0);
+
   // Device frame at timestamp t1 (color timestamp) with respect to start of
   // service.
-  glm::mat4 start_service_T_device_t1 =
-      util::GetMatrixFromPose(&pose_start_service_T_device_t1);
+  glm::mat4 start_service_T_device_t1 = util::GetMatrixFromPose(&pose_start_service_T_device_t1);
 
   // Transformation of depth frame wrt Device at time stamp t0.
   // Transformation of depth frame with respect to the device frame at
@@ -439,46 +443,44 @@ void SynchronizationApplication::Render() {
 
   size_t rgb_image_index = 0;
 
-  if(rgb_timestamp == color_timestamp) {
+  rgb_map_buffer_.resize(yuv_width_ * yuv_height_ * 3);
+  rgb_pcd_buffer_.resize(yuv_width_ * yuv_height_);
 
-        rgb_map_buffer_.resize(yuv_width_ * yuv_height_ * 3);
-        rgb_pcd_buffer_.resize(yuv_width_ * yuv_height_);
-
-        for (size_t i = 0; i < yuv_height_; i++) {
-            for (size_t j = 0; j < yuv_width_; j++) {
-                size_t x_index = j;
-                if (j % 2 != 0) {
-                    x_index = j - 1;
-                }
-
-                size_t rgb_index = (i * yuv_width_ + j) * 3;
-
-                // The YUV texture format is NV21,
-                // yuv_buffer_ buffer layout:
-                //   [y0, y1, y2, ..., yn, v0, u0, v1, u1, ..., v(n/4), u(n/4)]
-                Yuv2Rgb(yuv_buffer_[i * yuv_width_ + j],
-                        yuv_buffer_[uv_buffer_offset_ + (i / 2) * yuv_width_ + x_index + 1],
-                        yuv_buffer_[uv_buffer_offset_ + (i / 2) * yuv_width_ + x_index],
-                        &rgb_map_buffer_[rgb_index],
-                        &rgb_map_buffer_[rgb_index + 1],
-                        &rgb_map_buffer_[rgb_index + 2],
-                        &rgb_pcd_buffer_[i * yuv_width_ + j]);
-            }
+  if (rgb_timestamp = color_timestamp) {
+    for (size_t i = 0; i < yuv_height_; i++) {
+      for (size_t j = 0; j < yuv_width_; j++) {
+        size_t x_index = j;
+        if (j % 2 != 0) {
+          x_index = j - 1;
         }
 
-        if(store_image_){
-            std::stringstream ss;
-            current_timestamp_ = (int) std::ceil(rgb_timestamp*1000);
-            if(current_timestamp_ != previous_timestamp_) {
-                ss << current_timestamp_;
-                std::string filename = "/storage/emulated/0/Documents/RGBPointCloudBuilder/PPM/" + ss.str() + ".ppm";
-                WriteByteToPPM(filename.c_str(), rgb_map_buffer_, yuv_width_, yuv_height_);
-            }
-            previous_timestamp_ = current_timestamp_;
-            store_image_ = false;
-        }
+        size_t rgb_index = (i * yuv_width_ + j) * 3;
+
+        // The YUV texture format is NV21,
+        // yuv_buffer_ buffer layout:
+        //   [y0, y1, y2, ..., yn, v0, u0, v1, u1, ..., v(n/4), u(n/4)]
+        Yuv2Rgb(render_yuv_buffer_[i * yuv_width_ + j],
+                render_yuv_buffer_[uv_buffer_offset_ + (i / 2) * yuv_width_ + x_index + 1],
+                render_yuv_buffer_[uv_buffer_offset_ + (i / 2) * yuv_width_ + x_index],
+                &rgb_map_buffer_[rgb_index],
+                &rgb_map_buffer_[rgb_index + 1],
+                &rgb_map_buffer_[rgb_index + 2],
+                &rgb_pcd_buffer_[i * yuv_width_ + j]);
+      }
     }
 
+    if(store_image_){
+      std::stringstream ss;
+      current_timestamp_ = (int) std::ceil(rgb_timestamp*1000);
+      if(current_timestamp_ != previous_timestamp_) {
+        ss << current_timestamp_;
+        std::string filename = "/storage/emulated/0/Documents/RGBPointCloudBuilder/PPM/" + ss.str() + ".ppm";
+        WriteColorImage* wci = new rgb_depth_sync::WriteColorImage(filename.c_str(), rgb_map_buffer_, yuv_width_, yuv_height_);
+      }
+      previous_timestamp_ = current_timestamp_;
+      store_image_ = false;
+    }
+  }
 
   if (pose_start_service_T_device_t1.status_code == TANGO_POSE_VALID) {
     if (pose_start_service_T_device_t0.status_code == TANGO_POSE_VALID) {
@@ -492,27 +494,34 @@ void SynchronizationApplication::Render() {
           color_t1_T_device_t1 * glm::inverse(start_service_T_device_t1) *
           start_service_T_device_t0 * device_t0_T_depth_t0;
 
-        if(depth_map_) {
-          depth_image_->RenderDepthMap(color_image_t1_T_depth_image_t0,
-                                       render_point_cloud_buffer_, new_points);
-          image_ = false;
-          main_scene_->SetDepthAlphaValue(1.0f);
-        } else if(rgb_map_) {
-          depth_image_->RenderRGBMap(color_image_t1_T_depth_image_t0,
-                                     render_point_cloud_buffer_,
-                                     rgb_map_buffer_);
-          main_scene_->SetDepthAlphaValue(1.0f);
-          image_ = false;
+        if(render_depth_map_) {
+          range_image_->RenderDepthMap(color_image_t1_T_depth_image_t0,
+                                      start_service_T_color_t1,
+                                      render_point_cloud_buffer_,
+                                      rgb_map_buffer_,
+                                      rgb_pcd_buffer_,
+                                      color_timestamp);
+          render_image_ = false;
+        } else if(render_range_image_) {
+          range_image_->RenderRGBMap(color_image_t1_T_depth_image_t0,
+                                   start_service_T_color_t1,
+                                   render_point_cloud_buffer_,
+                                   rgb_map_buffer_,
+                                   rgb_pcd_buffer_,
+                                   color_timestamp);
+          render_image_ = false;
         } else {
-          image_ = true;
-          main_scene_->SetDepthAlphaValue(0.0f);
+          render_image_ = true;
         }
 
       if(store_point_clouds_ || send_point_clouds_) {
-        depth_image_->RenderRGBPointCloud(color_image_t1_T_depth_image_t0,
-                                          start_service_T_color_t1,
-                                          render_point_cloud_buffer_,
-                                          rgb_pcd_buffer_, color_timestamp, store_point_clouds_, send_point_clouds_);
+
+        glm::vec3 translation = util::GetTranslationFromMatrix(start_service_T_color_t1);
+        glm::quat rotation = util::GetRotationFromMatrix(start_service_T_color_t1);
+        pcd_->setPCDData(range_image_->GetRGBPointCloud(), translation, rotation, color_timestamp);
+        pcd_->setUnordered();
+
+        pcd_->saveToSocket(socket_addr_, socket_port_);
       }
     } else {
       LOGE("Invalid pose for ss_t_depth at time: %lf", point_cloud_timestamp);
@@ -520,30 +529,33 @@ void SynchronizationApplication::Render() {
   } else {
     LOGE("Invalid pose for ss_t_color at time: %lf", color_timestamp);
   }
-  main_scene_->Render();
+  if (render_depth_map_) {
+    range_image_->Draw(screen_width_, screen_height_);
+  }
+  if(render_range_image_){
+    range_image_->Draw(screen_width_, screen_height_);
+  }
+  if(render_image_) {
+    color_image_->Draw(screen_width_, screen_height_);
+  }
 }
 
 void SynchronizationApplication::FreeGLContent() {
   delete color_image_;
-  delete depth_image_;
-  delete main_scene_;
-}
-
-void SynchronizationApplication::SetDepthAlphaValue(float alpha) {
-  //main_scene_->SetDepthAlphaValue(alpha);
+  delete range_image_;
 }
 
 void SynchronizationApplication::SetDepthMap(bool on) {
-  depth_map_ = on;
+  render_depth_map_ = on;
 }
 
 void SynchronizationApplication::SetRGBMap(bool on) {
-  rgb_map_ = on;
+  render_range_image_ = on;
 }
 
 void SynchronizationApplication::SetSocket(std::string addr, int port) {
-  depth_image_->socket_addr_ = addr;
-  depth_image_->socket_port_ = port;
+  socket_addr_ = addr;
+  socket_port_ = port;
 }
 
 }  // namespace rgb_depth_sync

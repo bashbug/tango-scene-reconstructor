@@ -18,19 +18,21 @@
 #define RGB_DEPTH_SYNC_COLOR_IMAGE_H_
 
 #include "tango-gl/util.h"
+#include "rgb-depth-sync/texture_drawable.h"
 
 namespace rgb_depth_sync {
-// ColorImage is container for color camera texture.
-class ColorImage {
- public:
-  ColorImage();
-  ~ColorImage();
-  GLuint GetTextureId() const { return texture_id_; }
 
- private:
-  GLuint texture_id_;
-  GLuint fbo_handle_;
-};
-}  // namespace rgb_depth_sync
+  class ColorImage {
+    public:
+      ColorImage();
+      ~ColorImage();
+      GLuint GetTextureId() const { return texture_id_; }
+      void Draw(int width, int height);
+    private:
+      GLuint texture_id_;
+      TextureDrawable* texture_drawable_;
+  };
 
-#endif  // RGB_DEPTH_SYNC_COLOR_IMAGE_H_
+} // namespace rgb_depth_sync
+
+#endif // RGB_DEPTH_SYNC_COLOR_IMAGE_H_

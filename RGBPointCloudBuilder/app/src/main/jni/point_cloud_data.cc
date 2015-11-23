@@ -1,7 +1,3 @@
-//
-// Created by anastasia on 04.11.15.
-//
-
 #include <stdio.h>
 #include <string.h>
 #include <vector>
@@ -13,11 +9,12 @@
 #include "rgb-depth-sync/tcp_client.h"
 
 namespace rgb_depth_sync {
+
   PointCloudData::PointCloudData() { }
 
-  void PointCloudData::setPCDData(
-      const std::vector <float> pcd, const glm::vec3 translation, const glm::quat rotation,
-      const double timestamp) {
+  void PointCloudData::setPCDData(const std::vector <float> pcd,
+                                  const glm::vec3 translation, const glm::quat rotation,
+                                  const double timestamp) {
     timestamp_ = timestampToString(timestamp);
     translation_ = translation;
     rotation_ = rotation;
@@ -107,4 +104,5 @@ namespace rgb_depth_sync {
     os << valueToint;
     return os.str();
   }
+
 } // namespace rgb_depth_sync
