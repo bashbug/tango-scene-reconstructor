@@ -7,6 +7,9 @@ This project is based on the samples from the Google Tango API. You can find it 
 - Using pose of image and point cloud timestamp.
 - Store rgb point cloud as timestamp.PCD binary file in ../Documents/RGBPointCloudBuilder/PCD/
 
+**RGBD visualization**
+- Merged rgb point clouds in real time and visualize with OpenGL
+
 **Send Point Clouds**
 - Socket to send binary rgb point cloud data to a server (uses SocketCommunication/socket.cpp)
 
@@ -15,9 +18,9 @@ This project is based on the samples from the Google Tango API. You can find it 
 - Saves RGB image as a PPM file in ../Documents/RGBPointCloudBuilder/PPM/
 
 ### Todo
-**visualize with OpenGL**
-- Merged rgb point clouds in real time with OpenGL
-- Create mesh of point clouds with pcl http://pointclouds.org/
+**Optimize pose**
+- Create own ICP
+- Detect loop closures
 
 # SocketCommunication
 
