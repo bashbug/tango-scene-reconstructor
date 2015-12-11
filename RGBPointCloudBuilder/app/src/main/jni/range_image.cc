@@ -147,14 +147,20 @@ namespace rgb_depth_sync {
       // (color image timestamp).
       glm::vec4 color_t1_point = color_t1_T_depth_t0 * depth_t0_point;
 
+      // normalized radial distance
+      //float ru = Math.sqrt((x*x + y*y) / z*z);
+      //float rd =
+
       int pixel_x, pixel_y;
       // get the coordinate on image plane.
       pixel_x = static_cast<int>((rgb_camera_intrinsics_.fx) *
-                                 (color_t1_point.x / color_t1_point.z) +
+                                 (color_t1_point.x / color_t1_point.z)
+                                 /** rd / ru */ +
                                  rgb_camera_intrinsics_.cx);
 
       pixel_y = static_cast<int>((rgb_camera_intrinsics_.fy) *
-                                 (color_t1_point.y / color_t1_point.z) +
+                                 (color_t1_point.y / color_t1_point.z)
+                                 /** rd / ru */ +
                                  rgb_camera_intrinsics_.cy);
 
       if (pixel_x > depth_image_width || pixel_y > depth_image_height || pixel_x < 0 ||

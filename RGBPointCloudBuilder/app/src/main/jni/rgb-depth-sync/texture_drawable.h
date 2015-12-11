@@ -31,6 +31,10 @@ namespace rgb_depth_sync {
       ~TextureDrawable();
       void RenderImage(int width, int height);
       void RenderImage(int width, int height, GLuint texture_id);
+      void RenderPointCloud(glm::mat4 projection_mat, glm::mat4 view_mat,
+                            glm::mat4 model_mat,
+                            const std::vector<float>& vertices,
+                            const std::vector<uint8_t>& rgb_data);
       GLuint GetTextureId() const { return texture_id_; }
       void SetTextureId(GLuint texture_id) { texture_id_ = texture_id; }
       void SetGrayTexture(void* data, int width, int height);

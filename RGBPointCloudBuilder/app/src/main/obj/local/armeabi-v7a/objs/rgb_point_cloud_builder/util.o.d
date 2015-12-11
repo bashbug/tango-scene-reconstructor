@@ -1,35 +1,6 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/obj/local/armeabi-v7a/objs/rgb_point_cloud_builder/util.o: \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/util.cc \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/util.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/cdefs.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/cdefs_elf.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/api-level.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/stdint.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/_types.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/machine/_types.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/util.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/stdlib.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/string.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/malloc.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/alloca.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/strings.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/types.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/posix_types.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/stddef.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/compiler.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/asm/posix_types.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/asm/types.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/types.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/machine/kernel.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/sysmacros.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/memory.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/log.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2platform.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/KHR/khrplatform.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2ext.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/conversions.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/glm.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/_fixes.hpp \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cmath \
@@ -120,71 +91,22 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/matrix_transform.inl \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/quaternion.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/quaternion.inl \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/util.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/util.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/log.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2platform.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/KHR/khrplatform.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2ext.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/type_ptr.hpp \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cstring \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/type_ptr.inl \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtx/matrix_decompose.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtx/matrix_decompose.inl
 
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/util.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/cdefs.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/cdefs_elf.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/api-level.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/stdint.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/_types.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/machine/_types.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/util.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/stdlib.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/string.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/malloc.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/alloca.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/strings.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/types.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/posix_types.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/stddef.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/compiler.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/asm/posix_types.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/asm/types.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/types.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/machine/kernel.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/sysmacros.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/memory.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/log.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2platform.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/KHR/khrplatform.h:
-
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2ext.h:
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/conversions.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/glm.hpp:
 
@@ -365,6 +287,24 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/quaternion.hpp:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/quaternion.inl:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/util.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/util.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/log.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2platform.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/KHR/khrplatform.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/GLES2/gl2ext.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/type_ptr.hpp:
 

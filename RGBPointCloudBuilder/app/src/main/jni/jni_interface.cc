@@ -138,6 +138,33 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_setSocket(
   return app.SetSocket(s_addr, port);
 }
 
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setSendPCDContainer(
+    JNIEnv*, jobject, jboolean on) {
+  return app.SetSendPCDRecording(on);
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setStartPCDRecording(
+    JNIEnv*, jobject, jboolean on) {
+  return app.SetStartPCDRecording(on);
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_onTouchEvent(
+    JNIEnv*, jobject, int touch_count, int event, float x0, float y0, float x1, float y1) {
+  using namespace tango_gl;
+  GestureCamera::TouchEvent touch_event = static_cast<GestureCamera::TouchEvent>(event);
+  app.OnTouchEvent(touch_count, touch_event, x0, y0, x1, y1);
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setCamera(
+    JNIEnv*, jobject, int camera_index) {
+  using namespace tango_gl;
+  GestureCamera::CameraType cam_type = static_cast<GestureCamera::CameraType>(camera_index);
+  app.SetCameraType(cam_type);
+}
 
 #ifdef __cplusplus
 }

@@ -39,7 +39,7 @@ namespace {
 namespace rgb_depth_sync {
 
   TextureDrawable::TextureDrawable(const char* vertex_source,
-                                                   const char* fragment_source) {
+                                   const char* fragment_source) {
     shader_ = new rgb_depth_sync::Shader();
     shader_id_ = shader_->CreateProgram(vertex_source, fragment_source);
     if (!shader_id_) {
@@ -97,6 +97,16 @@ namespace rgb_depth_sync {
     mesh_->Draw();
     tango_gl::util::CheckGlError("RangeImageTextureDrawable::render");
     glUseProgram(0);
+  }
+
+  void TextureDrawable::RenderPointCloud(glm::mat4 projection_mat, glm::mat4 view_mat,
+                                         glm::mat4 model_mat,
+                                         const std::vector<float>& vertices,
+                                         const std::vector<uint8_t>& rgb_data) {
+    shader_->Bind();
+    mesh_->DrawPointCloud(projection_mat, view_mat, model_mat, vertices, rgb_data, shader_id_);
+    glUseProgram(0);
+    tango_gl::util::CheckGlError("Pointcloud::Render");
   }
 
 }  // namespace rgb_depth_sync

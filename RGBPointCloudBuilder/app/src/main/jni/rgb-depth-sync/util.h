@@ -28,6 +28,7 @@ namespace rgb_depth_sync {
     glm::mat4 GetMatrixFromPose(const TangoPoseData* pose_data);
     glm::vec3 GetTranslationFromMatrix(const glm::mat4 transformation);
     glm::quat GetRotationFromMatrix(const glm::mat4 transformation);
+    glm::mat4 GetPoseAppliedOpenGLWorldFrame( const glm::mat4 pose_matrix);
     }  // namespace util
   }  // namespace rgb_depth_sync
 

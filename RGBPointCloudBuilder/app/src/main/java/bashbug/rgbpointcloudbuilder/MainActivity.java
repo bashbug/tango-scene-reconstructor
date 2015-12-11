@@ -32,12 +32,12 @@ import android.view.Display;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
 
@@ -70,9 +70,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private CheckBox mRGBMapCheckbox;
     private CheckBox mDepthMapCheckbox;
 
-    private Switch mSendPCDwitch;
-    private Switch mSavePCDwitch;
+    private Switch mStartPCDRecordingSwitch;
+    private Button mSendPCDContainerButton;
+    private Switch mSendPCDSwitch;
+    private Switch mSavePCDSwitch;
     private Button mSaveImage;
+
+    private Point mScreenSize;
 
     File mFileDirectionPCD, mFileDirectionPPM;
 
@@ -95,8 +99,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         StrictMode.setThreadPolicy(policy);
 
         Display display = getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
+        mScreenSize = new Point();
+        display.getSize(mScreenSize);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -146,25 +150,40 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
         // Send pcl to file buttons
-        mSendPCDwitch = (Switch) findViewById(R.id.send_pcl_switch);
-        mSendPCDwitch.setEnabled(false);
-        mSendPCDwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mSendPCDSwitch = (Switch) findViewById(R.id.send_pcl_switch);
+        mSendPCDSwitch.setEnabled(false);
+        mSendPCDSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 JNIInterface.setPCDSend(isChecked);
             }
         });
 
         // Save pcl to file buttons
-        mSavePCDwitch = (Switch) findViewById(R.id.save_pcl_switch);
-        mSavePCDwitch.setActivated(false);
-        mSavePCDwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mSavePCDSwitch = (Switch) findViewById(R.id.save_pcl_switch);
+        mSavePCDSwitch.setActivated(false);
+        mSavePCDSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 JNIInterface.setPCDSave(isChecked);
             }
         });
 
+        mStartPCDRecordingSwitch = (Switch) findViewById(R.id.start_point_cloud_container_switch);
+        mStartPCDRecordingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
+                JNIInterface.setStartPCDRecording(isChecked);
+            }
+        });
+
+        mSendPCDContainerButton = (Button) findViewById(R.id.send_point_cloud_container_button);
+        mSendPCDContainerButton.setOnClickListener(this);
+
         mSaveImage = (Button) findViewById(R.id.save_image);
         mSaveImage.setOnClickListener(this);
+
+        // Buttons for selecting camera view and Set up button click listeners.
+        findViewById(R.id.first_person_button).setOnClickListener(this);
+        findViewById(R.id.third_person_button).setOnClickListener(this);
+        findViewById(R.id.top_down_button).setOnClickListener(this);
 
         // Make sure that the directories exists before saving files. Otherwise it will
         // throw an exception
@@ -217,11 +236,56 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.save_image:
                 JNIInterface.storeImage(true);
                 break;
+            case R.id.send_point_cloud_container_button:
+                JNIInterface.setSendPCDContainer(true);
+                break;
+            case R.id.first_person_button:
+                JNIInterface.setCamera(0);
+                break;
+            case R.id.third_person_button:
+                JNIInterface.setCamera(1);
+                break;
+            case R.id.top_down_button:
+                JNIInterface.setCamera(2);
+                break;
+
             default:
                 Log.w(TAG, "Unrecognized button click.");
                 return;
         }
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // Pass the touch event to the native layer for camera control.
+        // Single touch to rotate the camera around the device.
+        // Two fingers to zoom in and out.
+        int pointCount = event.getPointerCount();
+        if (pointCount == 1) {
+            float normalizedX = event.getX(0) / mScreenSize.x;
+            float normalizedY = event.getY(0) / mScreenSize.y;
+            JNIInterface.onTouchEvent(1,
+                    event.getActionMasked(), normalizedX, normalizedY, 0.0f, 0.0f);
+        }
+        if (pointCount == 2) {
+            if (event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
+                int index = event.getActionIndex() == 0 ? 1 : 0;
+                float normalizedX = event.getX(index) / mScreenSize.x;
+                float normalizedY = event.getY(index) / mScreenSize.y;
+                JNIInterface.onTouchEvent(1,
+                        MotionEvent.ACTION_DOWN, normalizedX, normalizedY, 0.0f, 0.0f);
+            } else {
+                float normalizedX0 = event.getX(0) / mScreenSize.x;
+                float normalizedY0 = event.getY(0) / mScreenSize.y;
+                float normalizedX1 = event.getX(1) / mScreenSize.x;
+                float normalizedY1 = event.getY(1) / mScreenSize.y;
+                JNIInterface.onTouchEvent(2, event.getActionMasked(),
+                        normalizedX0, normalizedY0, normalizedX1, normalizedY1);
+            }
+        }
+        return true;
+    }
+
 
     @Override
     protected void onResume() {
@@ -329,7 +393,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         setServerSocketAddressAndIPDialog.show(manager, "SocketAddIPDialog");
     }
 
-    public void setmSendPCDwitch(boolean on) {
-        mSendPCDwitch.setEnabled(on);
+    public void setmSendPCDSwitch(boolean on) {
+        mSendPCDSwitch.setEnabled(on);
     }
 }

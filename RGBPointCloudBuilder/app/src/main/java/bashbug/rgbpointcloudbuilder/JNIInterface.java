@@ -61,4 +61,14 @@ public class JNIInterface {
 
     public static native void setSocket(String addr, int port);
 
+    public static native void setSendPCDContainer(boolean on);
+
+    public static native void setStartPCDRecording(boolean on);
+
+    // Pass touch events to the native layer.
+    public static native void onTouchEvent(int touchCount, int event0,
+                                           float x0, float y0, float x1, float y1);
+    // Set the render camera's viewing angle:
+    //   first person, third person, or top down.
+    public static native void setCamera(int cameraIndex);
 }

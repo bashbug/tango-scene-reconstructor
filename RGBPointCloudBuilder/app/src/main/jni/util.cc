@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <tango-gl/conversions.h>
 #include "rgb-depth-sync/util.h"
 
 namespace rgb_depth_sync {
@@ -47,6 +48,24 @@ glm::vec3 util::GetTranslationFromMatrix(glm::mat4 transformation) {
   tango_gl::util::DecomposeMatrix(transformation, translation, rotation, scale);
 
   return translation;
+}
+
+glm::mat4 util::GetPoseAppliedOpenGLWorldFrame( const glm::mat4 pose_matrix) {
+  // This full multiplication is equal to:
+  //   opengl_world_T_opengl_camera =
+  //      opengl_world_T_start_service *
+  //      start_service_T_device *
+  //      device_T_imu *
+  //      imu_T_color_camera *
+  //      depth_camera_T_opengl_camera;
+  //
+  // More information about frame transformation can be found here:
+  // Frame of reference:
+  //   https://developers.google.com/project-tango/overview/frames-of-reference
+  // Coordinate System Conventions:
+  //   https://developers.google.com/project-tango/overview/coordinate-systems
+  return tango_gl::conversions::opengl_world_T_tango_world()
+         * pose_matrix;
 }
 
 }  // namespace rgb_depth_sync

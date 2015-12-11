@@ -29,6 +29,7 @@ namespace rgb_depth_sync {
                  GL_LUMINANCE, width, height, 0,  // border
                  GL_LUMINANCE, GL_UNSIGNED_BYTE, data);
     tango_gl::util::CheckGlError("Texture glTexImage2D(...)");
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     tango_gl::util::CheckGlError("Texture glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)");
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
