@@ -30,6 +30,11 @@
 #include <tango-gl/trace.h>
 #include <tango-gl/transform.h>
 
+#include <projectiveScanMatcher3d/projectiveScanMatcher3d.h>
+#include <projectiveImage/sphericalProjectiveImage.h>
+
+#include <Eigen/Geometry>
+
 #include "rgb-depth-sync/util.h"
 #include "rgb-depth-sync/color_image.h"
 #include "rgb-depth-sync/range_image.h"
@@ -145,6 +150,8 @@ namespace rgb_depth_sync {
       void OnPoseAvailable(const TangoPoseData* pose);
 
     private:
+      glm::mat4 convertEigenToGLMPose(Eigen::Isometry3f eigen_pose);
+      Eigen::Isometry3f convertGLMToEigenPose(glm::mat4 glm_pose);
       glm::mat4 GetExtrinsicsAppliedOpenGLWorldFrame(const glm::mat4 pose_matrix);
       void SetRGBBuffer();
       void StoreImage();
@@ -224,6 +231,10 @@ namespace rgb_depth_sync {
 
       // Point Cloud
       Scene* scene_;
+
+      Eigen::Isometry3f icpPose_;
+      ProjectiveScanMatcher3d* projective_scan_matcher_;
+      SphericalProjectiveImage* projective_image_;
   };
 
 } // namespace rgb_depth_sync

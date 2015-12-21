@@ -21,10 +21,11 @@ namespace rgb_depth_sync {
     pcd_ = pcd;
   }
 
-  void PointCloudData::SetRGBDData(glm::mat4 &color_image_t1_T_depth_image_t0,
-                                    glm::mat4 &open_gl_T_ss_T_color_T_depth,
-                                    const std::vector <float> &render_point_cloud_buffer,
-                                    const std::vector <uint8_t> &rgb_map_buffer) {
+  void PointCloudData::SetRGBDData(glm::mat4 &color_T_depth,
+                                   glm::mat4 &opengl_T_depth,
+                                   const std::vector <float> &render_point_cloud_buffer,
+                                   const std::vector <uint8_t> &rgb_map_buffer,
+                                   const std::vector <uint32_t> &rgb_pcd_buffer) {
 
     int depth_image_width = rgb_camera_intrinsics_.width;
     int depth_image_height = rgb_camera_intrinsics_.height;
@@ -32,60 +33,73 @@ namespace rgb_depth_sync {
 
     size_t point_cloud_size = render_point_cloud_buffer.size();
 
+    transformed_unordered_point_cloud_to_image_frame_.clear();
+    vertices_.clear();
+    rgb_data_.clear();
 
-    if(&(render_point_cloud_buffer) != nullptr && &(rgb_map_buffer) != nullptr) {
-      transformed_unordered_point_cloud_to_image_frame_.clear();
-      rgb_data_.clear();
-      LOGE("size rgb: %i", rgb_map_buffer.size());
-      LOGE("size pcd: %i", render_point_cloud_buffer.size());
+    for (size_t i = 0; i < point_cloud_size-3; i = i+3) {
+      float x = render_point_cloud_buffer[i];
+      float y = render_point_cloud_buffer[i + 1];
+      float z = render_point_cloud_buffer[i + 2];
 
-      for (int i = 0; i < render_point_cloud_buffer.size() - 3; i = i + 3) {
-        float x = render_point_cloud_buffer[i];
-        float y = render_point_cloud_buffer[i + 1];
-        float z = render_point_cloud_buffer[i + 2];
+      // transform depth point to color frame
+      glm::vec3 color_point = glm::vec3(color_T_depth * glm::vec4(x, y, z, 1.0));
+      glm::vec3 opengl_point = glm::vec3(opengl_T_depth * glm::vec4(x, y, z, 1.0));
 
-        // depth_t0_point is the point in depth camera frame on timestamp t0.
-        // (depth image timestamp).
-        glm::vec4 depth_t0_point = glm::vec4(x, y, z, 1.0);
+      // normalized radial distance
+      //float ru = Math.sqrt((x*x + y*y) / z*z);
+      //float rd =
 
-        // color_t1_point is the point in camera frame on timestamp t1.
-        // (color image timestamp).
-        glm::vec4 color_point = color_image_t1_T_depth_image_t0 * depth_t0_point;
-        glm::vec4 opengl_point = open_gl_T_ss_T_color_T_depth * depth_t0_point;
+      int pixel_x, pixel_y;
+      // get the coordinate on image plane.
+      pixel_x = static_cast<int>((rgb_camera_intrinsics_.fx) *
+                                 (color_point.x / color_point.z)
+                                 /** rd / ru */ +
+                                 rgb_camera_intrinsics_.cx);
 
-        int pixel_x, pixel_y;
-        // get the coordinate on image plane.
-        pixel_x = static_cast<int>((rgb_camera_intrinsics_.fx) *
-                                   (color_point.x / color_point.z) +
-                                   rgb_camera_intrinsics_.cx);
+      pixel_y = static_cast<int>((rgb_camera_intrinsics_.fy) *
+                                 (color_point.y / color_point.z)
+                                 /** rd / ru */ +
+                                 rgb_camera_intrinsics_.cy);
 
-        pixel_y = static_cast<int>((rgb_camera_intrinsics_.fy) *
-                                   (color_point.y / color_point.z) +
-                                   rgb_camera_intrinsics_.cy);
-
-        if (pixel_x > depth_image_width || pixel_y > depth_image_height || pixel_x < 0 ||
-            pixel_y < 0) {
-          continue;
-        }
-
-        size_t index = (pixel_x + pixel_y * rgb_camera_intrinsics_.width) * 3;
-
-        transformed_unordered_point_cloud_to_image_frame_.push_back(opengl_point.x);
-        transformed_unordered_point_cloud_to_image_frame_.push_back(opengl_point.y);
-        transformed_unordered_point_cloud_to_image_frame_.push_back(opengl_point.z);
-
-        if(index >= 0 || index+2 < rgb_map_buffer.size()) {
-          rgb_data_.push_back(rgb_map_buffer[index]);
-          rgb_data_.push_back(rgb_map_buffer[index+1]);
-          rgb_data_.push_back(rgb_map_buffer[index+2]);
-        } else {
-          LOGE("evil index: %i", index);
-        }
+      if (pixel_x > depth_image_width || pixel_y > depth_image_height || pixel_x < 0 ||
+          pixel_y < 0) {
+        continue;
       }
-      LOGE("transfromt_pcd size: %i", transformed_unordered_point_cloud_to_image_frame_.size());
-      LOGE("transformt_rgb size: %i", rgb_data_.size());
-    }
 
+      size_t index = (pixel_x + pixel_y * rgb_camera_intrinsics_.width);
+
+      // save rgb point cloud
+      if (index >= rgb_pcd_buffer.size()) {
+        LOGE("BAAAAAAAD INDEX: %d, size: %d", index, rgb_pcd_buffer.size());
+      } else {
+        transformed_unordered_point_cloud_to_image_frame_.push_back(color_point.x);
+        transformed_unordered_point_cloud_to_image_frame_.push_back(color_point.y);
+        transformed_unordered_point_cloud_to_image_frame_.push_back(color_point.z);
+
+        vertices_.push_back(opengl_point.x);
+        vertices_.push_back(opengl_point.y);
+        vertices_.push_back(opengl_point.z);
+
+        rgb_data_.push_back(rgb_map_buffer[index*3]);
+        rgb_data_.push_back(rgb_map_buffer[index*3 + 1]);
+        rgb_data_.push_back(rgb_map_buffer[index*3 + 2]);
+
+        uint32_t tmp = rgb_pcd_buffer[index];
+        // Due to historical reasons (PCL was first developed as a ROS package), the
+        // RGB information is packed into an integer and casted to a float.
+        transformed_unordered_point_cloud_to_image_frame_.push_back(
+            *reinterpret_cast<float *>(&tmp));
+      }
+    }
+  }
+
+  std::vector<uint8_t> PointCloudData::GetRGBValues() {
+    return rgb_data_;
+  }
+
+  std::vector<float> PointCloudData::GetVertices() {
+    return vertices_;
   }
 
   void PointCloudData::setUnordered() {

@@ -54,9 +54,10 @@ namespace rgb_depth_sync {
     //         frame's timestamp.
     // @param: point_cloud_vertices, point cloud's vertices of the current point
     //         frame.
-    void Render(const glm::mat4& cur_pose_transformation,
+    void Render(const glm::mat4& tango_pose,
                 const glm::mat4& point_cloud_transformation,
-                const std::vector<float>& point_cloud_vertices,
+                const glm::mat4& icp_pose,
+                const std::vector<float>& point_cloud_data,
                 const std::vector<uint8_t>& rgb_data);
 
     // Set render camera's viewing angle, first person, third person or top down.
@@ -92,6 +93,8 @@ namespace rgb_depth_sync {
 
     // Trace of pose data.
     tango_gl::Trace* trace_;
+
+    tango_gl::Trace* trace_icp_;
 
     // Point cloud drawale object.
     TextureDrawable* texture_;

@@ -25,13 +25,14 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := librgb_point_cloud_builder
 
 LOCAL_SHARED_LIBRARIES := tango_client_api
-LOCAL_CFLAGS    := -std=c++11
+LOCAL_CFLAGS    := -std=c++11 -frtti
 
 LOCAL_C_INCLUDES := $(PROJECT_ROOT)/tango-service-sdk/include/ \
                     $(PROJECT_ROOT)/tango-gl/include \
                     $(PROJECT_ROOT)/third-party/glm/ \
                     $(PROJECT_ROOT)/third-party/Eigen/ \
-                    $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/
+                    $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/ \
+
                     # $(PROJECT_ROOT)/third-party/pcl/ \
                     # $(PROJECT_ROOT)/third-party/boost \
                     # $(PROJECT_ROOT)/third-party/eigen3

@@ -31,6 +31,8 @@ namespace {
 // Color of the motion tracking trajectory.
   const tango_gl::Color kTraceColor(0.22f, 0.28f, 0.67f);
 
+  const tango_gl::Color kTraceColorICP(0.0f, 1.0f, 0.0f);
+
 // Color of the ground grid.
   const tango_gl::Color kGridColor(0.85f, 0.85f, 0.85f);
 
@@ -51,11 +53,13 @@ namespace rgb_depth_sync {
     axis_ = new tango_gl::Axis();
     frustum_ = new tango_gl::Frustum();
     trace_ = new tango_gl::Trace();
+    trace_icp_ = new tango_gl::Trace();
     grid_ = new tango_gl::Grid();
     texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
                                                    shader::kPointCloudFragment);
 
     trace_->SetColor(kTraceColor);
+    trace_icp_->SetColor(kTraceColorICP);
     grid_->SetColor(kGridColor);
     grid_->SetPosition(-kHeightOffset);
     gesture_camera_->SetCameraType(tango_gl::GestureCamera::CameraType::kThirdPerson);
@@ -68,6 +72,7 @@ namespace rgb_depth_sync {
     delete axis_;
     delete frustum_;
     delete trace_;
+    delete trace_icp_;
     delete grid_;
     delete texture_;
   }
@@ -81,8 +86,9 @@ namespace rgb_depth_sync {
     glViewport(0, 0, w, h);
   }
 
-  void Scene::Render(const glm::mat4& cur_pose_transformation_c,
+  void Scene::Render(const glm::mat4& tango_pose,
                      const glm::mat4& point_cloud_transformation,
+                     const glm::mat4& icp_pose,
                      const std::vector<float>& point_cloud_data,
                      const std::vector<uint8_t>& rgb_data) {
 
@@ -95,45 +101,39 @@ namespace rgb_depth_sync {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     tango_gl::util::CheckGlError("PointCloud glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT)");
 
-    glm::mat4 cur_pose_transformation = cur_pose_transformation_c;
+    glm::vec3 position = glm::vec3(tango_pose[3][0], tango_pose[3][1], tango_pose[3][2]);
 
-    glm::vec3 position =
-        glm::vec3(cur_pose_transformation[3][0], cur_pose_transformation[3][1],
-                  cur_pose_transformation[3][2]);
+    glm::vec3 position_icp = glm::vec3(icp_pose[3][0], icp_pose[3][1], icp_pose[3][2]);
+
+    LOGE("icp pose: x:%f y:%f z:%f", position_icp[0], position_icp[1], position_icp[2]);
 
     if (gesture_camera_->GetCameraType() ==
         tango_gl::GestureCamera::CameraType::kFirstPerson) {
       // In first person mode, we directly control camera's motion.Render
-      gesture_camera_->SetTransformationMatrix(cur_pose_transformation);
+      gesture_camera_->SetTransformationMatrix(tango_pose);
     } else {
       // In third person or top down more, we follow the camera movement.
       gesture_camera_->SetAnchorPosition(position);
 
-      frustum_->SetTransformationMatrix(cur_pose_transformation);
+      frustum_->SetTransformationMatrix(tango_pose);
       // Set the frustum scale to 4:3, this doesn't necessarily match the physical
       // camera's aspect ratio, this is just for visualization purposes.
       frustum_->SetScale(kFrustumScale);
       frustum_->Render(gesture_camera_->GetProjectionMatrix(),
                        gesture_camera_->GetViewMatrix());
 
-      glm::mat4 p = gesture_camera_->GetProjectionMatrix();
-
-      LOGE("projection matrix: %f, %f, %f, %f", p[0][0], p[0][1], p[0][2], p[0][3]);
-      LOGE("projection matrix: %f, %f, %f, %f", p[0][1], p[1][1], p[1][2], p[1][3]);
-      LOGE("projection matrix: %f, %f, %f, %f", p[0][2], p[2][2], p[2][2], p[2][3]);
-      LOGE("projection matrix: %f, %f, %f, %f", p[0][3], p[3][3], p[3][2], p[3][3]);
-
-      axis_->SetTransformationMatrix(cur_pose_transformation);
+      axis_->SetTransformationMatrix(tango_pose);
       axis_->Render(gesture_camera_->GetProjectionMatrix(),
                     gesture_camera_->GetViewMatrix());
     }
 
     trace_->UpdateVertexArray(position);
-    trace_->Render(gesture_camera_->GetProjectionMatrix(),
-                   gesture_camera_->GetViewMatrix());
+    trace_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
 
-    grid_->Render(gesture_camera_->GetProjectionMatrix(),
-                  gesture_camera_->GetViewMatrix());
+    trace_icp_->UpdateVertexArray(position_icp);
+    trace_icp_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
+
+    grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
 
     texture_->RenderPointCloud(gesture_camera_->GetProjectionMatrix(),
                                gesture_camera_->GetViewMatrix(),

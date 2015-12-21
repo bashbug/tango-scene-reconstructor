@@ -110,6 +110,9 @@ namespace rgb_depth_sync {
                                            const std::vector <float> &render_point_cloud_buffer,
                                            const std::vector <uint8_t> &rgb_map_buffer) {
     //LOGE("save pcd");
+    previous_point_cloud_ = current_point_cloud_;
+    current_point_cloud_ = render_point_cloud_buffer;
+
     glm::mat4 start_service_T_device_dts = util::GetMatrixFromPose(&(*ss_T_device_dts));
     glm::mat4 start_service_T_device_cts = util::GetMatrixFromPose(&(*ss_T_device_cts));
     glm::mat4 start_service_T_color_cts = start_service_T_device_cts * device_T_color_;
@@ -148,8 +151,8 @@ namespace rgb_depth_sync {
                                  rgb_camera_intrinsics_.cy);
 
       if (!(pixel_x >= 0 && pixel_x <= rgb_camera_intrinsics_.width && pixel_y >= 0 && pixel_y <= rgb_camera_intrinsics_.height)) {
-        LOGE("pixel_x: %i", pixel_x);
-        LOGE("pixel_y: %i", pixel_y);
+        //LOGE("pixel_x: %i", pixel_x);
+        //LOGE("pixel_y: %i", pixel_y);
         continue;
       }
 
@@ -163,9 +166,6 @@ namespace rgb_depth_sync {
       Point point(opengl_point, ss_T_device_dts, rgb);
       pcd_container_.push_back(point);
     }
-    LOGE("pcd_container size: %i", pcd_container_.size());
-    LOGE("camera width: %i", rgb_camera_intrinsics_.width);
-    LOGE("camera height: %i", rgb_camera_intrinsics_.height);
   }
 
   const std::vector <float> PointCloudContainer::GetMergedPointCloud() const {
@@ -203,6 +203,14 @@ namespace rgb_depth_sync {
     float n = 2001;
     float key = ((x * p1) xor (y * p2) xor (z * p3)) % n;
   }*/
+
+  const std::vector<float> PointCloudContainer::GetPreviousPointCloud() const {
+    return previous_point_cloud_;
+  }
+
+  const std::vector<float> PointCloudContainer::GetCurrentPointCloud() const {
+    return current_point_cloud_;
+  }
 
   void PointCloudContainer::SetCameraIntrinsics(TangoCameraIntrinsics intrinsics) {
     rgb_camera_intrinsics_ = intrinsics;

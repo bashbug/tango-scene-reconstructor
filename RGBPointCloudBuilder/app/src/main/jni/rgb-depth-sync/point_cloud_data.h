@@ -34,15 +34,21 @@ namespace rgb_depth_sync {
       void SetRGBDData(glm::mat4 &color_t1_T_depth_t0,
                        glm::mat4 &start_service_T_color_t1,
                        const std::vector <float> &render_point_cloud_buffer,
-                       const std::vector <uint8_t> &rgb_map_buffer);
+                       const std::vector <uint8_t> &rgb_map_buffer,
+                       const std::vector <uint32_t> &rgb_pcd_buffer);
       void SetCameraIntrinsics(TangoCameraIntrinsics intrinsics);
       std::string timestampToString(double value);
       std::string getHeader();
+      std::vector<float> GetVertices();
+      std::vector<uint8_t> GetRGBValues();
       void setHeader(int width, int height);
+
     private:
       std::string header_;
       std::string timestamp_;
       std::vector <float> pcd_;
+      std::vector<float> vertices_;
+      std::vector<uint8_t> rgb_values_;
       glm::vec3 translation_;
       glm::quat rotation_;
       size_t pcd_file_counter_ = 1;

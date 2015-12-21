@@ -26,6 +26,8 @@ namespace rgb_depth_sync {
     void SetCameraIntrinsics(TangoCameraIntrinsics intrinsics);
     std::vector<float> GetVertices();
     std::vector<uint8_t> GetRGBValues();
+    const std::vector<float> GetPreviousPointCloud() const;
+    const std::vector<float> GetCurrentPointCloud() const;
   private:
     void Set();
     std::vector<float> merged_pcd_;
@@ -36,6 +38,8 @@ namespace rgb_depth_sync {
     TangoCameraIntrinsics rgb_camera_intrinsics_;
     std::vector<float> vertices_;
     std::vector<uint8_t> rgb_values_;
+    std::vector<float> previous_point_cloud_;
+    std::vector<float> current_point_cloud_;
   };
 
 } // namespace rgb_depth_sync
