@@ -68,4 +68,111 @@ glm::mat4 util::GetPoseAppliedOpenGLWorldFrame( const glm::mat4 pose_matrix) {
          * pose_matrix;
 }
 
+glm::mat4 util::ConvertEigenToGLMPose(const Eigen::Isometry3f eigen_pose) {
+  // glm;;mat[] returns a column vector
+
+  glm::mat4 pose;
+  //Rotation
+  pose[0][0] = eigen_pose(0,0);
+  pose[0][1] = eigen_pose(1,0);
+  pose[0][2] = eigen_pose(2,0);
+  pose[0][3] = eigen_pose(3,0);
+
+  pose[1][0] = eigen_pose(0,1);
+  pose[1][1] = eigen_pose(1,1);
+  pose[1][2] = eigen_pose(2,1);
+  pose[1][3] = eigen_pose(3,1);
+
+  pose[2][0] = eigen_pose(0,2);
+  pose[2][1] = eigen_pose(1,2);
+  pose[2][2] = eigen_pose(2,2);
+  pose[2][3] = eigen_pose(3,2);
+
+  //Translation
+  pose[3][0] = eigen_pose(0,3);
+  pose[3][1] = eigen_pose(1,3);
+  pose[3][2] = eigen_pose(2,3);
+  pose[3][3] = eigen_pose(3,3);
+  return pose;
+}
+
+Eigen::Isometry3f util::ConvertGLMToEigenPose(const glm::mat4 glm_pose) {
+  // Eigen::Isometry3f(row, column)
+  Eigen::Isometry3f pose;
+  // Rotation
+  pose(0,0) = glm_pose[0][0];
+  pose(1,0) = glm_pose[0][1];
+  pose(2,0) = glm_pose[0][2];
+  pose(3,0) = glm_pose[0][3];
+
+  pose(0,1) = glm_pose[1][0];
+  pose(1,1) = glm_pose[1][1];
+  pose(2,1) = glm_pose[1][2];
+  pose(3,1) = glm_pose[1][3];
+
+  pose(0,2) = glm_pose[2][0];
+  pose(1,2) = glm_pose[2][1];
+  pose(2,2) = glm_pose[2][2];
+  pose(3,2) = glm_pose[2][3];
+
+  // Translation
+  pose(0,3) = glm_pose[3][0];
+  pose(1,3) = glm_pose[3][1];
+  pose(2,3) = glm_pose[3][2];
+  pose(3,3) = glm_pose[3][3];
+  return pose;
+}
+
+Eigen::Isometry3d util::CastIsometry3fTo3d(const Eigen::Isometry3f pose_f) {
+  Eigen::Isometry3d pose_d;
+  pose_d(0,0) = static_cast<double>(pose_f(0,0));
+  pose_d(1,0) = static_cast<double>(pose_f(1,0));
+  pose_d(2,0) = static_cast<double>(pose_f(2,0));
+  pose_d(3,0) = static_cast<double>(pose_f(3,0));
+
+  pose_d(0,1) = static_cast<double>(pose_f(0,1));
+  pose_d(1,1) = static_cast<double>(pose_f(1,1));
+  pose_d(2,1) = static_cast<double>(pose_f(2,1));
+  pose_d(3,1) = static_cast<double>(pose_f(3,1));
+
+  pose_d(0,2) = static_cast<double>(pose_f(0,2));
+  pose_d(1,2) = static_cast<double>(pose_f(1,2));
+  pose_d(2,2) = static_cast<double>(pose_f(2,2));
+  pose_d(3,2) = static_cast<double>(pose_f(3,2));
+
+  pose_d(0,3) = static_cast<double>(pose_f(0,3));
+  pose_d(1,3) = static_cast<double>(pose_f(1,3));
+  pose_d(2,3) = static_cast<double>(pose_f(2,3));
+  pose_d(3,3) = static_cast<double>(pose_f(3,3));
+  return pose_d;
+}
+
+Eigen::Isometry3f util::CastIsometry3dTo3f(const Eigen::Isometry3d pose_d) {
+  Eigen::Isometry3f pose_f;
+  pose_f(0,0) = static_cast<float>(pose_d(0,0));
+  pose_f(1,0) = static_cast<float>(pose_d(1,0));
+  pose_f(2,0) = static_cast<float>(pose_d(2,0));
+  pose_f(3,0) = static_cast<float>(pose_d(3,0));
+
+  pose_f(0,1) = static_cast<float>(pose_d(0,1));
+  pose_f(1,1) = static_cast<float>(pose_d(1,1));
+  pose_f(2,1) = static_cast<float>(pose_d(2,1));
+  pose_f(3,1) = static_cast<float>(pose_d(3,1));
+
+  pose_f(0,2) = static_cast<float>(pose_d(0,2));
+  pose_f(1,2) = static_cast<float>(pose_d(1,2));
+  pose_f(2,2) = static_cast<float>(pose_d(2,2));
+  pose_f(3,2) = static_cast<float>(pose_d(3,2));
+
+  pose_f(0,3) = static_cast<float>(pose_d(0,3));
+  pose_f(1,3) = static_cast<float>(pose_d(1,3));
+  pose_f(2,3) = static_cast<float>(pose_d(2,3));
+  pose_f(3,3) = static_cast<float>(pose_d(3,3));
+  return pose_f;
+}
+
+float util::Deg2Rad(float alpha) {
+  return alpha*M_PI/180.0f;
+}
+
 }  // namespace rgb_depth_sync

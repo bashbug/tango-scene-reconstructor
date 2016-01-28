@@ -105,7 +105,7 @@ namespace rgb_depth_sync {
 
     glm::vec3 position_icp = glm::vec3(icp_pose[3][0], icp_pose[3][1], icp_pose[3][2]);
 
-    LOGE("icp pose: x:%f y:%f z:%f", position_icp[0], position_icp[1], position_icp[2]);
+    //LOGE("icp pose: x:%f y:%f z:%f", position_icp[0], position_icp[1], position_icp[2]);
 
     if (gesture_camera_->GetCameraType() ==
         tango_gl::GestureCamera::CameraType::kFirstPerson) {
@@ -127,10 +127,10 @@ namespace rgb_depth_sync {
                     gesture_camera_->GetViewMatrix());
     }
 
-    trace_->UpdateVertexArray(position);
+    //trace_->UpdateVertexArray(position);
     trace_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
 
-    trace_icp_->UpdateVertexArray(position_icp);
+    //trace_icp_->UpdateVertexArray(position_icp);
     trace_icp_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
 
     grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
@@ -139,6 +139,19 @@ namespace rgb_depth_sync {
                                gesture_camera_->GetViewMatrix(),
                                point_cloud_transformation, point_cloud_data,
                                rgb_data);
+  }
+
+  void Scene::SetTrace(std::vector<glm::vec3> positions) {
+
+    for (int i=0; i<positions.size(); i++) {
+      trace_->UpdateVertexArray(positions[i]);
+    }
+  }
+
+  void Scene::SetICPTrace(std::vector<glm::vec3> positions) {
+    for (int i=0; i<positions.size(); i++) {
+      trace_icp_->UpdateVertexArray(positions[i]);
+    }
   }
 
   void Scene::SetCameraType(tango_gl::GestureCamera::CameraType camera_type) {

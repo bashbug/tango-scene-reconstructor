@@ -320,13 +320,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void surfaceCreated() {
         JNIInterface.initializeGLContent();
-        int ret = JNIInterface.tangoConnectTexture();
+        /*int ret = JNIInterface.tangoConnectTexture();
         if (ret != TANGO_SUCCESS) {
             Log.e(TAG, "Failed to connect texture with code: "  + ret);
             finish();
-        }
+        }*/
 
-        ret = JNIInterface.tangoSetupConfig();
+        int ret = JNIInterface.tangoSetupConfig();
         if (ret != TANGO_SUCCESS) {
             Log.e(TAG, "Failed to set config with code: "  + ret);
             finish();

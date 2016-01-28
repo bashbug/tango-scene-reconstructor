@@ -30,8 +30,12 @@
 #include <tango-gl/trace.h>
 #include <tango-gl/transform.h>
 
-#include <projectiveScanMatcher3d/projectiveScanMatcher3d.h>
-#include <projectiveImage/sphericalProjectiveImage.h>
+#include <cstring>
+
+#include <thread>
+#include <mutex>
+#include <errno.h>
+#include <pthread.h>
 
 #include <Eigen/Geometry>
 
@@ -42,6 +46,11 @@
 #include "rgb-depth-sync/point_cloud_container.h"
 #include "rgb-depth-sync/pose_container.h"
 #include "rgb-depth-sync/scene.h"
+#include "rgb-depth-sync/pcd_file_writer.h"
+#include "rgb-depth-sync/pcd_file_reader.h"
+
+#include "rgb-depth-sync/slam3d.h"
+#include "rgb-depth-sync/scan_matcher.h"
 
 namespace {
 // We want to represent the device properly with respect to the ground so we'll
@@ -150,8 +159,13 @@ namespace rgb_depth_sync {
       void OnPoseAvailable(const TangoPoseData* pose);
 
     private:
+      float GetEuclideanDistance(const glm::vec3 curr_depth_point, const glm::vec3 trans_depth_point);
+      glm::vec3 ConvertDepthPointTo3DPoint( const glm::vec3 depth_point);
+      glm::vec3 Convert3DPointToDepthPoint( const glm::vec3 pcd_point);
+      std::vector<PointCloudData*> &allPCD();
       glm::mat4 convertEigenToGLMPose(Eigen::Isometry3f eigen_pose);
       Eigen::Isometry3f convertGLMToEigenPose(glm::mat4 glm_pose);
+      Eigen::Isometry3d CastIsometry3fTo3d(Eigen::Isometry3f pose_f);
       glm::mat4 GetExtrinsicsAppliedOpenGLWorldFrame(const glm::mat4 pose_matrix);
       void SetRGBBuffer();
       void StoreImage();
@@ -159,7 +173,11 @@ namespace rgb_depth_sync {
                    uint8_t* r, uint8_t* g, uint8_t* b, uint32_t* rgb);
       void WriteByteToPPM(const char* filename, std::vector<uint8_t> rgb_bytebuffer,
                           size_t w, size_t h);
-
+      std::vector<float> GetDummyPCD();
+      PointCloudData* PCDFirst_;
+      PointCloudData* PCDLast_;
+      PCDFileWriter* pcd_file_writer_;
+      PCDFileReader* pcd_file_reader_;
       PointCloudContainer* point_cloud_container_;
       PoseContainer* pose_container_;
       ColorImage* color_image_;
@@ -210,6 +228,7 @@ namespace rgb_depth_sync {
       std::vector<uint8_t> render_yuv_buffer_;
       std::vector<uint8_t> rgb_map_buffer_;
       std::vector<uint32_t> rgb_pcd_buffer_;
+      std::vector<uint8_t> rgb_buffer_;
       bool swap_rgb_buffer_signal_;
       bool swap_yuv_buffer_signal_;
       std::mutex yuv_buffer_mutex_;
@@ -231,10 +250,30 @@ namespace rgb_depth_sync {
 
       // Point Cloud
       Scene* scene_;
+      bool frame_available_;
+      bool render_rgbxyz_;
+
+      bool pcd_available_ = false;
+      bool rgb_available_ = false;
+
+      int id_;
+
+      bool new_point_cloud_data_;
+      bool new_rgb_data_;
+
+      bool optimize_pose_graph_;
 
       Eigen::Isometry3f icpPose_;
-      ProjectiveScanMatcher3d* projective_scan_matcher_;
-      SphericalProjectiveImage* projective_image_;
+      //ProjectiveScanMatcher3d* projective_scan_matcher_;
+      //SphericalProjectiveImage* projective_image_;
+      std::vector<float> dummy_pcd_;
+      std::vector<int> circle_pixels_;
+      Slam3D* slam_;
+      ScanMatcher* scan_matcher_;
+      std::vector<PointCloudData*> all_pcd_;
+      std::vector<glm::vec3> positions_;
+      TangoImageBuffer* buffer;
+      TangoCameraIntrinsics color_camera_intrinsics;
   };
 
 } // namespace rgb_depth_sync

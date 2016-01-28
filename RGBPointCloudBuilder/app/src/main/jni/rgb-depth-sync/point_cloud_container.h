@@ -6,40 +6,29 @@
 #define RGB_DEPTH_SYNC_POINT_CLOUD_CONTAINER_H
 
 #include <vector>
+#include <map>
+#include <utility>
 
-#include "tango-gl/util.h"
+#include <tango-gl/util.h>
+
 #include "rgb-depth-sync/util.h"
-#include "rgb-depth-sync/point.h"
+#include "rgb-depth-sync/point_cloud_data.h"
 
 namespace rgb_depth_sync {
 
   class PointCloudContainer {
   public:
-    explicit PointCloudContainer();
+    PointCloudContainer();
     ~PointCloudContainer();
-    void UpdateMergedPointCloud();
-    const std::vector<float> GetMergedPointCloud() const;
-    void SavePointCloud(TangoPoseData* ss_T_device_cts,
-                        TangoPoseData* ss_T_device_dts,
-                        const std::vector <float> &render_point_cloud_buffer,
-                        const std::vector <uint8_t> &rgb_map_buffer);
-    void SetCameraIntrinsics(TangoCameraIntrinsics intrinsics);
-    std::vector<float> GetVertices();
-    std::vector<uint8_t> GetRGBValues();
-    const std::vector<float> GetPreviousPointCloud() const;
-    const std::vector<float> GetCurrentPointCloud() const;
+    void SetPointCloudData(PointCloudData* pcd);
+    PointCloudData* GetLatestPCD();
+    std::vector<float> GetAllXYZValues() {return merged_point_cloud_xyz_values_;}
+    std::vector<uint8_t> GetAllRGBValues() {return merged_point_cloud_rgb_values_;}
+    std::vector<PointCloudData*> GetPointCloudContainer() {return pcd_container_;}
   private:
-    void Set();
-    std::vector<float> merged_pcd_;
-    std::vector<Point> pcd_container_;
-    glm::mat4 device_T_color_;
-    glm::mat4 device_T_depth_;
-    glm::mat4 color_T_device_;
-    TangoCameraIntrinsics rgb_camera_intrinsics_;
-    std::vector<float> vertices_;
-    std::vector<uint8_t> rgb_values_;
-    std::vector<float> previous_point_cloud_;
-    std::vector<float> current_point_cloud_;
+    std::vector<PointCloudData*> pcd_container_;
+    std::vector<float> merged_point_cloud_xyz_values_;
+    std::vector<uint8_t> merged_point_cloud_rgb_values_;
   };
 
 } // namespace rgb_depth_sync

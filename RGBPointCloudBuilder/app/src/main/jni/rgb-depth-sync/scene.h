@@ -78,6 +78,9 @@ namespace rgb_depth_sync {
     void OnTouchEvent(int touch_count, tango_gl::GestureCamera::TouchEvent event,
                       float x0, float y0, float x1, float y1);
 
+    void SetTrace(std::vector<glm::vec3> positions);
+    void SetICPTrace(std::vector<glm::vec3> positions);
+
   private:
     // Camera object that allows user to use touch input to interact with.
     tango_gl::GestureCamera* gesture_camera_;

@@ -14,30 +14,94 @@
 # limitations under the License.
 #
 
+LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
+
 LOCAL_PATH := $(call my-dir)
 PROJECT_ROOT_FROM_JNI:= ../../../../..
 PROJECT_ROOT:= $(call my-dir)/../../../../..
 
-#PCL_INCLUDE := $(PROJECT_ROOT)/third-party/pcl
-#BOOST_INCLUDE := $(PROJECT_ROOT)/third-party/boost
+#LOCAL_STATIC_LIBRARIES := lib/armeabi-v7a
+#LOCAL_SHARED_LIBRARIES := $(CVROOT)/libs/armeabi-v7a/
+
+### include g2o
+
+G20ROOT := /home/anastasia/Projects/TangoProject/third-party/g2o/
 
 include $(CLEAR_VARS)
-LOCAL_MODULE    := librgb_point_cloud_builder
+LOCAL_MODULE := libg2o_core-prebuilt
+LOCAL_SRC_FILES := $(G20ROOT)/lib/libg2o_core.so
+LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/
+include $(PREBUILT_SHARED_LIBRARY)
 
-LOCAL_SHARED_LIBRARIES := tango_client_api
-LOCAL_CFLAGS    := -std=c++11 -frtti
+include $(CLEAR_VARS)
+LOCAL_MODULE := libg2o_stuff-prebuilt
+LOCAL_SRC_FILES := $(G20ROOT)/lib/libg2o_stuff.so
+LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/
+include $(PREBUILT_SHARED_LIBRARY)
 
-LOCAL_C_INCLUDES := $(PROJECT_ROOT)/tango-service-sdk/include/ \
+### g2o 3d types
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libg2o_types_slam3d-prebuilt
+LOCAL_SRC_FILES := $(G20ROOT)/lib/libg2o_types_slam3d.so
+LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/
+include $(PREBUILT_SHARED_LIBRARY)
+
+### g2o solver
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libg2o_ext_csparse-prebuilt
+LOCAL_SRC_FILES := $(G20ROOT)/lib/libg2o_ext_csparse.so
+LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libg2o_csparse_extension-prebuilt
+LOCAL_SRC_FILES := $(G20ROOT)/lib/libg2o_csparse_extension.so
+LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libg2o_solver_csparse-prebuilt
+LOCAL_SRC_FILES := $(G20ROOT)/lib/libg2o_solver_csparse.so
+LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/ \
+                        $(G20ROOT)/EXTERNAL/csparse/
+include $(PREBUILT_SHARED_LIBRARY)
+
+### include opencv
+
+CVROOT := $(PROJECT_ROOT)/third-party/OpenCV-android-sdk/sdk/native/jni
+
+include $(CLEAR_VARS)
+OPENCV_INSTALL_MODULES:=on
+OPENCV_LIB_TYPE:=STATIC
+include $(CVROOT)/OpenCV.mk
+LOCAL_ARM_NEON := true
+
+LOCAL_MODULE    += librgb_point_cloud_builder
+
+LOCAL_STATIC_LIBRARIES += flann
+LOCAL_STATIC_LIBRARIES += flann_cpp
+
+LOCAL_SHARED_LIBRARIES += tango_client_api
+
+LOCAL_SHARED_LIBRARIES += libg2o_core-prebuilt
+LOCAL_SHARED_LIBRARIES += libg2o_stuff-prebuilt
+LOCAL_SHARED_LIBRARIES += libg2o_types_slam3d-prebuilt
+LOCAL_SHARED_LIBRARIES += libg2o_ext_csparse-prebuilt
+LOCAL_SHARED_LIBRARIES += libg2o_csparse_extension-prebuilt
+LOCAL_SHARED_LIBRARIES += libg2o_solver_csparse-prebuilt
+
+LOCAL_CFLAGS    += -std=c++11 -frtti -fexceptions
+
+LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-service-sdk/include/ \
                     $(PROJECT_ROOT)/tango-gl/include \
                     $(PROJECT_ROOT)/third-party/glm/ \
                     $(PROJECT_ROOT)/third-party/Eigen/ \
-                    $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/ \
+                    $(PROJECT_ROOT)/third-party/g2o/ \
+                    $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/
 
-                    # $(PROJECT_ROOT)/third-party/pcl/ \
-                    # $(PROJECT_ROOT)/third-party/boost \
-                    # $(PROJECT_ROOT)/third-party/eigen3
-
-LOCAL_SRC_FILES := shader.cc \
+LOCAL_SRC_FILES += shader.cc \
                    texture.cc \
                    texture_drawable.cc \
                    color_image.cc \
@@ -53,6 +117,10 @@ LOCAL_SRC_FILES := shader.cc \
                    tcp_client.cc \
                    util.cc \
                    write_color_image.cc \
+                   pcd_file_reader.cc \
+                   pcd_file_writer.cc \
+                   scan_matcher.cc \
+                   slam3d.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/axis.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/bounding_box.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/camera.cpp \
@@ -69,9 +137,10 @@ LOCAL_SRC_FILES := shader.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/transform.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/util.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.cpp
-                   
-LOCAL_LDLIBS    := -llog -lGLESv2 -L$(SYSROOT)/usr/lib
-# LOCAL_LDLIBS    := -llog -lGLESv2 -L$(SYSROOT)/usr/lib -L$(PCL_INCLUDE)/lib -L$(BOOST_INCLUDE)/lib
+
+LOCAL_LDLIBS    += -llog -lGLESv2 -L$(SYSROOT)/usr/lib
+
 include $(BUILD_SHARED_LIBRARY)
+
 $(call import-add-path, $(PROJECT_ROOT))
 $(call import-module,tango_client_api)

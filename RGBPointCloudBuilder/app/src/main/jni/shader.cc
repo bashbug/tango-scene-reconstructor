@@ -42,7 +42,6 @@ namespace rgb_depth_sync {
     }
 
     if (shader_program_) {
-      LOGE("Shader created");
       // attach vertex and fragment shader to shader program
       glAttachShader(shader_program_, vertex_shader_);
       tango_gl::util::CheckGlError("Shader glAttachShader(shader_program_, vertex_shader_)");
