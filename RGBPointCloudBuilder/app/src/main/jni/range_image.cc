@@ -30,7 +30,7 @@
 #include "tango-gl/camera.h"
 #include "rgb-depth-sync/range_image.h"
 #include "rgb-depth-sync/texture_drawable.h"
-#include "rgb-depth-sync/point_cloud_data.h"
+#include "rgb-depth-sync/pcd.h"
 #include "rgb-depth-sync/shader.h"
 
 namespace rgb_depth_sync {

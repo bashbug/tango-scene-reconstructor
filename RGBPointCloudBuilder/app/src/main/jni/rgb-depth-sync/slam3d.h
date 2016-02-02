@@ -5,18 +5,20 @@
 #ifndef RGBPOINTCLOUDBUILDER_SLAM3D_H
 #define RGBPOINTCLOUDBUILDER_SLAM3D_H
 
-#include "g2o/types/slam3d/vertex_se3.h"
-#include "g2o/types/slam3d/edge_se3.h"
-#include "g2o/types/slam3d/types_slam3d.h"
-
-#include "g2o/core/sparse_optimizer.h"
-
-#include "g2o/core/block_solver.h"
-#include "g2o/solvers/csparse/linear_solver_csparse.h"
+#include <mutex>
+#include <condition_variable>
 
 #include <Eigen/Geometry>
 
+#include "g2o/types/slam3d/vertex_se3.h"
+#include "g2o/types/slam3d/edge_se3.h"
+#include "g2o/types/slam3d/types_slam3d.h"
+#include "g2o/core/sparse_optimizer.h"
+#include "g2o/core/block_solver.h"
+#include "g2o/solvers/csparse/linear_solver_csparse.h"
+
 #include "rgb-depth-sync/util.h"
+#include "rgb-depth-sync/pcd_container.h"
 
 typedef g2o::BlockSolver< g2o::BlockSolverTraits<6, 3> >  SlamBlockSolver;
 typedef g2o::LinearSolverCSparse<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
@@ -25,7 +27,7 @@ namespace rgb_depth_sync {
 
   class Slam3D {
     public:
-      Slam3D();
+      Slam3D(PCDContainer* pcd_container, std::mutex* pcd_mtx, std::condition_variable* consume_pcd);
       ~Slam3D();
       int AddNode(Eigen::Isometry3d pose);
       void AddEdge(int prev_id, int cur_id);
@@ -44,6 +46,9 @@ namespace rgb_depth_sync {
       int counter_;
       int accuracy_;
       bool first_pose_;
+      PCDContainer* pcd_container_;
+      std::mutex* pcd_mtx_;
+      std::condition_variable* consume_pcd_;
   };
 }
 

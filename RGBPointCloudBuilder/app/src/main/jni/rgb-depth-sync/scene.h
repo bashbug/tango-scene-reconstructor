@@ -17,7 +17,6 @@
 #ifndef TANGO_POINT_CLOUD_SCENE_H_
 #define TANGO_POINT_CLOUD_SCENE_H_
 
-#include <jni.h>
 #include <memory>
 
 #include <tango_client_api.h>  // NOLINT
@@ -82,6 +81,13 @@ namespace rgb_depth_sync {
     void SetICPTrace(std::vector<glm::vec3> positions);
 
   private:
+    GLint viewport_x_;
+    GLint viewport_y_;
+    GLsizei viewport_width_;
+    GLsizei viewport_height_;
+
+    float image_plane_ratio_;
+
     // Camera object that allows user to use touch input to interact with.
     tango_gl::GestureCamera* gesture_camera_;
 

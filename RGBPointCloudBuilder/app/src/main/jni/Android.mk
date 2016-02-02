@@ -14,14 +14,9 @@
 # limitations under the License.
 #
 
-LOCAL_ALLOW_UNDEFINED_SYMBOLS := true
-
 LOCAL_PATH := $(call my-dir)
 PROJECT_ROOT_FROM_JNI:= ../../../../..
 PROJECT_ROOT:= $(call my-dir)/../../../../..
-
-#LOCAL_STATIC_LIBRARIES := lib/armeabi-v7a
-#LOCAL_SHARED_LIBRARIES := $(CVROOT)/libs/armeabi-v7a/
 
 ### include g2o
 
@@ -104,19 +99,16 @@ LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-service-sdk/include/ \
 LOCAL_SRC_FILES += shader.cc \
                    texture.cc \
                    texture_drawable.cc \
-                   color_image.cc \
-                   range_image.cc \
                    jni_interface.cc \
                    mesh.cc \
-                   point.cc \
-                   point_cloud_data.cc \
-                   point_cloud_container.cc \
-                   pose_container.cc \
+                   pcd.cc \
+                   pcd_container.cc \
+                   pcd_worker.cc \
                    rgb_depth_sync_application.cc \
                    scene.cc \
                    tcp_client.cc \
                    util.cc \
-                   write_color_image.cc \
+                   conversion.cc \
                    pcd_file_reader.cc \
                    pcd_file_writer.cc \
                    scan_matcher.cc \

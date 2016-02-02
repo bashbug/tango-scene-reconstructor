@@ -12,9 +12,11 @@
 
 namespace rgb_depth_sync {
 
-  Slam3D::Slam3D() {
+  Slam3D::Slam3D(PCDContainer* pcd_container, std::mutex* pcd_mtx, std::condition_variable* consume_pcd) {
 
-    // allocating the optimizer
+    pcd_container_ = pcd_container;
+
+  // allocating the optimizer
     optimizer_ = new g2o::SparseOptimizer();
     optimizer_->setVerbose(true);
     SlamLinearSolver* linearSolver = new SlamLinearSolver();

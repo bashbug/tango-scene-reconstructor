@@ -9,9 +9,10 @@
 #include <vector>
 #include <tango-gl/util.h>
 
-#include "rgb-depth-sync/util.h"
 #include <projectiveScanMatcher3d/projectiveScanMatcher3d.h>
 #include <projectiveImage/sphericalProjectiveImage.h>
+
+#include "rgb-depth-sync/util.h"
 
 namespace rgb_depth_sync {
   class ScanMatcher {

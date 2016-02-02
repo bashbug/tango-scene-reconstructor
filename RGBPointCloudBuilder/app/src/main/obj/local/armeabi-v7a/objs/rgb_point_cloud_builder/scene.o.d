@@ -92,9 +92,9 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/quaternion.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/gtc/quaternion.inl \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scene.h \
- /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/memory \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h \
+ /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/axis.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/line.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/drawable_object.h \
@@ -308,11 +308,11 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scene.h:
 
-/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h:
-
 /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/memory:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango_client_api/include/tango_client_api.h:
+
+/home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/axis.h:
 

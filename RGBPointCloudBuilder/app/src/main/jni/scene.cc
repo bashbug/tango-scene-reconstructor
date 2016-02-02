@@ -78,6 +78,7 @@ namespace rgb_depth_sync {
   }
 
   void Scene::SetViewPort(int w, int h) {
+
     if (h == 0) {
       LOGE("Setup graphic height not valid");
     }
@@ -91,6 +92,10 @@ namespace rgb_depth_sync {
                      const glm::mat4& icp_pose,
                      const std::vector<float>& point_cloud_data,
                      const std::vector<uint8_t>& rgb_data) {
+
+    //glViewport(viewport_x_, viewport_y_, viewport_width_, viewport_height_);
+
+    //LOGE("viewport: x %i, y %i, width %i, height %i", viewport_x_, viewport_y_, viewport_width_, viewport_height_);
 
     glEnable(GL_DEPTH_TEST);
     tango_gl::util::CheckGlError("PointCloud glEnable(GL_DEPTH_TEST)");

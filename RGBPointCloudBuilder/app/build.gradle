@@ -7,7 +7,7 @@ android {
     defaultConfig {
         applicationId "bashbug.rgbpointcloudbuilder"
         minSdkVersion 19
-        targetSdkVersion 19
+        targetSdkVersion 22
     }
 
     sourceSets.main {
@@ -19,9 +19,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            ndk {
+                debuggable true
+            }
         }
     }
-    
+
     lintOptions {
         abortOnError false
     }

@@ -37,8 +37,6 @@ public class JNIInterface {
 
     public static native int storeImage(boolean store);
 
-    public static native int tangoConnectTexture();
-
     public static native int tangoConnect();
 
     public static native int tangoConnectCallbacks();

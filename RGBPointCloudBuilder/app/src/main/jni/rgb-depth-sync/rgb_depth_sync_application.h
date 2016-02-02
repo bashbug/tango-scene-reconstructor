@@ -17,7 +17,9 @@
 #ifndef RGB_DEPTH_SYNC_APPLICATION_H_
 #define RGB_DEPTH_SYNC_APPLICATION_H_
 
-#include <jni.h>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
 
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
@@ -30,27 +32,13 @@
 #include <tango-gl/trace.h>
 #include <tango-gl/transform.h>
 
-#include <cstring>
-
-#include <thread>
-#include <mutex>
-#include <errno.h>
-#include <pthread.h>
-
-#include <Eigen/Geometry>
-
+#include "jni.h"
 #include "rgb-depth-sync/util.h"
-#include "rgb-depth-sync/color_image.h"
-#include "rgb-depth-sync/range_image.h"
-#include "rgb-depth-sync/point_cloud_data.h"
-#include "rgb-depth-sync/point_cloud_container.h"
-#include "rgb-depth-sync/pose_container.h"
+#include "rgb-depth-sync/pcd.h"
+#include "rgb-depth-sync/pcd_container.h"
+#include "rgb-depth-sync/pcd_worker.h"
 #include "rgb-depth-sync/scene.h"
-#include "rgb-depth-sync/pcd_file_writer.h"
-#include "rgb-depth-sync/pcd_file_reader.h"
-
 #include "rgb-depth-sync/slam3d.h"
-#include "rgb-depth-sync/scan_matcher.h"
 
 namespace {
 // We want to represent the device properly with respect to the ground so we'll
@@ -71,41 +59,13 @@ namespace {
 
 namespace rgb_depth_sync {
 
-  // This thread safe class is the main application for Synchronization.
-  // It can be instantiated in the JNI layer and use to pass information back and
-  // forth between Java. The class also manages the application's lifecycle and
-  // interaction with the Tango service. Primarily, this involves registering for
-  // callbacks and passing on the necessary information to stored objects. It also
-  // takes care of passing a vector container which has a pointer to the
-  // latest point cloud buffer that is to used for rendering.
-  //  To reduce the number of point cloud data copies between callback and render
-  // threads we use three buffers which are synchronously exchanged between each
-  // other so that the render loop always contains the latest point cloud data.
-  // 1. Callback buffer : The buffer to which pointcloud data received from Tango
-  // Service callback is copied out.
-  // 2. Shared buffer: This buffer is used to share the data between Service
-  // callback and Render loop
-  // 3. Render Buffer: This buffer is used in the renderloop to project point
-  // cloud data to a 2D image plane which is of the same size as RGB image. We
-  // also make sure that this buffer contains the latest point cloud data that is
-  //  received from the call back.
-
   class SynchronizationApplication {
     public:
       SynchronizationApplication();
       ~SynchronizationApplication();
-      // Initialize the Tango Service, this function starts the communication
-      // between the application and the Tango Service.
-      // The activity object is used for checking if the API version is outdated
       int TangoInitialize(JNIEnv* env, jobject caller_activity);
-      int TangoSetPCDSave(bool isChecked);
-      int TangoSetPCDSend(bool isChecked);
-      int TangoStoreImage(bool store);
       // Setup the configuration file for the Tango Service. .
       int TangoSetupConfig();
-      // Associate the texture generated from an Opengl context to which the color
-      // image will be updated to.
-      int TangoConnectTexture();
       // Sets the callbacks for OnXYZijAvailable
       int TangoConnectCallbacks();
       // Connect to Tango Service.
@@ -123,7 +83,9 @@ namespace rgb_depth_sync {
       // @param: camera_type, camera type includes first person, third person and
       //         top down
       void SetCameraType(tango_gl::GestureCamera::CameraType camera_type);
-
+      int TangoSetPCDSave(bool isChecked);
+      int TangoSetPCDSend(bool isChecked);
+      int TangoStoreImage(bool store);
       // Touch event passed from android activity. This function only supports two
       // touches.
       //
@@ -133,8 +95,7 @@ namespace rgb_depth_sync {
       // @param: y0, normalized touch location for touch 0 on y axis.
       // @param: x1, normalized touch location for touch 1 on x axis.
       // @param: y1, normalized touch location for touch 1 on y axis.
-      void OnTouchEvent(int touch_count, tango_gl::GestureCamera::TouchEvent event,
-                        float x0, float y0, float x1, float y1);
+      void OnTouchEvent(int touch_count, tango_gl::GestureCamera::TouchEvent event, float x0, float y0, float x1, float y1);
       // Inititalizes all the OpenGL resources required to render a Depth Image on
       // Top of an RGB image.
       void InitializeGLContent();
@@ -156,124 +117,23 @@ namespace rgb_depth_sync {
       // Callback for point clouds that come in from the Tango service.
       // @param xyz_ij The point cloud returned by the service.
       void OnXYZijAvailable(const TangoXYZij* xyz_ij);
-      void OnPoseAvailable(const TangoPoseData* pose);
 
     private:
-      float GetEuclideanDistance(const glm::vec3 curr_depth_point, const glm::vec3 trans_depth_point);
-      glm::vec3 ConvertDepthPointTo3DPoint( const glm::vec3 depth_point);
-      glm::vec3 Convert3DPointToDepthPoint( const glm::vec3 pcd_point);
-      std::vector<PointCloudData*> &allPCD();
-      glm::mat4 convertEigenToGLMPose(Eigen::Isometry3f eigen_pose);
-      Eigen::Isometry3f convertGLMToEigenPose(glm::mat4 glm_pose);
-      Eigen::Isometry3d CastIsometry3fTo3d(Eigen::Isometry3f pose_f);
-      glm::mat4 GetExtrinsicsAppliedOpenGLWorldFrame(const glm::mat4 pose_matrix);
-      void SetRGBBuffer();
-      void StoreImage();
-      void Yuv2Rgb(uint8_t yValue, uint8_t uValue, uint8_t vValue,
-                   uint8_t* r, uint8_t* g, uint8_t* b, uint32_t* rgb);
-      void WriteByteToPPM(const char* filename, std::vector<uint8_t> rgb_bytebuffer,
-                          size_t w, size_t h);
-      std::vector<float> GetDummyPCD();
-      PointCloudData* PCDFirst_;
-      PointCloudData* PCDLast_;
-      PCDFileWriter* pcd_file_writer_;
-      PCDFileReader* pcd_file_reader_;
-      PointCloudContainer* point_cloud_container_;
-      PoseContainer* pose_container_;
-      ColorImage* color_image_;
-      RangeImage* range_image_;
+      int screen_width_, screen_height_;
       TangoConfig tango_config_;
-      glm::mat4 device_T_color_;
-      glm::mat4 device_T_depth_;
-      glm::mat4 color_T_device_;
-      glm::mat4 OW_T_SS_;
-      float screen_width_;
-      float screen_height_;
-      // This is the buffer to which point cloud data from TangoService callback
-      // gets copied out to.
-      // The data is an array of packed coordinate triplets, x,y,z as floating point
-      // values. With the unit in landscape orientation, screen facing the user:
-      // +Z points in the direction of the camera's optical axis, and is measured
-      // perpendicular to the plane of the camera.
-      // +X points toward the user's right, and +Y points toward the bottom of
-      // the screen.
-      // The origin is the focal centre of the color camera.
-      // The output is in units of metres.
-      std::vector<float> callback_point_cloud_buffer_;
-      // The buffer of point cloud data which is shared between TangoService
-      // callback and render loop.
-      std::vector<float> shared_point_cloud_buffer_;
-      // This buffer is used in the render loop to project point cloud data to
-      // a 2D image plane which is of the same size as RGB image.
-      std::vector<float> render_point_cloud_buffer_;
-      // Time of capture of the current depth data (in seconds).
-      double depth_timestamp_;
-      double color_timestamp_;
-      // Mutex for protecting the point cloud data. The point cloud data is shared
-      // between update call which is called from render loop and
-      // TangoService callback thread.
-      std::mutex point_cloud_mutex_;
-      std::mutex rgb_mutex_;
-      // This signal is used to notify update call if there is a new
-      // point cloud buffer available and swap the shared and render buffers
-      // accordingly.
-      bool swap_point_cloud_buffer_signal_;
-      bool render_depth_map_;
-      bool render_range_image_;
-      bool render_image_;
-      bool update_point_cloud_container;
-      bool send_point_cloud_container;
-      std::vector<uint8_t> callback_yuv_buffer_;
-      std::vector<uint8_t> shared_yuv_buffer_;
-      std::vector<uint8_t> render_yuv_buffer_;
-      std::vector<uint8_t> rgb_map_buffer_;
-      std::vector<uint32_t> rgb_pcd_buffer_;
-      std::vector<uint8_t> rgb_buffer_;
-      bool swap_rgb_buffer_signal_;
-      bool swap_yuv_buffer_signal_;
-      std::mutex yuv_buffer_mutex_;
-      std::mutex rgb_buffer_mutex_;
-      std::mutex pose_mutex_;
-      int count = 0;
-      PointCloudData* pcd_;
-      int current_timestamp_;
-      int previous_timestamp_;
-      size_t yuv_width_;
-      size_t yuv_height_;
-      size_t yuv_size_;
-      size_t uv_buffer_offset_;
       bool store_point_clouds_;
       bool store_image_;
       bool send_point_clouds_;
       std::string socket_addr_;
       int socket_port_;
-
-      // Point Cloud
+      PCDWorker* pcd_worker_;
+      PCD* pcd_;
+      glm::mat4 icp_;
+      PCDContainer* pcd_container_;
       Scene* scene_;
-      bool frame_available_;
-      bool render_rgbxyz_;
-
-      bool pcd_available_ = false;
-      bool rgb_available_ = false;
-
-      int id_;
-
-      bool new_point_cloud_data_;
-      bool new_rgb_data_;
-
-      bool optimize_pose_graph_;
-
-      Eigen::Isometry3f icpPose_;
-      //ProjectiveScanMatcher3d* projective_scan_matcher_;
-      //SphericalProjectiveImage* projective_image_;
-      std::vector<float> dummy_pcd_;
-      std::vector<int> circle_pixels_;
       Slam3D* slam_;
-      ScanMatcher* scan_matcher_;
-      std::vector<PointCloudData*> all_pcd_;
-      std::vector<glm::vec3> positions_;
-      TangoImageBuffer* buffer;
-      TangoCameraIntrinsics color_camera_intrinsics;
+      std::mutex test;
+
   };
 
 } // namespace rgb_depth_sync

@@ -57,12 +57,6 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoSetupConfig(
 }
 
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoConnectTexture(
-    JNIEnv*, jobject) {
-  return app.TangoConnectTexture();
-}
-
-JNIEXPORT jint JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoConnectCallbacks(
     JNIEnv*, jobject) {
   return app.TangoConnectCallbacks();
