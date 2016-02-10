@@ -2,7 +2,11 @@
 
 namespace rgb_depth_sync {
 
-  PCD::PCD() { }
+  PCD::PCD() {
+    depth_image_pixels_.width = 320;
+    depth_image_pixels_.height = 180;
+    depth_image_pixels_.resize(320*180);
+  }
 
   PCD::~PCD() {
     LOGE("PointCloudData is destroyed...");
@@ -52,8 +56,7 @@ namespace rgb_depth_sync {
     TangoCameraIntrinsics depth_camera_intrinsics;
     TangoCameraIntrinsics color_camera_intrinsics;
     TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
-    TangoErrorType ret = TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR,
-                                                          &color_camera_intrinsics);
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
 
     Conversion *conversion = Conversion::GetInstance();
     color_T_depth_ = conversion->XYZ_T_RGB(rgb_timestamp, xyz_timestamp);
@@ -76,7 +79,7 @@ namespace rgb_depth_sync {
         continue;
       }
 
-      int pixel_x, pixel_y;
+      int pixel_x, pixel_y, depth_pixel_x, depth_pixel_y;
 
       // transform depth point to color frame
       glm::vec3 color_point = glm::vec3(color_T_depth_ * glm::vec4(x, y, z, 1.0f));
@@ -88,7 +91,22 @@ namespace rgb_depth_sync {
       pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy +
                                  color_camera_intrinsics.cy);
 
-      size_t index = (pixel_x + pixel_y * color_camera_intrinsics.width);
+      depth_pixel_x = static_cast<int>(color_point.x / color_point.z * depth_camera_intrinsics.fx +
+          depth_camera_intrinsics.cx);
+
+      depth_pixel_y = static_cast<int>(color_point.y / color_point.z * depth_camera_intrinsics.fy +
+                                       depth_camera_intrinsics.cy);
+
+
+      size_t depth_index = depth_pixel_x + depth_pixel_y * depth_camera_intrinsics.width;
+
+      ProjectiveImage::Point p(color_point.x, color_point.y, color_point.z, depth_index, -1.0f, false);
+
+      if (depth_pixel_x >= 0 && depth_pixel_x < depth_camera_intrinsics.width && depth_pixel_y >= 0 && depth_pixel_y < depth_camera_intrinsics.height) {
+        depth_image_pixels_.getPixelNoCheck(depth_pixel_x, depth_pixel_y).push_back(p);
+      }
+
+      size_t index = pixel_x + pixel_y * color_camera_intrinsics.width;
 
       // save rgb point cloud
       if (index * 3 + 2 >= rgb.size()) {
@@ -158,6 +176,10 @@ namespace rgb_depth_sync {
   std::vector<float> PCD::GetPCDData() {
     //LOGE("PointCloudData : GetPCDData");
     return pcd_with_rgb_data_;
+  }
+
+  ProjectiveImage::ImagePixels PCD::GetImagePixels() {
+    return depth_image_pixels_;
   }
 
 } // namespace rgb_depth_sync

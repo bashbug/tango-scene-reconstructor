@@ -18,8 +18,8 @@ namespace rgb_depth_sync {
     public:
       ScanMatcher();
       ~ScanMatcher();
-      Eigen::Isometry3f Match(const std::vector<float>& frame_prev,
-                              const std::vector<float>& frame_curr,
+      Eigen::Isometry3f Match(const ProjectiveImage::ImagePixels& frame_prev,
+                              const ProjectiveImage::ImagePixels& frame_curr,
                               const glm::mat4& odometryPose_prev,
                               const glm::mat4& odometryPose_curr);
     private:

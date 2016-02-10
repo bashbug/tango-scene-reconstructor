@@ -318,6 +318,33 @@
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/map \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/iostream \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Core \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/StdVector \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/StdVector.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/details.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Dense \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Geometry \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Eigenvalues \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/Tridiagonalization.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealSchur.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./HessenbergDecomposition.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/EigenSolver.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealSchur.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./Tridiagonalization.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexSchur.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./ComplexSchur.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealQZ.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealQZ.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/tcp_client.h \
  /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/socket.h \
  /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/linux/socket.h \
@@ -351,13 +378,9 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/mesh.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/slam3d.h \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/future \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/StdVector \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/StdVector.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/details.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/types/slam3d/vertex_se3.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/config.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/eigen_types.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Core \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/base_vertex.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/optimizable_graph.h \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/set \
@@ -372,25 +395,6 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/jacobian_workspace.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/stuff/macros.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/creators.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Dense \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Geometry \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Eigenvalues \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/Tridiagonalization.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealSchur.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./HessenbergDecomposition.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/EigenSolver.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealSchur.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./Tridiagonalization.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/HessenbergDecomposition.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexSchur.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexEigenSolver.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./ComplexSchur.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealQZ.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealQZ.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Cholesky \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/stack \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/base_vertex.hpp \
@@ -461,10 +465,6 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scan_matcher.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.h \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/tr1/memory \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.hpp \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/sphericalProjectiveImage.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/sphericalProjectiveImage.hpp
@@ -1105,6 +1105,60 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd.h:
 
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Core:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/StdVector:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/StdVector.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/details.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Dense:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Geometry:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Eigenvalues:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/Tridiagonalization.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealSchur.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./HessenbergDecomposition.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/EigenSolver.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealSchur.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./Tridiagonalization.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexSchur.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./ComplexSchur.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealQZ.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealQZ.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.hpp:
+
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/tcp_client.h:
 
 /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/sys/socket.h:
@@ -1171,19 +1225,11 @@
 
 /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/future:
 
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/StdVector:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/StdVector.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/StlSupport/details.h:
-
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/types/slam3d/vertex_se3.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/config.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/eigen_types.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Core:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/base_vertex.h:
 
@@ -1212,44 +1258,6 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/stuff/macros.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/creators.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Dense:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Geometry:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Eigenvalues:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/Tridiagonalization.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealSchur.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./HessenbergDecomposition.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/EigenSolver.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealSchur.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/SelfAdjointEigenSolver.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./Tridiagonalization.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedSelfAdjointEigenSolver.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/HessenbergDecomposition.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexSchur.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/ComplexEigenSolver.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./ComplexSchur.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/RealQZ.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/GeneralizedEigenSolver.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/./RealQZ.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Eigenvalues/MatrixBaseEigenvalues.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/Cholesky:
 
@@ -1390,14 +1398,6 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.h:
 
 /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/tr1/memory:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.h:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/vector_average.hpp:
-
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.hpp:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveImage/sphericalProjectiveImage.h:
 

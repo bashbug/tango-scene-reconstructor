@@ -12,6 +12,7 @@
 #include <tango-gl/util.h>
 #include <tango_client_api.h>
 #include <opencv2/opencv.hpp>
+#include <projectiveImage/projectiveImage.h>
 
 #include "rgb-depth-sync/tcp_client.h"
 #include "rgb-depth-sync/util.h"
@@ -48,6 +49,7 @@ namespace rgb_depth_sync {
       std::vector<cv::KeyPoint> GetFrameKeyPoints() { return frame_key_points_; }
       cv::Mat GetFrameDescriptors() { return  frame_descriptors_; }
       cv::Mat GetFrame() { return frame_; }
+      ProjectiveImage::ImagePixels GetImagePixels();
 
     private:
       std::vector<float> pcd_with_rgb_data_;
@@ -63,6 +65,7 @@ namespace rgb_depth_sync {
       std::vector<cv::KeyPoint> frame_key_points_;
       cv::Mat frame_descriptors_;
       cv::Mat frame_;
+      ProjectiveImage::ImagePixels depth_image_pixels_;
   };
 
 } // namespace rgb_depth_sync

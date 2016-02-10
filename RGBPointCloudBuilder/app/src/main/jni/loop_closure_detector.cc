@@ -65,8 +65,8 @@ namespace rgb_depth_sync {
           std::future <Eigen::Isometry3f> loop_pose_async = std::async(std::launch::async,
                                                                        &rgb_depth_sync::ScanMatcher::Match,
                                                                        scan_matcher,
-                                                                       pcd_container_data[i]->GetXYZValues(),
-                                                                       pcd_container_data[lastIndex]->GetXYZValues(),
+                                                                       pcd_container_data[i]->GetImagePixels(),
+                                                                       pcd_container_data[lastIndex]->GetImagePixels(),
                                                                        pcd_container_data[i]->GetPose(),
                                                                        pcd_container_data[lastIndex]->GetPose());
           int dist = 100 - translation_distance_;

@@ -21,15 +21,15 @@ PROJECT_ROOT:= $(call my-dir)/../../../../..
 ### tango client api
 include $(CLEAR_VARS)
 LOCAL_MODULE := libtango_client_api-prebuilt
-LOCAL_SRC_FILES := $(PROJECT_ROOT)/TangoSDK_Furud_C/libtango_client_api.so
-LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/TangoSDK_Furud_C/
+LOCAL_SRC_FILES := $(PROJECT_ROOT)/TangoSDK_Gemma_C/libtango_client_api.so
+LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/TangoSDK_Gemma_C/
 include $(PREBUILT_SHARED_LIBRARY)
 
 ### tango support api
 include $(CLEAR_VARS)
 LOCAL_MODULE := libtango_support_api-prebuilt
-LOCAL_SRC_FILES := $(PROJECT_ROOT)/TangoSupport_Furud_C/libtango_support_api.so
-LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/TangoSupport_Furud_C/
+LOCAL_SRC_FILES := $(PROJECT_ROOT)/TangoSupport_Gemma_C/libtango_support_api.so
+LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/TangoSupport_Gemma_C/
 include $(PREBUILT_SHARED_LIBRARY)
 
 ### include g2o
