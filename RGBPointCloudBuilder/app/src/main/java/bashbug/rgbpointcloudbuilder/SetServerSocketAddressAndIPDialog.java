@@ -45,7 +45,7 @@ public class SetServerSocketAddressAndIPDialog extends DialogFragment implements
 
 
     public void connect() {
-        ((MainActivity)getActivity()).setmSendPCDSwitch(true);
-        JNIInterface.setSocket(mEditTextAddress.getText().toString(), Integer.parseInt(mEditTextPort.getText().toString()));
+        /*((MainActivity)getActivity()).setmSendPCDSwitch(true);
+        JNIInterface.setSocket(mEditTextAddress.getText().toString(), Integer.parseInt(mEditTextPort.getText().toString()));*/
     }
 }

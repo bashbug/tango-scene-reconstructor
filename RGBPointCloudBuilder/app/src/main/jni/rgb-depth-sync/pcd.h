@@ -9,9 +9,8 @@
 #include <math.h>
 #include <string>
 #include <vector>
-
 #include <tango-gl/util.h>
-
+#include <tango_client_api.h>
 #include <opencv2/opencv.hpp>
 
 #include "rgb-depth-sync/tcp_client.h"
@@ -26,6 +25,8 @@ namespace rgb_depth_sync {
       ~PCD();
       void MapXYZWithRGB(const std::vector<float> &xyz, const std::vector<uint8_t> &rgb,
                          const double &xyz_timestamp, const double &rgb_timestamp);
+      void SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors);
+      void SetFrame(const cv::Mat& frame);
       void SetPCDData(const std::vector<float> pcd);
       void SetPCDWithRGBData(const std::vector<float> pcd);
       void SetTranslation(const std::vector<float> translation);
@@ -41,8 +42,12 @@ namespace rgb_depth_sync {
       std::vector<uint8_t> GetRGBValues();
       std::vector<float> GetRGBPCDFileValues();
       glm::mat4 GetPose() { return ss_T_color_; }
+      cv::Mat GetDescriptors();
       glm::mat4 GetOpenGL_T_OpenGLCameraPose() { return opengl_T_openglCamera_; }
       glm::mat4 GetOpenGL_T_RGB() {return  opengl_T_color_;}
+      std::vector<cv::KeyPoint> GetFrameKeyPoints() { return frame_key_points_; }
+      cv::Mat GetFrameDescriptors() { return  frame_descriptors_; }
+      cv::Mat GetFrame() { return frame_; }
 
     private:
       std::vector<float> pcd_with_rgb_data_;
@@ -55,6 +60,9 @@ namespace rgb_depth_sync {
       glm::mat4 ss_T_color_;
       glm::mat4 opengl_T_color_;
       glm::mat4 opengl_T_openglCamera_;
+      std::vector<cv::KeyPoint> frame_key_points_;
+      cv::Mat frame_descriptors_;
+      cv::Mat frame_;
   };
 
 } // namespace rgb_depth_sync

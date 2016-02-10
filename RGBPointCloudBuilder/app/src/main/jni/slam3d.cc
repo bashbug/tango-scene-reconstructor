@@ -12,11 +12,16 @@
 
 namespace rgb_depth_sync {
 
-  Slam3D::Slam3D(PCDContainer* pcd_container, std::mutex* pcd_mtx, std::condition_variable* consume_pcd) {
+  Slam3D::Slam3D(PCDContainer* pcd_container, std::shared_ptr<std::mutex> pcd_mtx,
+                 std::shared_ptr<std::condition_variable> consume_pcd,
+                 std::shared_ptr<std::atomic<bool>> optimize_poses_process_started) {
 
     pcd_container_ = pcd_container;
+    pcd_mtx_ = pcd_mtx;
+    consume_pcd_ = consume_pcd;
+    optimize_poses_process_started_ = optimize_poses_process_started;
 
-  // allocating the optimizer
+    // allocating the optimizer
     optimizer_ = new g2o::SparseOptimizer();
     optimizer_->setVerbose(true);
     SlamLinearSolver* linearSolver = new SlamLinearSolver();
@@ -25,15 +30,54 @@ namespace rgb_depth_sync {
     g2o::OptimizationAlgorithmLevenberg* solverLevenberg = new g2o::OptimizationAlgorithmLevenberg(solver);
     optimizer_->setAlgorithm(solverLevenberg);
 
-    information_ = Eigen::Matrix<double, 6, 6>::Identity();
+    loop_closure_detector_ = new rgb_depth_sync::LoopClosureDetector(pcd_container);
+
+    //information_ = Eigen::Matrix<double, 4, 4>::Identity();
     id_ = 0;
+    optimize_poses_ = false;
     first_pose_ = true;
-    counter_ = 1;
-    accuracy_ = 305;
+    counter_ = 0;
+    stop_OnPCDAvailable_thread_ = true;
   }
 
   Slam3D::~Slam3D() {
     delete optimizer_;
+  }
+
+  void Slam3D::StartOnFrameAvailableThread() {
+    stop_OnPCDAvailable_thread_ = false;
+  }
+
+  void Slam3D::StopOnFrameAvailableThread() {
+    stop_OnPCDAvailable_thread_ = true;
+  }
+
+  int Slam3D::OnPCDAvailable() {
+    std::unique_lock<std::mutex> lock(*pcd_mtx_);
+
+    while(!stop_OnPCDAvailable_thread_) {
+      consume_pcd_->wait(lock);
+      if (!optimize_poses_) {
+        LOGE("add new pose");
+        int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+
+        odometryPose_ = util::ConvertGLMToEigenPose((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
+        odometryPose_d_ = util::CastIsometry3fTo3d(odometryPose_);
+
+        // add node to the pose graph
+        id_ = AddNode(odometryPose_d_);
+
+        if(id_ > 0) {
+          // add edge to the pose graph
+          AddEdge(id_-1, id_);
+        }
+
+        // async search for loop closures
+        loop_closure_detector_->Compute(lastIndex);
+      }
+    }
+
+    return -1;
   }
 
   g2o::VertexSE3* Slam3D::GetNode(int id) {
@@ -95,8 +139,29 @@ namespace rgb_depth_sync {
     g2o::SE3Quat measurement_mean(rotation, translation);
 
     e->setMeasurement(measurement_mean);
-    e->setInformation(confidence*10*information_);
+    e->setInformation(confidence*information_);
     optimizer_->addEdge(e);
+  }
+
+  void Slam3D::OptimizeGraph() {
+
+    optimize_poses_ = true;
+
+    // Add all loop closure poses to the graph
+    loop_closure_detector_->GetLoopClosurePoses(&loop_closure_poses_);
+
+    for (it_ = loop_closure_poses_->begin(); it_ != loop_closure_poses_->end(); it_++) {
+      // wait with .get() for async scan matcher computation
+      AddLoopClosure(it_->first.first, it_->first.second, it_->second.second.get(), it_->second.first);
+    }
+
+    optimizer_->initializeOptimization();
+
+    // run optimization for 40 iterations
+    optimizer_->optimize(40);
+
+    optimize_poses_ = false;
+    optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
   }
 
   Eigen::Isometry3f Slam3D::GetPose(int id) {
@@ -139,25 +204,13 @@ namespace rgb_depth_sync {
     return tmp;
   }
 
-  void Slam3D::OptimizeGraph() {
-
-    optimizer_->initializeOptimization();
-
-    //initial Levenberg-Marquardt lambda
-    //optimizer_->setUserLambdaInit(0.01);
-
-    // run optimization for 40 iterations
-    optimizer_->optimize(400);
-  }
-
-  std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f>> Slam3D::GetPoses() {
-    std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f>> poses;
+  std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f> > Slam3D::GetPoses() {
+    std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f> > poses;
 
     for(int i = 0; i < optimizer_->vertices().size(); i++) {
       g2o::VertexSE3* v = dynamic_cast<g2o::VertexSE3*>(optimizer_->vertex(i));
       double optimizedPoseQuaternion[7];
       v->getEstimateData(optimizedPoseQuaternion);
-
 
       Eigen::Matrix4f optimizedPose;
       static double qx,qy,qz,qr,qx2,qy2,qz2,qr2;

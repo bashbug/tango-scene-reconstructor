@@ -32,22 +32,21 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoInitialize(
 }
 
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setPCDSend(
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_savePCD(
         JNIEnv*, jobject, bool is_checked) {
-    return app.TangoSetPCDSend(is_checked);
+    app.SavePCD(is_checked);
 }
 
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setPCDSave(
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_startPCD(
     JNIEnv*, jobject, bool is_checked) {
-  return app.TangoSetPCDSave(is_checked);
+  app.StartPCD(is_checked);
 }
 
-
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_storeImage(
-        JNIEnv*, jobject, bool store) {
-    return app.TangoStoreImage(store);
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_stopPCD(
+    JNIEnv*, jobject, bool is_checked) {
+  app.StopPCD(is_checked);
 }
 
 JNIEXPORT jint JNICALL
@@ -104,15 +103,9 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_freeGLContent(
 }
 
 JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setDepthMap(
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_optimizePoseGraph(
     JNIEnv*, jobject, jboolean on) {
-  return app.SetDepthMap(on);
-}
-
-JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setRGBMap(
-    JNIEnv*, jobject, jboolean on) {
-  return app.SetRGBMap(on);
+  return app.OptimizePoseGraph(on);
 }
 
 std::string ConvertJString(JNIEnv* env, jstring str)  {
@@ -130,18 +123,6 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_setSocket(
 
   std::string s_addr = ConvertJString(env, addr);
   return app.SetSocket(s_addr, port);
-}
-
-JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setSendPCDContainer(
-    JNIEnv*, jobject, jboolean on) {
-  return app.SetSendPCDRecording(on);
-}
-
-JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setStartPCDRecording(
-    JNIEnv*, jobject, jboolean on) {
-  return app.SetStartPCDRecording(on);
 }
 
 JNIEXPORT void JNICALL

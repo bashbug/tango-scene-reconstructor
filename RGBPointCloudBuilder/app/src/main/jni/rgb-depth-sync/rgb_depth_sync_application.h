@@ -20,7 +20,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-
+#include <mutex>
+#include <memory>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
 #include <tango-gl/axis.h>
@@ -31,12 +32,13 @@
 #include <tango-gl/frustum.h>
 #include <tango-gl/trace.h>
 #include <tango-gl/transform.h>
-
 #include "jni.h"
 #include "rgb-depth-sync/util.h"
+#include "rgb-depth-sync/img_file_writer.h"
 #include "rgb-depth-sync/pcd.h"
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/pcd_worker.h"
+#include "rgb-depth-sync/pcd_file_writer.h"
 #include "rgb-depth-sync/scene.h"
 #include "rgb-depth-sync/slam3d.h"
 
@@ -83,9 +85,9 @@ namespace rgb_depth_sync {
       // @param: camera_type, camera type includes first person, third person and
       //         top down
       void SetCameraType(tango_gl::GestureCamera::CameraType camera_type);
-      int TangoSetPCDSave(bool isChecked);
-      int TangoSetPCDSend(bool isChecked);
-      int TangoStoreImage(bool store);
+      void StartPCD(bool on);
+      void StopPCD(bool on);
+      void SavePCD(bool on);
       // Touch event passed from android activity. This function only supports two
       // touches.
       //
@@ -105,12 +107,9 @@ namespace rgb_depth_sync {
       void Render();
       // Release all OpenGL resources that are allocated in this app.
       void FreeGLContent();
+      void OptimizePoseGraph(bool on);
       // Set whether to use GPU or CPU upsampling
-      void SetDepthMap(bool on);
-      void SetRGBMap(bool on);
       void SetSocket(std::string addr, int port);
-      void SetStartPCDRecording(bool on);
-      void SetSendPCDRecording(bool on);
       // Callback for image data that come in from the Tango service.
       // @param buffer The image data returned by the service.
       void OnFrameAvailable(const TangoImageBuffer* buffer);
@@ -121,9 +120,11 @@ namespace rgb_depth_sync {
     private:
       int screen_width_, screen_height_;
       TangoConfig tango_config_;
-      bool store_point_clouds_;
-      bool store_image_;
-      bool send_point_clouds_;
+      bool save_pcd_;
+      bool start_pcd_;
+      std::shared_ptr<std::atomic<bool>> optimize_poses_process_started_;
+      std::shared_ptr<std::mutex> pcd_mtx_;
+      std::shared_ptr<std::condition_variable> consume_pcd_;
       std::string socket_addr_;
       int socket_port_;
       PCDWorker* pcd_worker_;
@@ -132,8 +133,6 @@ namespace rgb_depth_sync {
       PCDContainer* pcd_container_;
       Scene* scene_;
       Slam3D* slam_;
-      std::mutex test;
-
   };
 
 } // namespace rgb_depth_sync

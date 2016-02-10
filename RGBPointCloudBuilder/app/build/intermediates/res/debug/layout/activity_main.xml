@@ -33,67 +33,39 @@
         android:layout_marginRight="5dp"
         android:paddingRight="5dp"
         android:text="top"
-        android:layout_above="@+id/save_image"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"/>
     <Button
-        android:id="@+id/save_image"
-        android:layout_width="100dp"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="5dp"
-        android:paddingRight="5dp"
-        android:text="@string/save_image"
-        android:layout_above="@+id/save_pcl_switch"
-        android:layout_alignParentEnd="true"/>
-    <Switch
-        android:id="@+id/save_pcl_switch"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Save PCD"
-        android:checked="false"
-        android:layout_above="@+id/send_pcl_switch"
-        android:layout_alignParentEnd="true"/>
-    <Switch
-        android:id="@+id/send_pcl_switch"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:text="Send PCD"
-        android:checked="false"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"/>
-    <Button
-        android:id="@+id/send_point_cloud_container_button"
+        android:id="@+id/start_pcd_button"
         android:layout_width="100dp"
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
-        android:text="Send PC container"
-        android:layout_above="@+id/start_point_cloud_container_switch"
+        android:text="start"
+        android:layout_above="@+id/stop_pcd_button"
         android:layout_alignParentStart="true"/>
-    <Switch
-        android:id="@+id/start_point_cloud_container_switch"
-        android:layout_width="280dp"
+    <Button
+        android:id="@+id/stop_pcd_button"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="15dp"
-        android:text="Start PC container"
-        android:checked="false"
+        android:layout_marginLeft="5dp"
+        android:text="stop"
+        android:layout_above="@+id/optimize_pose_graph_button"
+        android:layout_alignParentStart="true"/>
+    <Button
+        android:id="@+id/optimize_pose_graph_button"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="optimize"
+        android:layout_above="@+id/save_pcd_button"
+        android:layout_alignParentStart="true"/>
+    <Button
+        android:id="@+id/save_pcd_button"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:text="save"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"/>
-    <CheckBox
-        android:id="@+id/depth_map_checkbox"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:text="depth map"
-        android:checked="false"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"/>
-    <CheckBox
-        android:id="@+id/rgb_map_checkbox"
-        android:layout_width="300dp"
-        android:layout_height="wrap_content"
-        android:text="rgb map"
-        android:checked="false"
-        android:layout_marginLeft="2dp"
-        android:layout_marginRight="2dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"/>
 </RelativeLayout>
 <!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/layout/activity_main.xml -->

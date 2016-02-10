@@ -30,13 +30,6 @@ public class JNIInterface {
 
     public static native int tangoSetupConfig();
 
-    // Set point cloud record true, if record switch button is checked
-    public static native int setPCDSave(boolean isChecked);
-
-    public static native int setPCDSend(boolean isChecked);
-
-    public static native int storeImage(boolean store);
-
     public static native int tangoConnect();
 
     public static native int tangoConnectCallbacks();
@@ -53,15 +46,15 @@ public class JNIInterface {
 
     public static native void render();
 
-    public static native void setDepthMap(boolean on);
-
-    public static native void setRGBMap(boolean on);
-
     public static native void setSocket(String addr, int port);
 
-    public static native void setSendPCDContainer(boolean on);
+    public static native void optimizePoseGraph(boolean on);
 
-    public static native void setStartPCDRecording(boolean on);
+    public static native void startPCD(boolean on);
+
+    public static native void stopPCD(boolean on);
+
+    public static native void savePCD(boolean on);
 
     // Pass touch events to the native layer.
     public static native void onTouchEvent(int touchCount, int event0,

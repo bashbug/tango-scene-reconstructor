@@ -67,15 +67,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private GLSurfaceRenderer mRenderer;
     private GLSurfaceView mGLView;
 
-    private CheckBox mRGBMapCheckbox;
-    private CheckBox mDepthMapCheckbox;
-
-    private Switch mStartPCDRecordingSwitch;
-    private Button mSendPCDContainerButton;
-    private Switch mSendPCDSwitch;
-    private Switch mSavePCDSwitch;
-    private Button mSaveImage;
-
     private Point mScreenSize;
 
     File mFileDirectionPCD, mFileDirectionPPM;
@@ -83,13 +74,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private boolean mIsConnectedService = false;
 
     private static final String TAG = "RGBDepthSync";
-
-    private class GPUUpsampleListener implements CheckBox.OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            JNIInterface.setDepthMap(isChecked);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,28 +101,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
           }
         }
         setContentView(R.layout.activity_main);
-        
-        mRGBMapCheckbox = (CheckBox) findViewById(R.id.rgb_map_checkbox);
-        mRGBMapCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-            if (isChecked) {
-                mDepthMapCheckbox.setChecked(false);
-                JNIInterface.setDepthMap(false);
-            }
-            JNIInterface.setRGBMap(isChecked);
-            }
-        });
-
-        mDepthMapCheckbox = (CheckBox) findViewById(R.id.depth_map_checkbox);
-        mDepthMapCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-            if (isChecked) {
-                mRGBMapCheckbox.setChecked(false);
-                JNIInterface.setRGBMap(false);
-            }
-            JNIInterface.setDepthMap(isChecked);
-            }
-        });
 
         // OpenGL view where all of the graphics are drawn
         mGLView = (GLSurfaceView) findViewById(R.id.gl_surface_view);
@@ -148,42 +110,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mRenderer = new GLSurfaceRenderer(this);
         mGLView.setRenderer(mRenderer);
 
-
-        // Send pcl to file buttons
-        mSendPCDSwitch = (Switch) findViewById(R.id.send_pcl_switch);
-        mSendPCDSwitch.setEnabled(false);
-        mSendPCDSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                JNIInterface.setPCDSend(isChecked);
-            }
-        });
-
-        // Save pcl to file buttons
-        mSavePCDSwitch = (Switch) findViewById(R.id.save_pcl_switch);
-        mSavePCDSwitch.setActivated(false);
-        mSavePCDSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                JNIInterface.setPCDSave(isChecked);
-            }
-        });
-
-        mStartPCDRecordingSwitch = (Switch) findViewById(R.id.start_point_cloud_container_switch);
-        mStartPCDRecordingSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
-                JNIInterface.setStartPCDRecording(isChecked);
-            }
-        });
-
-        mSendPCDContainerButton = (Button) findViewById(R.id.send_point_cloud_container_button);
-        mSendPCDContainerButton.setOnClickListener(this);
-
-        mSaveImage = (Button) findViewById(R.id.save_image);
-        mSaveImage.setOnClickListener(this);
-
         // Buttons for selecting camera view and Set up button click listeners.
         findViewById(R.id.first_person_button).setOnClickListener(this);
         findViewById(R.id.third_person_button).setOnClickListener(this);
         findViewById(R.id.top_down_button).setOnClickListener(this);
+
+        findViewById(R.id.start_pcd_button).setOnClickListener(this);
+        findViewById(R.id.stop_pcd_button).setOnClickListener(this);
+        findViewById(R.id.save_pcd_button).setOnClickListener(this);
+
+        // Button to start the pose optimization thread
+        findViewById(R.id.optimize_pose_graph_button).setOnClickListener(this);
 
         // Make sure that the directories exists before saving files. Otherwise it will
         // throw an exception
@@ -233,12 +170,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.save_image:
-                JNIInterface.storeImage(true);
-                break;
-            case R.id.send_point_cloud_container_button:
-                JNIInterface.setSendPCDContainer(true);
-                break;
             case R.id.first_person_button:
                 JNIInterface.setCamera(0);
                 break;
@@ -248,7 +179,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.top_down_button:
                 JNIInterface.setCamera(2);
                 break;
-
+            case R.id.optimize_pose_graph_button:
+                JNIInterface.optimizePoseGraph(true);
+            case R.id.start_pcd_button:
+                JNIInterface.startPCD(true);
+            case R.id.stop_pcd_button:
+                JNIInterface.stopPCD(true);
+            case R.id.save_pcd_button:
+                JNIInterface.savePCD(true);
             default:
                 Log.w(TAG, "Unrecognized button click.");
                 return;
@@ -285,7 +223,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
         return true;
     }
-
 
     @Override
     protected void onResume() {
@@ -388,7 +325,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         setServerSocketAddressAndIPDialog.show(manager, "SocketAddIPDialog");
     }
 
-    public void setmSendPCDSwitch(boolean on) {
+    /*public void setmSendPCDSwitch(boolean on) {
         mSendPCDSwitch.setEnabled(on);
-    }
+    }*/
 }

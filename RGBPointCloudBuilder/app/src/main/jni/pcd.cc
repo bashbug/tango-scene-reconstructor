@@ -52,9 +52,10 @@ namespace rgb_depth_sync {
     TangoCameraIntrinsics depth_camera_intrinsics;
     TangoCameraIntrinsics color_camera_intrinsics;
     TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
-    TangoErrorType ret = TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
+    TangoErrorType ret = TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR,
+                                                          &color_camera_intrinsics);
 
-    Conversion* conversion = Conversion::GetInstance();
+    Conversion *conversion = Conversion::GetInstance();
     color_T_depth_ = conversion->XYZ_T_RGB(rgb_timestamp, xyz_timestamp);
     ss_T_color_ = conversion->SS_T_RGB(rgb_timestamp);
     opengl_T_color_ = conversion->OpenGL_T_RGB(ss_T_color_);
@@ -66,10 +67,14 @@ namespace rgb_depth_sync {
     size_t xyz_size = xyz.size();
     size_t rgb_size = rgb.size();
 
-    for (size_t i = 0; i < xyz_size-3; i = i+3) {
+    for (size_t i = 0; i < xyz_size - 3; i = i + 3) {
       float x = xyz[i];
       float y = xyz[i + 1];
       float z = xyz[i + 2];
+
+      if (z > 1.5 && z < 0.5) {
+        continue;
+      }
 
       int pixel_x, pixel_y;
 
@@ -77,14 +82,16 @@ namespace rgb_depth_sync {
       glm::vec3 color_point = glm::vec3(color_T_depth_ * glm::vec4(x, y, z, 1.0f));
       glm::vec3 opengl_point = glm::vec3(opengl_T_color_ * glm::vec4(x, y, z, 1.0f));
 
-      pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx + color_camera_intrinsics.cx);
+      pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx +
+                                 color_camera_intrinsics.cx);
 
-      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy + color_camera_intrinsics.cy);
+      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy +
+                                 color_camera_intrinsics.cy);
 
       size_t index = (pixel_x + pixel_y * color_camera_intrinsics.width);
 
       // save rgb point cloud
-      if (index*3+2 >= rgb.size()) {
+      if (index * 3 + 2 >= rgb.size()) {
         //break;
         //LOGE("COLOR BAAAAAAAD INDEX: %d, size: %d", index, rgb.size());
       } else {
@@ -97,16 +104,27 @@ namespace rgb_depth_sync {
         xyz_values_.push_back(opengl_point.y);
         xyz_values_.push_back(opengl_point.z);
 
-        rgb_values_.push_back(rgb[index*3]);
-        rgb_values_.push_back(rgb[index*3 + 1]);
-        rgb_values_.push_back(rgb[index*3 + 2]);
+        rgb_values_.push_back(rgb[index * 3]);
+        rgb_values_.push_back(rgb[index * 3 + 1]);
+        rgb_values_.push_back(rgb[index * 3 + 2]);
 
         // Due to historical reasons (PCL was first developed as a ROS package), the
         // RGB information is packed into an integer and casted to a float.
-        uint32_t rgb_tmp = ((uint32_t) (rgb[index*3])) << 16 | ((uint32_t) (rgb[index*3 + 1])) << 8 | (uint32_t) (rgb[index*3 + 2]);
+        uint32_t rgb_tmp =
+            ((uint32_t)(rgb[index * 3])) << 16 | ((uint32_t)(rgb[index * 3 + 1])) << 8 |
+            (uint32_t)(rgb[index * 3 + 2]);
         pcd_with_rgb_data_.push_back(*reinterpret_cast<float *>(&rgb_tmp));
       }
     }
+  }
+
+  void PCD::SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors) {
+    frame_key_points_ = frame_key_points;
+    frame_descriptors_ = frame_descriptors;
+  }
+
+  void PCD::SetFrame(const cv::Mat& frame) {
+    frame_ = frame;
   }
 
   void PCD::SetTranslation(const glm::vec3 translation) {

@@ -24,22 +24,24 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::OnFrameAvailable(const TangoImageBuffer* buffer) {
-    TangoPoseData ss_T_device_rgb_timestamp;
-    TangoCoordinateFramePair color_frame_pair;
-    color_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
-    color_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
-    if (TangoService_getPoseAtTime(buffer->timestamp, color_frame_pair,
-                                   &ss_T_device_rgb_timestamp) !=
-        TANGO_SUCCESS) {
-      LOGE(
-          "SynchronizationApplication: Could not find a valid pose at time %lf"
-              " for the color camera.",
-          buffer->timestamp);
-    } else {
-      if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
-        pcd_worker_->SetRGBBuffer(buffer);
+    if (!(*optimize_poses_process_started_)) {
+      TangoPoseData ss_T_device_rgb_timestamp;
+      TangoCoordinateFramePair color_frame_pair;
+      color_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
+      color_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
+      if (TangoService_getPoseAtTime(buffer->timestamp, color_frame_pair,
+                                     &ss_T_device_rgb_timestamp) !=
+          TANGO_SUCCESS) {
+        LOGE(
+            "SynchronizationApplication: Could not find a valid pose at time %lf"
+                " for the color camera.",
+            buffer->timestamp);
       } else {
-        LOGE("ss_T_device_rgb_timestamp pose not valid");
+        if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
+          pcd_worker_->SetRGBBuffer(buffer);
+        } else {
+          LOGE("ss_T_device_rgb_timestamp pose not valid");
+        }
       }
     }
   }
@@ -50,37 +52,44 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
-    TangoPoseData ss_T_device_xyz_timestamp;
-    TangoCoordinateFramePair depth_frame_pair;
-    depth_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
-    depth_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
-    if (TangoService_getPoseAtTime(xyz_ij->timestamp, depth_frame_pair,
-                                   &ss_T_device_xyz_timestamp) !=
-        TANGO_SUCCESS) {
-      LOGE(
-          "SynchronizationApplication: Could not find a valid pose at time %lf"
-              " for the depth camera.",
-          xyz_ij->timestamp);
-    } else {
-      if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
-        pcd_worker_->SetXYZBuffer(xyz_ij);
+    if (!(*optimize_poses_process_started_)) {
+      TangoPoseData ss_T_device_xyz_timestamp;
+      TangoCoordinateFramePair depth_frame_pair;
+      depth_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
+      depth_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
+      if (TangoService_getPoseAtTime(xyz_ij->timestamp, depth_frame_pair,
+                                     &ss_T_device_xyz_timestamp) !=
+          TANGO_SUCCESS) {
+        LOGE(
+            "SynchronizationApplication: Could not find a valid pose at time %lf"
+                " for the depth camera.",
+            xyz_ij->timestamp);
       } else {
-        LOGE("ss_T_device_xyz_timestamp pose not valid");
+        if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
+          pcd_worker_->SetXYZBuffer(xyz_ij);
+        } else {
+          LOGE("ss_T_device_xyz_timestamp pose not valid");
+        }
       }
     }
   }
 
   SynchronizationApplication::SynchronizationApplication() {
-    std::mutex* pcd_mtx;
-    std::condition_variable* consume_pcd;
 
-    pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx, consume_pcd);
+    optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
+    pcd_mtx_ = std::make_shared<std::mutex>();
+    consume_pcd_ = std::make_shared<std::condition_variable>();
+
+    save_pcd_ = false;
+    start_pcd_ = false;
+
+    pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
     pcd_worker_ = new rgb_depth_sync::PCDWorker(pcd_container_);
 
     std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
     pcd_worker_thread.detach();
-    slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx, consume_pcd);
 
+    slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
   }
 
   SynchronizationApplication::~SynchronizationApplication() {
@@ -92,21 +101,6 @@ namespace rgb_depth_sync {
     // initialize the service. We'll do that here, passing on the JNI environment
     // and jobject corresponding to the Android activity that is calling us.
     return TangoService_initialize(env, caller_activity);
-  }
-
-  int SynchronizationApplication::TangoSetPCDSave(bool isChecked) {
-    store_point_clouds_ = isChecked;
-    return 1;
-  }
-
-  int SynchronizationApplication::TangoSetPCDSend(bool isChecked) {
-    send_point_clouds_ = isChecked;
-    return 1;
-  }
-
-  int SynchronizationApplication::TangoStoreImage(bool store) {
-    store_image_ = store;
-    return 1;
   }
 
   int SynchronizationApplication::TangoSetupConfig() {
@@ -126,18 +120,26 @@ namespace rgb_depth_sync {
     // Enable color camera from config.
     ret = TangoConfig_setBool(tango_config_, "config_enable_color_camera", true);
     if (ret != TANGO_SUCCESS) {
-      LOGE("Failed to enable cplor.");
+      LOGE("Failed to enable color.");
+      return ret;
+    }
+
+    // Set auto-recovery for motion tracking as requested by the user.
+    ret = TangoConfig_setBool(tango_config_, "config_enable_auto_recovery", true);
+    if (ret != TANGO_SUCCESS) {
+      LOGE("PointCloudApp: config_enable_auto_recovery() failed with error"
+               "code: %d", ret);
       return ret;
     }
 
     // Note that it's super important for AR applications that we enable low
     // latency imu integration so that we have pose information available as
     // quickly as possible.
-    ret = TangoConfig_setBool(tango_config_, "config_enable_low_latency_imu_integration", true);
+    /*ret = TangoConfig_setBool(tango_config_, "config_enable_low_latency_imu_integration", true);
     if (ret != TANGO_SUCCESS) {
       LOGE("Failed to enable low latency imu integration.");
       return ret;
-    }
+    }*/
     return ret;
   }
 
@@ -200,6 +202,7 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::Render() {
+    if (!(*optimize_poses_process_started_)) {
       icp_ = glm::mat4();
       pcd_ = pcd_container_->GetLatestPCD();
       if (pcd_ != nullptr) {
@@ -208,11 +211,63 @@ namespace rgb_depth_sync {
                        pcd_->GetXYZValues(),
                        pcd_->GetRGBValues());
       }
+    }
+  }
+
+  void SynchronizationApplication::OptimizePoseGraph(bool on) {
+    if (on) {
+      optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(true);
+      std::thread slam_thread(&rgb_depth_sync::Slam3D::OptimizeGraph, slam_);
+      slam_thread.detach();
+    }
+  }
+
+  void SynchronizationApplication::StartPCD(bool on) {
+    if(on && !start_pcd_) {
+      start_pcd_ = true;
+      // reset pcd_container data
+      pcd_container_->ResetPCD();
+      // start slam thread with loop closure detection
+      slam_->StartOnFrameAvailableThread();
+      std::thread slam_thread(&rgb_depth_sync::Slam3D::OnPCDAvailable, slam_);
+      slam_thread.detach();
+    }
+  }
+
+  void SynchronizationApplication::StopPCD(bool on) {
+    if(on && !start_pcd_) {
+      // start slam thread with loop closure detection
+      slam_->StopOnFrameAvailableThread();
+      start_pcd_ = false;
+    }
+  }
+
+  void SynchronizationApplication::SavePCD(bool on) {
+    if(on) {
+      int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+      const std::vector<PCD*>& pcd_container_data = *(pcd_container_->GetPCDContainer());
+
+      PCDFileWriter pcd_file_writer;
+      IMGFileWriter img_file_writer;
+
+      for (int i = 0; i <= lastIndex; i++) {
+        pcd_file_writer.SetPCDRGBData(
+                pcd_container_data[i]->GetPCDData(),
+                pcd_container_data[i]->GetTranslation(),
+                pcd_container_data[i]->GetRotation());
+        pcd_file_writer.SetUnordered();
+        // save files asynchron
+        std::async(std::launch::async, &rgb_depth_sync::PCDFileWriter::SaveToFile, pcd_file_writer, "PCD", i);
+        // save img asynchron
+        std::async(std::launch::async, &rgb_depth_sync::IMGFileWriter::SaveToFile, img_file_writer, i, pcd_container_data[i]->GetFrame());
+      }
+
+    }
   }
 
   void SynchronizationApplication::OnTouchEvent(int touch_count,
-                                   tango_gl::GestureCamera::TouchEvent event,
-                                   float x0, float y0, float x1, float y1) {
+                                                tango_gl::GestureCamera::TouchEvent event,
+                                                float x0, float y0, float x1, float y1) {
     scene_->OnTouchEvent(touch_count, event, x0, y0, x1, y1);
   }
 
@@ -223,20 +278,8 @@ namespace rgb_depth_sync {
   void SynchronizationApplication::FreeGLContent() {
   }
 
-  void SynchronizationApplication::SetDepthMap(bool on) {
-  }
-
-  void SynchronizationApplication::SetRGBMap(bool on) {
-  }
-
   void SynchronizationApplication::SetSocket(std::string addr, int port) {
     socket_addr_ = addr;
     socket_port_ = port;
-  }
-
-  void SynchronizationApplication::SetStartPCDRecording(bool on) {
-  }
-
-  void SynchronizationApplication::SetSendPCDRecording(bool on) {
   }
 }  // namespace rgb_depth_sync
