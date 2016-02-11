@@ -39,11 +39,13 @@ namespace rgb_depth_sync {
       } else {
         if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
           pcd_worker_->SetRGBBuffer(buffer);
+          img_count_++;
         } else {
           LOGE("ss_T_device_rgb_timestamp pose not valid");
         }
       }
     }
+
   }
 
   void OnXYZijAvailableRouter(void* context, const TangoXYZij* xyz_ij) {
@@ -67,6 +69,7 @@ namespace rgb_depth_sync {
       } else {
         if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
           pcd_worker_->SetXYZBuffer(xyz_ij);
+          pcd_count_++;
         } else {
           LOGE("ss_T_device_xyz_timestamp pose not valid");
         }
@@ -82,6 +85,8 @@ namespace rgb_depth_sync {
 
     save_pcd_ = false;
     start_pcd_ = false;
+    pcd_count_ = 0;
+    img_count_ = 0;
 
     pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
     pcd_worker_ = new rgb_depth_sync::PCDWorker(pcd_container_);
@@ -231,35 +236,36 @@ namespace rgb_depth_sync {
       slam_->StartOnFrameAvailableThread();
       std::thread slam_thread(&rgb_depth_sync::Slam3D::OnPCDAvailable, slam_);
       slam_thread.detach();
+      LOGE("START PCD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
     }
   }
 
   void SynchronizationApplication::StopPCD(bool on) {
-    if(on && !start_pcd_) {
+    if(on && start_pcd_) {
       // start slam thread with loop closure detection
       slam_->StopOnFrameAvailableThread();
       start_pcd_ = false;
+      pcd_worker_->StopPCDWorker();
+      LOGE("STOP PCD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
     }
   }
 
   void SynchronizationApplication::SavePCD(bool on) {
     if(on) {
       int lastIndex = pcd_container_->GetPCDContainerLastIndex();
-      const std::vector<PCD*>& pcd_container_data = *(pcd_container_->GetPCDContainer());
-
       PCDFileWriter pcd_file_writer;
       IMGFileWriter img_file_writer;
 
       for (int i = 0; i <= lastIndex; i++) {
         pcd_file_writer.SetPCDRGBData(
-                pcd_container_data[i]->GetPCDData(),
-                pcd_container_data[i]->GetTranslation(),
-                pcd_container_data[i]->GetRotation());
+            (*(pcd_container_->GetPCDContainer()))[i]->GetPCDData(),
+            (*(pcd_container_->GetPCDContainer()))[i]->GetTranslation(),
+            (*(pcd_container_->GetPCDContainer()))[i]->GetRotation());
         pcd_file_writer.SetUnordered();
         // save files asynchron
-        std::async(std::launch::async, &rgb_depth_sync::PCDFileWriter::SaveToFile, pcd_file_writer, "PCD", i);
+        pcd_file_writer.SaveToFile("PCD", i);
         // save img asynchron
-        std::async(std::launch::async, &rgb_depth_sync::IMGFileWriter::SaveToFile, img_file_writer, i, pcd_container_data[i]->GetFrame());
+        img_file_writer.SaveToFile(i, (*(pcd_container_->GetPCDContainer()))[i]->GetFrame());
       }
 
     }

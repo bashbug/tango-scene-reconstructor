@@ -119,6 +119,8 @@ namespace rgb_depth_sync {
 
     private:
       int screen_width_, screen_height_;
+      int pcd_count_;
+      int img_count_;
       TangoConfig tango_config_;
       bool save_pcd_;
       bool start_pcd_;

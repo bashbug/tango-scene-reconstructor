@@ -17,7 +17,7 @@
 namespace rgb_depth_sync {
 
   typedef std::pair<int, int> key;
-  typedef std::pair<int, std::future<Eigen::Isometry3f> > value;
+  typedef std::pair<int, Eigen::Isometry3f > value;
 
   class LoopClosureDetector {
     public:
@@ -33,6 +33,7 @@ namespace rgb_depth_sync {
       float translation_distance_;
       int max_loop_closure_per_frame_;
       int counter_loop_closure_per_frame_;
+      int loop_closure_frame_idx_;
       cv::Ptr<cv::BFMatcher> bf_matcher_;
       cv::Ptr<cv::FlannBasedMatcher> flann_matcher_;
       std::vector<cv::DMatch> match_;
@@ -71,6 +72,9 @@ namespace rgb_depth_sync {
       glm::mat4 curr_pose_;
       glm::mat4 relative_transformation_;
       TangoCameraIntrinsics color_camera_intrinsics_;
+      ScanMatcher* scan_matcher_;
+      int loop_closure_count_;
+
   };
 }
 

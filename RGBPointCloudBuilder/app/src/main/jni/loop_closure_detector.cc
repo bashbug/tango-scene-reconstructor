@@ -35,6 +35,8 @@ namespace rgb_depth_sync {
     distance_ = 0;
     distance_accum_ = 0;
     distance_accum_counter_ = 0;
+    loop_closure_frame_idx_ = -1;
+    loop_closure_count_ = 0;
 
   }
 
@@ -44,37 +46,40 @@ namespace rgb_depth_sync {
 
   void LoopClosureDetector::Compute(int lastIndex) {
 
-    const std::vector<PCD*>& pcd_container_data = *(pcd_container_->GetPCDContainer());
+    bool first = true;
 
-    curr_rotation_ = glm::quat_cast(pcd_container_data[lastIndex]->GetPose());
-    counter_loop_closure_per_frame_ = 0;
+    curr_rotation_ = glm::quat_cast((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
 
     for (int i = 0; i < lastIndex; i++) {
 
-      if(abs(lastIndex - i) > 10){
+      if(abs(lastIndex - i) > 10) {
 
-        prev_rotation_ = glm::quat_cast(pcd_container_data[i]->GetPose());
+        prev_rotation_ = glm::quat_cast((*(pcd_container_->GetPCDContainer()))[i]->GetPose());
 
-        rotation_distance_ = 1 - pow((curr_rotation_.w*prev_rotation_.w + curr_rotation_.x*prev_rotation_.x + curr_rotation_.y*prev_rotation_.y + curr_rotation_.z*prev_rotation_.z),2);
+        rotation_distance_ = 1 - pow((curr_rotation_.w * prev_rotation_.w +
+                                      curr_rotation_.x * prev_rotation_.x +
+                                      curr_rotation_.y * prev_rotation_.y +
+                                      curr_rotation_.z * prev_rotation_.z), 2);
 
-        translation_distance_ = 100.0f*GetDistance(pcd_container_data[lastIndex]->GetTranslation(), pcd_container_data[i]->GetTranslation());
+        translation_distance_ = 100.0f *
+                                GetDistance((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetTranslation(),
+                                            (*(pcd_container_->GetPCDContainer()))[i]->GetTranslation());
 
         if (translation_distance_ <= 5 && rotation_distance_ < 0.05) {
-          LOGE("%i : %i trans_dist : %f, rot_dist : %f", lastIndex, i, translation_distance_, rotation_distance_);
-          ScanMatcher scan_matcher;
-          std::future <Eigen::Isometry3f> loop_pose_async = std::async(std::launch::async,
-                                                                       &rgb_depth_sync::ScanMatcher::Match,
-                                                                       scan_matcher,
-                                                                       pcd_container_data[i]->GetImagePixels(),
-                                                                       pcd_container_data[lastIndex]->GetImagePixels(),
-                                                                       pcd_container_data[i]->GetPose(),
-                                                                       pcd_container_data[lastIndex]->GetPose());
-          int dist = 100 - translation_distance_;
+          distance_ = 100 - translation_distance_;
+          loop_closure_frame_idx_ = i;
 
-          loop_closure_poses_.insert(std::pair<key, value>(key(i, lastIndex), value(dist, std::move(loop_pose_async))));
-          if (counter_loop_closure_per_frame_ >= max_loop_closure_per_frame_) {
-            break;
+          if (loop_closure_count_ % 10 == 0) {
+            LOGE("%i : %i dist : %f", lastIndex, loop_closure_frame_idx_, distance_);
+            Eigen::Isometry3f loop_pose_async = scan_matcher_->Match(
+                (*(pcd_container_->GetPCDContainer()))[loop_closure_frame_idx_]->GetImagePixels(),
+                (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetImagePixels(),
+                (*(pcd_container_->GetPCDContainer()))[loop_closure_frame_idx_]->GetPose(),
+                (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
+            loop_closure_poses_.insert(std::pair<key, value>(key(loop_closure_frame_idx_, lastIndex), value(distance_, loop_pose_async)));
           }
+          loop_closure_count_++;
+          break;
         }
       }
     }

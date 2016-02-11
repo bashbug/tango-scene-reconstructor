@@ -28,7 +28,7 @@ namespace rgb_depth_sync {
   typedef g2o::BlockSolver< g2o::BlockSolverTraits<6, 3> >  SlamBlockSolver;
   typedef g2o::LinearSolverCSparse<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
   typedef std::pair<int, int> key;
-  typedef std::pair<int, std::future<Eigen::Isometry3f> > value;
+  typedef std::pair<int, Eigen::Isometry3f > value;
 
   class Slam3D {
     public:
@@ -61,7 +61,7 @@ namespace rgb_depth_sync {
       Eigen::Isometry3d odometryPose_d_;
       bool optimize_poses_;
       bool first_pose_;
-      bool stop_OnPCDAvailable_thread_;
+      bool start_OnPCDAvailable_thread_;
       PCDContainer* pcd_container_;
       std::shared_ptr<std::mutex> pcd_mtx_;
       std::shared_ptr<std::condition_variable> consume_pcd_;

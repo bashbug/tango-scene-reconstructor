@@ -37,7 +37,7 @@ namespace rgb_depth_sync {
     optimize_poses_ = false;
     first_pose_ = true;
     counter_ = 0;
-    stop_OnPCDAvailable_thread_ = true;
+    start_OnPCDAvailable_thread_ = false;
   }
 
   Slam3D::~Slam3D() {
@@ -45,20 +45,19 @@ namespace rgb_depth_sync {
   }
 
   void Slam3D::StartOnFrameAvailableThread() {
-    stop_OnPCDAvailable_thread_ = false;
+    start_OnPCDAvailable_thread_ = true;
   }
 
   void Slam3D::StopOnFrameAvailableThread() {
-    stop_OnPCDAvailable_thread_ = true;
+    start_OnPCDAvailable_thread_ = false;
   }
 
   int Slam3D::OnPCDAvailable() {
     std::unique_lock<std::mutex> lock(*pcd_mtx_);
 
-    while(!stop_OnPCDAvailable_thread_) {
+    while(start_OnPCDAvailable_thread_) {
       consume_pcd_->wait(lock);
       if (!optimize_poses_) {
-        LOGE("add new pose");
         int lastIndex = pcd_container_->GetPCDContainerLastIndex();
 
         odometryPose_ = util::ConvertGLMToEigenPose((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
@@ -72,7 +71,7 @@ namespace rgb_depth_sync {
           AddEdge(id_-1, id_);
         }
 
-        // async search for loop closures
+        // search for loop closures
         loop_closure_detector_->Compute(lastIndex);
       }
     }
@@ -144,15 +143,17 @@ namespace rgb_depth_sync {
   }
 
   void Slam3D::OptimizeGraph() {
-
+    LOGE("optimiziation start...");
     optimize_poses_ = true;
 
     // Add all loop closure poses to the graph
     loop_closure_detector_->GetLoopClosurePoses(&loop_closure_poses_);
 
+    LOGE("Found %i loop_closures", loop_closure_poses_->size());
+
     for (it_ = loop_closure_poses_->begin(); it_ != loop_closure_poses_->end(); it_++) {
       // wait with .get() for async scan matcher computation
-      AddLoopClosure(it_->first.first, it_->first.second, it_->second.second.get(), it_->second.first);
+      AddLoopClosure(it_->first.first, it_->first.second, it_->second.second, it_->second.first);
     }
 
     optimizer_->initializeOptimization();
@@ -160,8 +161,21 @@ namespace rgb_depth_sync {
     // run optimization for 40 iterations
     optimizer_->optimize(40);
 
+    std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f>> all_poses = GetPoses();
+
+    for (int i = 0; i < all_poses.size(); i++) {
+      glm::mat4 icppose_glm = util::ConvertEigenToGLMPose(all_poses[i]);
+      glm::vec3 icp_translation = util::GetTranslationFromMatrix(icppose_glm);
+      glm::quat icp_rotation = util::GetRotationFromMatrix(icppose_glm);
+
+      //icp_positions[i] = icp_translation;
+      (*(pcd_container_->GetPCDContainer()))[i]->SetTranslation(icp_translation);
+      (*(pcd_container_->GetPCDContainer()))[i]->SetRotation(icp_rotation);
+    }
+
     optimize_poses_ = false;
     optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
+    LOGE("optimiziation stop...");
   }
 
   Eigen::Isometry3f Slam3D::GetPose(int id) {

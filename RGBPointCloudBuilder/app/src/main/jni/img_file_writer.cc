@@ -11,7 +11,7 @@ namespace rgb_depth_sync {
   void IMGFileWriter::SaveToFile(int index, const cv::Mat& img) {
     char filename[1024];
     //LOGE("write file %i start...", pcd_file_counter_);
-    sprintf(filename, "/storage/emulated/0/Documents/RGBPointCloudBuilder/Img__/%05d.jpg", index);
+    sprintf(filename, "/storage/emulated/0/Documents/RGBPointCloudBuilder/Img/%05d.jpg", index);
     cv::imwrite(filename, img);
   }
 

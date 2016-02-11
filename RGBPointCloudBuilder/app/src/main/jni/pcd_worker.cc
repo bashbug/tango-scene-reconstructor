@@ -4,12 +4,15 @@ namespace rgb_depth_sync {
 
   PCDWorker::PCDWorker(PCDContainer* pcd_container) {
     pcd_container_ = pcd_container;
+    write_pcd_data_ = true;
     xyz_set_ = false;
     rgb_set_ = false;
     yuv_frame_.create(720*3/2, 1280, CV_8UC1);
     rgb_frame_.create(720, 1280, CV_8UC3);
     rgb_size_ = 720*1280*3;
     yuv_size_ = 720*3/2*1280;
+    pcd_count_ = 0;
+    img_count_ = 0;
   }
 
   PCDWorker::~PCDWorker() {
@@ -17,32 +20,42 @@ namespace rgb_depth_sync {
   }
 
   void PCDWorker::SetXYZBuffer(const TangoXYZij* xyz_buffer){
-    std::unique_lock<std::mutex> lock(data_mtx_);
-    if (xyz_set_ == true)
-      return;
-    xyz_timestamp_ = xyz_buffer->timestamp;
-    size_t point_cloud_size = xyz_buffer->xyz_count * 3;
-    xyz_.clear();
-    xyz_.resize(point_cloud_size);
-    std::copy(xyz_buffer->xyz[0], xyz_buffer->xyz[0] + point_cloud_size, xyz_.begin());
-    xyz_set_ = true;
-    consume_data_.notify_one();
+    if(write_pcd_data_ == true) {
+      std::unique_lock<std::mutex> lock(data_mtx_);
+      if (xyz_set_ == true)
+        return;
+      xyz_timestamp_ = xyz_buffer->timestamp;
+      size_t point_cloud_size = xyz_buffer->xyz_count * 3;
+      xyz_.clear();
+      xyz_.resize(point_cloud_size);
+      std::copy(xyz_buffer->xyz[0], xyz_buffer->xyz[0] + point_cloud_size, xyz_.begin());
+      xyz_set_ = true;
+      pcd_count_++;
+      consume_data_.notify_one();
+    }
    }
 
-  void PCDWorker::SetRGBBuffer(const TangoImageBuffer* yuv_buffer){
-    std::unique_lock<std::mutex> lock(data_mtx_);
-    if (rgb_set_ == true)
-      return;
+  void PCDWorker::SetRGBBuffer(const TangoImageBuffer* yuv_buffer) {
+    if (write_pcd_data_ == true) {
+      std::unique_lock<std::mutex> lock(data_mtx_);
+      if (rgb_set_ == true)
+        return;
 
-    memcpy(yuv_frame_.data, yuv_buffer->data, yuv_size_);
-    rgb_timestamp_ = yuv_buffer->timestamp;
-    rgb_set_ = true;
-    consume_data_.notify_one();
+      memcpy(yuv_frame_.data, yuv_buffer->data, yuv_size_);
+      rgb_timestamp_ = yuv_buffer->timestamp;
+      rgb_set_ = true;
+      img_count_++;
+      consume_data_.notify_one();
+    }
+  }
+
+  void PCDWorker::StopPCDWorker() {
+    write_pcd_data_ = false;
   }
 
   void PCDWorker::OnPCDAvailable(){
     std::unique_lock<std::mutex> lock(data_mtx_);
-    while(true) {
+    while(write_pcd_data_ == true) {
       consume_data_.wait(lock);
       if(xyz_set_ && rgb_set_) {
         PCD *pcd = new rgb_depth_sync::PCD();
@@ -64,6 +77,7 @@ namespace rgb_depth_sync {
         rgb_set_ = false;
         xyz_set_ = false;
       }
+      //LOGE("PCD WORKER THREAD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
     }
   }
 

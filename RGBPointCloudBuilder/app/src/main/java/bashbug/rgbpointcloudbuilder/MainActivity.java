@@ -181,12 +181,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 break;
             case R.id.optimize_pose_graph_button:
                 JNIInterface.optimizePoseGraph(true);
+                break;
             case R.id.start_pcd_button:
                 JNIInterface.startPCD(true);
+                break;
             case R.id.stop_pcd_button:
                 JNIInterface.stopPCD(true);
+                break;
             case R.id.save_pcd_button:
                 JNIInterface.savePCD(true);
+                break;
             default:
                 Log.w(TAG, "Unrecognized button click.");
                 return;

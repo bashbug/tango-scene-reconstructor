@@ -19,6 +19,7 @@ namespace rgb_depth_sync {
       void SetXYZBuffer(const TangoXYZij* xyz_buffer);
       void SetRGBBuffer(const TangoImageBuffer* yuv_buffer);
       void OnPCDAvailable();
+      void StopPCDWorker();
     private:
       void Yuv2Rgb(uint8_t yValue, uint8_t uValue, uint8_t vValue, uint8_t* r, uint8_t* g, uint8_t* b, uint8_t* gray);
       std::vector<float> xyz_;
@@ -40,6 +41,9 @@ namespace rgb_depth_sync {
       bool rgb_set_;
       int rgb_size_;
       PCDContainer* pcd_container_;
+      int pcd_count_;
+      int img_count_;
+      bool write_pcd_data_;
       //cv::Ptr<cv::SIFT> sift_;
   };
 }
