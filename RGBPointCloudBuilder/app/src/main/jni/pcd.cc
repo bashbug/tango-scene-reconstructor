@@ -21,6 +21,25 @@ namespace rgb_depth_sync {
       xyz_values_.push_back(pcd[i]);
       xyz_values_.push_back(pcd[i+1]);
       xyz_values_.push_back(pcd[i+2]);
+
+
+      TangoCameraIntrinsics depth_camera_intrinsics;
+      int depth_pixel_x, depth_pixel_y;
+      depth_pixel_x = static_cast<int>(pcd[i] / pcd[i+2] * depth_camera_intrinsics.fx +
+                                       depth_camera_intrinsics.cx);
+
+      depth_pixel_y = static_cast<int>(pcd[i+1] / pcd[i+2] * depth_camera_intrinsics.fy +
+                                       depth_camera_intrinsics.cy);
+
+
+      size_t depth_index = depth_pixel_x + depth_pixel_y * depth_camera_intrinsics.width;
+
+      ProjectiveImage::Point p(pcd[i], pcd[i+1], pcd[i+2], depth_index, -1.0f, false);
+
+      if (depth_pixel_x >= 0 && depth_pixel_x < depth_camera_intrinsics.width && depth_pixel_y >= 0 && depth_pixel_y < depth_camera_intrinsics.height) {
+        depth_image_pixels_.getPixelNoCheck(depth_pixel_x, depth_pixel_y).push_back(p);
+      }
+
       rgb_values_.push_back(pcd[i+3]);
       pcd_with_rgb_data_.push_back(pcd[i]);
       pcd_with_rgb_data_.push_back(pcd[i+1]);
@@ -66,6 +85,9 @@ namespace rgb_depth_sync {
 
     translation_ = util::GetTranslationFromMatrix(ss_T_color_);
     rotation_ = util::GetRotationFromMatrix(ss_T_color_);
+
+    LOGE("PCD translation: %f, %f, %f", translation_.x, translation_.y, translation_.z);
+    LOGE("PCD rotation: %f, %f, %f, %f", rotation_.w, rotation_.x, rotation_.y, rotation_.z);
 
     size_t xyz_size = xyz.size();
     size_t rgb_size = rgb.size();

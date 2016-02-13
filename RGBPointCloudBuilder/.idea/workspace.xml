@@ -49,51 +49,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="loop_closure_detector.cc" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/loop_closure_detector.cc">
+      <file leaf-file-name="rgb_depth_sync_application.cc" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb_depth_sync_application.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-19.137932">
-              <caret line="74" column="95" selection-start-line="74" selection-start-column="81" selection-end-line="74" selection-end-column="95" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pcd_worker.cc" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_worker.cc">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.38629285">
-              <caret line="51" column="2" selection-start-line="51" selection-start-column="2" selection-end-line="51" selection-end-column="31" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pcd.cc" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd.cc">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="4.071429">
-              <caret line="90" column="62" selection-start-line="90" selection-start-column="62" selection-end-line="90" selection-end-column="62" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pcd_worker.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd_worker.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.607142">
-              <caret line="21" column="11" selection-start-line="21" selection-start-column="11" selection-end-line="21" selection-end-column="11" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="pcd.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-9.642858">
-              <caret line="67" column="42" selection-start-line="67" selection-start-column="42" selection-end-line="67" selection-end-column="42" />
+            <state vertical-scroll-proportion="0.52967036">
+              <caret line="157" column="121" selection-start-line="157" selection-start-column="121" selection-end-line="157" selection-end-column="121" />
               <folding />
             </state>
           </provider>
@@ -102,28 +62,18 @@
       <file leaf-file-name="slam3d.cc" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/jni/slam3d.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.642857">
-              <caret line="151" column="55" selection-start-line="151" selection-start-column="55" selection-end-line="151" selection-end-column="55" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="171" column="6" selection-start-line="171" selection-start-column="6" selection-end-line="171" selection-end-column="44" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="slam3d.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/slam3d.h">
+      <file leaf-file-name="pcd_file_reader.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_file_reader.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-5.25">
-              <caret line="55" column="47" selection-start-line="55" selection-start-column="28" selection-end-line="55" selection-end-column="47" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="loop_closure_detector.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/loop_closure_detector.h">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-2.1785715">
-              <caret line="16" column="26" selection-start-line="16" selection-start-column="26" selection-end-line="16" selection-end-column="26" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="93" column="26" selection-start-line="93" selection-start-column="26" selection-end-line="93" selection-end-column="26" />
               <folding />
             </state>
           </provider>
@@ -132,8 +82,58 @@
       <file leaf-file-name="scan_matcher.cc" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/src/main/jni/scan_matcher.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-2.1785715">
-              <caret line="16" column="74" selection-start-line="16" selection-start-column="74" selection-end-line="16" selection-end-column="74" />
+            <state vertical-scroll-proportion="-5.392857">
+              <caret line="92" column="56" selection-start-line="92" selection-start-column="56" selection-end-line="92" selection-end-column="56" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pcd_file_writer.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_file_writer.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="154" column="29" selection-start-line="154" selection-start-column="29" selection-end-line="154" selection-end-column="29" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pcd.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="87" column="0" selection-start-line="87" selection-start-column="0" selection-end-line="89" selection-end-column="93" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="conversion.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/conversion.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="79" column="233" selection-start-line="79" selection-start-column="233" selection-end-line="79" selection-end-column="233" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="util.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/util.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="33" column="24" selection-start-line="33" selection-start-column="24" selection-end-line="33" selection-end-column="24" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="pcd_file_writer.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd_file_writer.h">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="49" column="28" selection-start-line="49" selection-start-column="28" selection-end-line="49" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -1249,7 +1249,7 @@
     </option>
     <option name="modificationStamps">
       <map>
-        <entry key="$PROJECT_DIR$" value="4355941657299" />
+        <entry key="$PROJECT_DIR$" value="4356202949997" />
       </map>
     </option>
     <option name="projectBuildClasspath">
@@ -1555,7 +1555,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd_file_writer.h" />
         <option value="$PROJECT_DIR$/app/src/main/jni/point_cloud_data.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/pcd_file_writer.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/point_cloud_data.h" />
@@ -1565,7 +1564,6 @@
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/scene.h" />
         <option value="$PROJECT_DIR$/app/src/main/jni/scene.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/conversion.h" />
-        <option value="$PROJECT_DIR$/app/src/main/jni/conversion.cc" />
         <option value="$PROJECT_DIR$/gradle/wrapper/gradle-wrapper.properties" />
         <option value="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/app/src/main/jni/Application.mk" />
@@ -1591,21 +1589,23 @@
         <option value="$PROJECT_DIR$/build.gradle" />
         <option value="$PROJECT_DIR$/../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.h" />
         <option value="$PROJECT_DIR$/../third-party/projective-scan-matcher-3d/projectiveImage/projectiveImage.hpp" />
-        <option value="$PROJECT_DIR$/app/src/main/jni/scan_matcher.cc" />
-        <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/scan_matcher.h" />
         <option value="$PROJECT_DIR$/app/src/main/jni/Android.mk" />
         <option value="$PROJECT_DIR$/app/src/main/jni/img_file_writer.cc" />
-        <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/rgb_depth_sync_application.h" />
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/slam3d.h" />
         <option value="$PROJECT_DIR$/app/src/main/java/bashbug/rgbpointcloudbuilder/MainActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/loop_closure_detector.h" />
-        <option value="$PROJECT_DIR$/app/src/main/jni/rgb_depth_sync_application.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/pcd_worker.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd_worker.h" />
         <option value="$PROJECT_DIR$/app/src/main/jni/slam3d.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd.h" />
         <option value="$PROJECT_DIR$/app/src/main/jni/loop_closure_detector.cc" />
+        <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/rgb_depth_sync_application.h" />
+        <option value="$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/scan_matcher.h" />
+        <option value="$PROJECT_DIR$/app/src/main/jni/rgb_depth_sync_application.cc" />
         <option value="$PROJECT_DIR$/app/src/main/jni/pcd.cc" />
+        <option value="$PROJECT_DIR$/app/src/main/jni/conversion.cc" />
+        <option value="$PROJECT_DIR$/app/src/main/jni/pcd_file_reader.cc" />
+        <option value="$PROJECT_DIR$/app/src/main/jni/scan_matcher.cc" />
       </list>
     </option>
   </component>
@@ -1669,6 +1669,9 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="AndroidView" />
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -1875,9 +1878,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="AndroidView" />
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -2198,15 +2198,14 @@
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3261745" sideWeight="0.48569384" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4214765" sideWeight="0.7525036" order="13" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4214765" sideWeight="0.739628" order="13" side_tool="false" content_ui="tabs" />
       <window_info id="Build Variants" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24177396" sideWeight="0.52073735" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Palette&#9;" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Capture Analysis" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.49261746" sideWeight="0.22031474" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31275168" sideWeight="0.1881259" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.14020029" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.49261746" sideWeight="0.77968526" order="12" side_tool="false" content_ui="tabs" />
-      <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Android Monitor" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.31275168" sideWeight="0.8118741" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32960895" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3181208" sideWeight="0.44563663" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3248322" sideWeight="0.44563663" order="10" side_tool="false" content_ui="tabs" />
@@ -2214,11 +2213,11 @@
       <window_info id="Capture Tool" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Gradle Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4247911" sideWeight="0.21816881" order="11" side_tool="true" content_ui="tabs" />
       <window_info id="Designer" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23819743" sideWeight="0.61904764" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18240343" sideWeight="0.6015625" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Gradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Android Model" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="5" side_tool="true" content_ui="tabs" />
-      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.23819743" sideWeight="0.3809524" order="4" side_tool="true" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18240343" sideWeight="0.3984375" order="4" side_tool="true" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39463088" sideWeight="0.5100143" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -2226,6 +2225,7 @@
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.49427754" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Preview" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32513967" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -2255,23 +2255,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/captures/Trace_2016.02.02_16.10.56.trace">
-      <provider selected="true" editor-type-id="capture-editor">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/captures/Trace_2016.02.02_16.10.33.trace">
-      <provider selected="true" editor-type-id="capture-editor">
-        <state />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/captures/SystemInfo_2016.02.02_16.12.28.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/jni/texture_drawable.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-7.357143">
@@ -2333,13 +2316,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33242506">
           <caret line="44" column="0" selection-start-line="44" selection-start-column="0" selection-end-line="44" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_file_writer.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.044247787">
-          <caret line="76" column="81" selection-start-line="76" selection-start-column="77" selection-end-line="76" selection-end-column="81" />
         </state>
       </provider>
     </entry>
@@ -2435,13 +2411,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/util.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-16.607143">
-          <caret line="98" column="45" selection-start-line="98" selection-start-column="24" selection-end-line="98" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/jni/Application.mk">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -2460,15 +2429,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="57" column="5" selection-start-line="57" selection-start-column="5" selection-end-line="57" selection-end-column="5" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/scan_matcher.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="20" column="65" selection-start-line="20" selection-start-column="65" selection-end-line="20" selection-end-column="65" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2500,7 +2460,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-8.035714">
           <caret line="15" column="28" selection-start-line="15" selection-start-column="18" selection-end-line="15" selection-end-column="28" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -2527,14 +2486,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-7.5">
           <caret line="51" column="61" selection-start-line="51" selection-start-column="35" selection-end-line="51" selection-end-column="61" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/rgb_depth_sync_application.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.172414">
-          <caret line="100" column="82" selection-start-line="100" selection-start-column="80" selection-end-line="100" selection-end-column="82" />
           <folding />
         </state>
       </provider>
@@ -2571,58 +2522,114 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb_depth_sync_application.cc">
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_worker.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.25773194">
-          <caret line="247" column="19" selection-start-line="247" selection-start-column="19" selection-end-line="247" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-9.642858">
-          <caret line="67" column="42" selection-start-line="67" selection-start-column="42" selection-end-line="67" selection-end-column="42" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="51" column="2" selection-start-line="51" selection-start-column="2" selection-end-line="51" selection-end-column="31" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/jni/loop_closure_detector.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-19.137932">
-          <caret line="74" column="95" selection-start-line="74" selection-start-column="81" selection-end-line="74" selection-end-column="95" />
+        <state vertical-scroll-proportion="0.36082473">
+          <caret line="73" column="69" selection-start-line="73" selection-start-column="69" selection-end-line="77" selection-end-column="78" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/scan_matcher.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-6.678571">
+          <caret line="24" column="30" selection-start-line="24" selection-start-column="30" selection-end-line="24" selection-end-column="30" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/rgb_depth_sync_application.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.093458">
+          <caret line="40" column="40" selection-start-line="40" selection-start-column="40" selection-end-line="40" selection-end-column="40" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/jni/slam3d.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.642857">
-          <caret line="151" column="55" selection-start-line="151" selection-start-column="55" selection-end-line="151" selection-end-column="55" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="171" column="6" selection-start-line="171" selection-start-column="6" selection-end-line="171" selection-end-column="44" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.6012461">
+          <caret line="67" column="42" selection-start-line="67" selection-start-column="42" selection-end-line="67" selection-end-column="42" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/util.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="33" column="24" selection-start-line="33" selection-start-column="24" selection-end-line="33" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="4.071429">
-          <caret line="90" column="62" selection-start-line="90" selection-start-column="62" selection-end-line="90" selection-end-column="62" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="87" column="0" selection-start-line="87" selection-start-column="0" selection-end-line="89" selection-end-column="93" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/conversion.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="79" column="233" selection-start-line="79" selection-start-column="233" selection-end-line="79" selection-end-column="233" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_file_writer.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="154" column="29" selection-start-line="154" selection-start-column="29" selection-end-line="154" selection-end-column="29" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_file_reader.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="93" column="26" selection-start-line="93" selection-start-column="26" selection-end-line="93" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb-depth-sync/pcd_file_writer.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="49" column="28" selection-start-line="49" selection-start-column="28" selection-end-line="49" selection-end-column="28" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/jni/scan_matcher.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-2.1785715">
-          <caret line="16" column="74" selection-start-line="16" selection-start-column="74" selection-end-line="16" selection-end-column="74" />
+        <state vertical-scroll-proportion="-5.392857">
+          <caret line="92" column="56" selection-start-line="92" selection-start-column="56" selection-end-line="92" selection-end-column="56" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/jni/pcd_worker.cc">
+    <entry file="file://$PROJECT_DIR$/app/src/main/jni/rgb_depth_sync_application.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38629285">
-          <caret line="51" column="2" selection-start-line="51" selection-start-column="2" selection-end-line="51" selection-end-column="31" />
+        <state vertical-scroll-proportion="0.52967036">
+          <caret line="157" column="121" selection-start-line="157" selection-start-column="121" selection-end-line="157" selection-end-column="121" />
           <folding />
         </state>
       </provider>

@@ -22,6 +22,10 @@ namespace rgb_depth_sync {
                               const ProjectiveImage::ImagePixels& frame_curr,
                               const glm::mat4& odometryPose_prev,
                               const glm::mat4& odometryPose_curr);
+      Eigen::Isometry3f Match2(const std::vector<float>& frame_prev,
+                              const std::vector<float>& frame_curr,
+                              const glm::mat4& odometryPose_prev,
+                              const glm::mat4& odometryPose_curr);
     private:
       TangoCameraIntrinsics color_camera_intrinsics_;
   };

@@ -78,7 +78,6 @@ namespace rgb_depth_sync {
   }
 
   SynchronizationApplication::SynchronizationApplication() {
-
     optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
     pcd_mtx_ = std::make_shared<std::mutex>();
     consume_pcd_ = std::make_shared<std::condition_variable>();
@@ -89,12 +88,88 @@ namespace rgb_depth_sync {
     img_count_ = 0;
 
     pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
+    PCDFileReader* pcd_file_reader_ = new rgb_depth_sync::PCDFileReader();
+    //slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
+
+    for (int i = 0; i <= 16;  i++) {
+      char filename[1024];
+      sprintf(filename, "/storage/emulated/0/Documents/RGBPointCloudBuilder/before/%05d.pcd", i);
+      pcd_file_reader_->ReadFile(filename);
+      PCD* pcd = new rgb_depth_sync::PCD();
+      pcd->SetPCDWithRGBData(pcd_file_reader_->GetPointsWithRGB());
+      pcd->SetTranslation(pcd_file_reader_->GetTranslation());
+      pcd->SetRotation(pcd_file_reader_->GetRotation());
+
+      pcd_container_->AddPCD(pcd);
+
+      glm::vec3 translation = pcd->GetTranslation();
+      glm::quat rotation = pcd->GetRotation();
+
+      glm::mat4 pose_matrix = glm::mat4_cast(rotation);
+      pose_matrix[3][0] = pcd->GetTranslation()[0];
+      pose_matrix[3][1] = pcd->GetTranslation()[1];
+      pose_matrix[3][2] = pcd->GetTranslation()[2];
+      pose_matrix[3][3] = 1;
+
+      pcd->SetPose(pose_matrix);
+
+      /*Eigen::Isometry3f odometryPose = util::ConvertGLMToEigenPose(pose_matrix);
+      Eigen::Isometry3d odometryPose_d = util::CastIsometry3fTo3d(odometryPose);
+
+      // add node to the pose graph
+      id_ = slam_->AddNode(odometryPose_d);
+      // add edge to the pose graph
+      if(id_ > 0) {
+        slam_->AddEdge(id_-1, id_);
+      }*/
+    }
+
+    ScanMatcher* scan_matcher = new rgb_depth_sync::ScanMatcher();
+
+    Eigen::Isometry3f icp_pose = scan_matcher->Match(
+        (*(pcd_container_->GetPCDContainer()))[0]->GetImagePixels(),
+        (*(pcd_container_->GetPCDContainer()))[8]->GetImagePixels(),
+        (*(pcd_container_->GetPCDContainer()))[0]->GetPose(),
+        (*(pcd_container_->GetPCDContainer()))[8]->GetPose());
+
+    glm::mat4 icppose_glm = util::ConvertEigenToGLMPose(icp_pose);
+    glm::vec3 icp_translation = util::GetTranslationFromMatrix(icppose_glm);
+    glm::quat icp_rotation = util::GetRotationFromMatrix(icppose_glm);
+
+    rgb_depth_sync::PCDFileWriter pcd_file_writer;
+    pcd_file_writer.SetPCDRGBData((*(pcd_container_->GetPCDContainer()))[0]->GetPCDData(), glm::vec3(0,0,0), glm::quat(1,0,0,0));
+    pcd_file_writer.SetUnordered();
+    pcd_file_writer.SaveToFile("After", 0);
+
+    pcd_file_writer.SetPCDRGBData((*(pcd_container_->GetPCDContainer()))[8]->GetPCDData(), icp_translation, icp_rotation);
+    pcd_file_writer.SetUnordered();
+    pcd_file_writer.SaveToFile("After", 8);
+
+    icp_pose = scan_matcher->Match2(
+            (*(pcd_container_->GetPCDContainer()))[0]->GetXYZValues(),
+            (*(pcd_container_->GetPCDContainer()))[8]->GetXYZValues(),
+            (*(pcd_container_->GetPCDContainer()))[0]->GetPose(),
+            (*(pcd_container_->GetPCDContainer()))[8]->GetPose());
+
+    icppose_glm = util::ConvertEigenToGLMPose(icp_pose);
+    icp_translation = util::GetTranslationFromMatrix(icppose_glm);
+    icp_rotation = util::GetRotationFromMatrix(icppose_glm);
+
+    pcd_file_writer.SetPCDRGBData((*(pcd_container_->GetPCDContainer()))[0]->GetPCDData(), glm::vec3(0,0,0), glm::quat(1,0,0,0));
+    pcd_file_writer.SetUnordered();
+    pcd_file_writer.SaveToFile("After_xyz", 0);
+
+    pcd_file_writer.SetPCDRGBData((*(pcd_container_->GetPCDContainer()))[8]->GetPCDData(), icp_translation, icp_rotation);
+    pcd_file_writer.SetUnordered();
+    pcd_file_writer.SaveToFile("After_xyz", 8);
+
+    //slam_->AddLoopClosure(0, 8, loop_pose_async, 10);
+
     pcd_worker_ = new rgb_depth_sync::PCDWorker(pcd_container_);
 
     std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
     pcd_worker_thread.detach();
 
-    slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
   }
 
   SynchronizationApplication::~SynchronizationApplication() {

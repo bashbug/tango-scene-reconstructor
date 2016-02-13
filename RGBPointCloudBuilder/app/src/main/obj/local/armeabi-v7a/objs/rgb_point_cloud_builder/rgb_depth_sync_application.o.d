@@ -367,6 +367,7 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/conversions.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_container.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_worker.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_file_reader.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_file_writer.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scene.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/texture_drawable.h \
@@ -1199,6 +1200,8 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_container.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_worker.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_file_reader.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_file_writer.h:
 

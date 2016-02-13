@@ -234,7 +234,7 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Geometry/ParametrizedLine.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Geometry/AlignedBox.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Geometry/Umeyama.h \
- /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../TangoSDK_Furud_C/tango_client_api.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../TangoSDK_Gemma_C/tango_client_api.h \
  /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/util.h \
  /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/android/log.h \
@@ -715,7 +715,7 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/Eigen/Eigen/src/Geometry/Umeyama.h:
 
-/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../TangoSDK_Furud_C/tango_client_api.h:
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../TangoSDK_Gemma_C/tango_client_api.h:
 
 /home/anastasia/android-ndk-r10e/platforms/android-19/arch-arm/usr/include/jni.h:
 
