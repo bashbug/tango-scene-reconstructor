@@ -85,22 +85,22 @@ namespace rgb_depth_sync {
       glm::vec3 color_point = glm::vec3(color_T_depth_ * glm::vec4(x, y, z, 1.0f));
       glm::vec3 opengl_point = glm::vec3(opengl_T_color_ * glm::vec4(x, y, z, 1.0f));
 
-      pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx +
+      pixel_x = static_cast<int>(opengl_point.x / opengl_point.z * color_camera_intrinsics.fx +
                                  color_camera_intrinsics.cx);
 
-      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy +
+      pixel_y = static_cast<int>(opengl_point.y / opengl_point.z * color_camera_intrinsics.fy +
                                  color_camera_intrinsics.cy);
 
-      depth_pixel_x = static_cast<int>(color_point.x / color_point.z * depth_camera_intrinsics.fx +
+      depth_pixel_x = static_cast<int>(opengl_point.x / opengl_point.z * depth_camera_intrinsics.fx +
           depth_camera_intrinsics.cx);
 
-      depth_pixel_y = static_cast<int>(color_point.y / color_point.z * depth_camera_intrinsics.fy +
+      depth_pixel_y = static_cast<int>(opengl_point.y / opengl_point.z * depth_camera_intrinsics.fy +
                                        depth_camera_intrinsics.cy);
 
 
       size_t depth_index = depth_pixel_x + depth_pixel_y * depth_camera_intrinsics.width;
 
-      ProjectiveImage::Point p(color_point.x, color_point.y, color_point.z, depth_index, -1.0f, false);
+      ProjectiveImage::Point p(opengl_point.x, opengl_point.y, opengl_point.z, depth_index, -1.0f, false);
 
       if (depth_pixel_x >= 0 && depth_pixel_x < depth_camera_intrinsics.width && depth_pixel_y >= 0 && depth_pixel_y < depth_camera_intrinsics.height) {
         depth_image_pixels_.getPixelNoCheck(depth_pixel_x, depth_pixel_y).push_back(p);
@@ -109,14 +109,15 @@ namespace rgb_depth_sync {
       size_t index = pixel_x + pixel_y * color_camera_intrinsics.width;
 
       // save rgb point cloud
-      if (index * 3 + 2 >= rgb.size()) {
+      if (index * 3 + 2 >= rgb.size() || pixel_x < 0 && pixel_x >= color_camera_intrinsics.width || pixel_y < 0 && pixel_y >= color_camera_intrinsics.height) {
         //break;
+        continue;
         //LOGE("COLOR BAAAAAAAD INDEX: %d, size: %d", index, rgb.size());
       } else {
 
-        pcd_with_rgb_data_.push_back(color_point.x);
-        pcd_with_rgb_data_.push_back(color_point.y);
-        pcd_with_rgb_data_.push_back(color_point.z);
+        pcd_with_rgb_data_.push_back(opengl_point.x);
+        pcd_with_rgb_data_.push_back(opengl_point.y);
+        pcd_with_rgb_data_.push_back(opengl_point.z);
 
         xyz_values_.push_back(opengl_point.x);
         xyz_values_.push_back(opengl_point.y);

@@ -65,6 +65,7 @@ namespace rgb_depth_sync {
       std::vector<cv::KeyPoint> frame_key_points_;
       cv::Mat frame_descriptors_;
       cv::Mat frame_;
+      std::vector<float> depth_xyz_values;
       ProjectiveImage::ImagePixels depth_image_pixels_;
   };
 
