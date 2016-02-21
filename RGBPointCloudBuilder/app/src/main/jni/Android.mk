@@ -18,23 +18,73 @@ LOCAL_PATH := $(call my-dir)
 PROJECT_ROOT_FROM_JNI:= ../../../../..
 PROJECT_ROOT:= $(call my-dir)/../../../../..
 
-### tango client api
-include $(CLEAR_VARS)
-LOCAL_MODULE := libtango_client_api-prebuilt
-LOCAL_SRC_FILES := $(PROJECT_ROOT)/TangoSDK_Gemma_C/libtango_client_api.so
-LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/TangoSDK_Gemma_C/
-include $(PREBUILT_SHARED_LIBRARY)
+### include flann
+FLANN_ROOT := $(PROJECT_ROOT)/third-party/flann-android/
 
-### tango support api
 include $(CLEAR_VARS)
-LOCAL_MODULE := libtango_support_api-prebuilt
-LOCAL_SRC_FILES := $(PROJECT_ROOT)/TangoSupport_Gemma_C/libtango_support_api.so
-LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/TangoSupport_Gemma_C/
-include $(PREBUILT_SHARED_LIBRARY)
+LOCAL_MODULE := libflann_cpp_s-static
+LOCAL_SRC_FILES := $(FLANN_ROOT)/lib/libflann_cpp_s.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libflann_s-static
+LOCAL_SRC_FILES := $(FLANN_ROOT)/lib/libflann_s.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+### include boost
+BOOST_ROOT := $(PROJECT_ROOT)/third-party/boost-android/
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libboost_filesystem-static
+LOCAL_SRC_FILES := $(BOOST_ROOT)/lib/libboost_filesystem.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libboost_system-static
+LOCAL_SRC_FILES := $(BOOST_ROOT)/lib/libboost_system.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libboost_thread-static
+LOCAL_SRC_FILES := $(BOOST_ROOT)/lib/libboost_thread.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+### include pcl
+PCL_ROOT := $(PROJECT_ROOT)/third-party/pcl-android/
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_io-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_io.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_io_ply-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_io_ply.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_common-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_common.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_kdtree-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_kdtree.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_search-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_search.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_filters-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_filters.a
+include $(PREBUILT_STATIC_LIBRARY)
 
 ### include g2o
 
-G20ROOT := /home/anastasia/Projects/TangoProject/third-party/g2o/
+G20ROOT := $(PROJECT_ROOT)/third-party/g2o/
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := libg2o_core-prebuilt
@@ -77,12 +127,6 @@ LOCAL_EXPORT_C_INCLUDES := $(G20ROOT)/g2o/ \
                         $(G20ROOT)/EXTERNAL/csparse/
 include $(PREBUILT_SHARED_LIBRARY)
 
-include $(CLEAR_VARS)
-LOCAL_MODULE := opencv-java3-prebuilt
-LOCAL_SRC_FILES := $(PROJECT_ROOT)/third-party/OpenCV-android-nonfree/libs/armeabi-v7a/libopencv_java3.so
-LOCAL_EXPORT_C_INCLUDES := $(PROJECT_ROOT)/third-party/OpenCV-android-sdk/sdk/native/jni/include/
-include $(PREBUILT_SHARED_LIBRARY)
-
 ### include opencv
 
 CVROOT := $(PROJECT_ROOT)/third-party/OpenCV-android-sdk/sdk/native/jni
@@ -94,16 +138,23 @@ include $(CVROOT)/OpenCV.mk
 
 LOCAL_ARM_NEON := true
 
-LOCAL_MODULE    += librgb_point_cloud_builder
+LOCAL_MODULE += librgb_point_cloud_builder
 
-LOCAL_STATIC_LIBRARIES += flann
-LOCAL_STATIC_LIBRARIES += flann_cpp
+LOCAL_STATIC_LIBRARIES += libflann_cpp_s-static
+LOCAL_STATIC_LIBRARIES += libflann_s-static
 
-LOCAL_SHARED_LIBRARIES += libtango_client_api-prebuilt
-LOCAL_SHARED_LIBRARIES += libtango_support_api-prebuilt
+LOCAL_STATIC_LIBRARIES += libboost_filesystem-static
+LOCAL_STATIC_LIBRARIES += libboost_system-static
+LOCAL_STATIC_LIBRARIES += libboost_thread-static
 
-#LOCAL_SHARED_LIBRARIES += opencv-libnonfree-prebuilt
-#LOCAL_SHARED_LIBRARIES += opencv-java3-prebuilt
+LOCAL_STATIC_LIBRARIES += libpcl_io-static
+LOCAL_STATIC_LIBRARIES += libpcl_io_ply-static
+LOCAL_STATIC_LIBRARIES += libpcl_common-static
+LOCAL_STATIC_LIBRARIES += libpcl_kdtree-static
+LOCAL_STATIC_LIBRARIES += libpcl_search-static
+LOCAL_STATIC_LIBRARIES += libpcl_filters-static
+
+LOCAL_SHARED_LIBRARIES += tango_client_api tango_support_api
 
 LOCAL_SHARED_LIBRARIES += libg2o_core-prebuilt
 LOCAL_SHARED_LIBRARIES += libg2o_stuff-prebuilt
@@ -112,11 +163,14 @@ LOCAL_SHARED_LIBRARIES += libg2o_ext_csparse-prebuilt
 LOCAL_SHARED_LIBRARIES += libg2o_csparse_extension-prebuilt
 LOCAL_SHARED_LIBRARIES += libg2o_solver_csparse-prebuilt
 
-LOCAL_CFLAGS    += -std=c++11 -frtti -fexceptions
+LOCAL_CFLAGS    += -std=c++11 -frtti -fexceptions -fopenmp -w
 
 LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-gl/include \
                     $(PROJECT_ROOT)/third-party/glm/ \
-                    $(PROJECT_ROOT)/third-party/Eigen/ \
+                    $(PROJECT_ROOT)/third-party/eigen/ \
+                    $(BOOST_ROOT)/include/ \
+                    $(FLANN_ROOT)/include/ \
+                    $(PCL_ROOT)/include/pcl-1.6/ \
                     $(PROJECT_ROOT)/third-party/g2o/ \
                     $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/
 
@@ -129,6 +183,7 @@ LOCAL_SRC_FILES += conversion.cc \
                    pcd_container.cc \
                    pcd_file_reader.cc \
                    pcd_file_writer.cc \
+                   pcd_outlier_removal.cc \
                    pcd_worker.cc \
                    rgb_depth_sync_application.cc \
                    scan_matcher.cc \
@@ -156,8 +211,11 @@ LOCAL_SRC_FILES += conversion.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/util.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.cpp
 
-LOCAL_LDLIBS    += -llog -lGLESv2 -L$(SYSROOT)/usr/lib
+LOCAL_LDLIBS += -llog -lGLESv2 -L$(SYSROOT)/usr/lib
+LOCAL_LDFLAGS += -fopenmp
 
 include $(BUILD_SHARED_LIBRARY)
 
 $(call import-add-path, $(PROJECT_ROOT))
+$(call import-module, tango_client_api)
+$(call import-module, tango_support_api)

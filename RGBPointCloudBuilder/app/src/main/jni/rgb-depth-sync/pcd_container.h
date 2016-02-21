@@ -15,6 +15,15 @@
 
 namespace rgb_depth_sync {
 
+  struct Point {
+    float x;
+    float y;
+    float z;
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+  };
+
   class PCDContainer {
     public:
       PCDContainer(std::shared_ptr<std::mutex> pcd_mtx, std::shared_ptr<std::condition_variable> consume_pcd);
@@ -25,10 +34,15 @@ namespace rgb_depth_sync {
       int GetPCDContainerLastIndex();
       std::vector<PCD*>* GetPCDContainer();
       void ResetPCD();
+      std::pair<std::vector<float>, std::vector<uint8_t> > GetXYZRGBValues();
     private:
       std::shared_ptr<std::mutex> pcd_mtx_;
       std::shared_ptr<std::condition_variable> consume_pcd_;
       std::vector<PCD*> pcd_container_;
+      float resolution_;
+      std::vector<float> xyz_;
+      std::vector<uint8_t> rgb_;
+      std::map<int, std::map<int, std::map <int, Point> > > xyz_rgb_map_;
   };
 
 } // namespace rgb_depth_sync

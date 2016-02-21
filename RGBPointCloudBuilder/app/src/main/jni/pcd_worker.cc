@@ -13,6 +13,7 @@ namespace rgb_depth_sync {
     yuv_size_ = 720*3/2*1280;
     pcd_count_ = 0;
     img_count_ = 0;
+    pcd_remove_outlier_ = new rgb_depth_sync::PCDOutlierRemoval();
   }
 
   PCDWorker::~PCDWorker() {
@@ -22,7 +23,7 @@ namespace rgb_depth_sync {
   void PCDWorker::SetXYZBuffer(const TangoXYZij* xyz_buffer){
     if(write_pcd_data_ == true) {
       std::unique_lock<std::mutex> lock(data_mtx_);
-      if (xyz_set_ == true)
+      if (xyz_set_ == true && pcd_count_ % 3 != 0)
         return;
       xyz_timestamp_ = xyz_buffer->timestamp;
       size_t point_cloud_size = xyz_buffer->xyz_count * 3;
@@ -58,6 +59,7 @@ namespace rgb_depth_sync {
     while(write_pcd_data_ == true) {
       consume_data_.wait(lock);
       if(xyz_set_ && rgb_set_) {
+
         PCD *pcd = new rgb_depth_sync::PCD();
 
         cv::cvtColor(yuv_frame_, rgb_frame_, CV_YUV2RGB_NV21);
@@ -65,7 +67,13 @@ namespace rgb_depth_sync {
         rgb_.resize(rgb_size_);
         memcpy(&rgb_[0], rgb_frame_.data, rgb_size_);
 
-        pcd->MapXYZWithRGB(xyz_, rgb_, xyz_timestamp_, rgb_timestamp_);
+        LOGE("xyz_ size: %i", xyz_.size());
+
+        std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25, 1.0, 0.001); // 0.001 = 1cm radius
+
+        LOGE("xyz_without_outliers size: %i", xyz_without_outliers.size());
+
+        pcd->MapXYZWithRGB(xyz_without_outliers, rgb_, xyz_timestamp_, rgb_timestamp_);
 
         cv::Mat gray_frame;
         cv::cvtColor(rgb_frame_, gray_frame, CV_RGB2GRAY);

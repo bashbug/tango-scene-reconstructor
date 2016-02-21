@@ -3,13 +3,66 @@
 namespace rgb_depth_sync {
 
   PCD::PCD() {
-    depth_image_pixels_.width = 320;
-    depth_image_pixels_.height = 180;
-    depth_image_pixels_.resize(320*180);
+    //boost::thread* thr = new boost::thread(boost::bind(&rgb_depth_sync::PCD::foo, this));
+    /*flann::Matrix<float> flann_data_;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_curr (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+
+    //pcl::PointCloud2 &output;
+
+    boost::system::error_code* error;
+    boost::filesystem::path path = "/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000.pcd";
+    boost::filesystem::detail::status(path, error);
+
+    boost::shared_ptr<int> x = boost::make_shared<int>(666);
+
+    LOGE("TEST %i", *x);
+
+    if (pcl::io::loadPCDFile("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000.pcd", *cloud_curr) == -1) {
+      LOGE("Could not open file");
+    } else {
+      LOGE("YEAH could open file");
+    }
+
+    //pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;setInputCloud
+    pcl::KdTreeFLANN<pcl::PointXYZ, flann::L2_Simple<float> > kdtree;
+
+    pcl::search::Search<pcl::PointXYZRGB>::Ptr tree;
+    pcl::search::OrganizedNeighbor<pcl::PointXYZRGB> t = new pcl::search::OrganizedNeighbor<pcl::PointXYZRGB>();
+
+    tree.reset(new pcl::search::KdTree<pcl::PointXYZRGB> (false));
+    //tree->setInputCloud(cloud_curr);
+    //t.clear();
+
+    //pcl::NormalEstimationOMP<pcl::PointXYZRGB, pcl::PointNormal> ne;
+    //ne.setInputCloud (cloud_curr);
+    //ne.setSearchMethod (tree);
+
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+    sor.setInputCloud(cloud_curr);
+    sor.setMeanK(50);
+    sor.setStddevMulThresh(1.0);
+    sor.filter(*cloud_filtered);
+
+    pcl::PCDWriter writer;
+    writer.write<pcl::PointXYZRGB> ("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_in_.pcd", *cloud_filtered, false);
+
+    sor.setNegative (true);
+    sor.filter (*cloud_filtered);
+    writer.write<pcl::PointXYZRGB> ("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_out_.pcd", *cloud_filtered, false);*/
+
+
+    //pcl::io::savePCDFileASCII("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_in_.pcd", *cloud_curr);
+
   }
 
   PCD::~PCD() {
     LOGE("PointCloudData is destroyed...");
+  }
+
+  void PCD::foo() {
+    LOGE("boooost");
   }
 
   void PCD::SetPCDWithRGBData(const std::vector<float> pcd) {
@@ -21,25 +74,6 @@ namespace rgb_depth_sync {
       xyz_values_.push_back(pcd[i]);
       xyz_values_.push_back(pcd[i+1]);
       xyz_values_.push_back(pcd[i+2]);
-
-
-      TangoCameraIntrinsics depth_camera_intrinsics;
-      int depth_pixel_x, depth_pixel_y;
-      depth_pixel_x = static_cast<int>(pcd[i] / pcd[i+2] * depth_camera_intrinsics.fx +
-                                       depth_camera_intrinsics.cx);
-
-      depth_pixel_y = static_cast<int>(pcd[i+1] / pcd[i+2] * depth_camera_intrinsics.fy +
-                                       depth_camera_intrinsics.cy);
-
-
-      size_t depth_index = depth_pixel_x + depth_pixel_y * depth_camera_intrinsics.width;
-
-      ProjectiveImage::Point p(pcd[i], pcd[i+1], pcd[i+2], depth_index, -1.0f, false);
-
-      if (depth_pixel_x >= 0 && depth_pixel_x < depth_camera_intrinsics.width && depth_pixel_y >= 0 && depth_pixel_y < depth_camera_intrinsics.height) {
-        depth_image_pixels_.getPixelNoCheck(depth_pixel_x, depth_pixel_y).push_back(p);
-      }
-
       rgb_values_.push_back(pcd[i+3]);
       pcd_with_rgb_data_.push_back(pcd[i]);
       pcd_with_rgb_data_.push_back(pcd[i+1]);
@@ -69,12 +103,12 @@ namespace rgb_depth_sync {
     ss_T_color_ = pose;
   }
 
-  void PCD::MapXYZWithRGB(const std::vector<float> &xyz, const std::vector<uint8_t> &rgb,
+  void PCD::MapXYZWithRGB(const std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ>>& xyz, const std::vector<uint8_t> &rgb,
                           const double &xyz_timestamp, const double &rgb_timestamp) {
 
     TangoCameraIntrinsics depth_camera_intrinsics;
-    TangoCameraIntrinsics color_camera_intrinsics;
     TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
+    TangoCameraIntrinsics color_camera_intrinsics;
     TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
 
     Conversion *conversion = Conversion::GetInstance();
@@ -86,64 +120,37 @@ namespace rgb_depth_sync {
     translation_ = util::GetTranslationFromMatrix(ss_T_color_);
     rotation_ = util::GetRotationFromMatrix(ss_T_color_);
 
-    LOGE("PCD translation: %f, %f, %f", translation_.x, translation_.y, translation_.z);
-    LOGE("PCD rotation: %f, %f, %f, %f", rotation_.w, rotation_.x, rotation_.y, rotation_.z);
-
     size_t xyz_size = xyz.size();
     size_t rgb_size = rgb.size();
 
-    for (size_t i = 0; i < xyz_size - 3; i = i + 3) {
-      float x = xyz[i];
-      float y = xyz[i + 1];
-      float z = xyz[i + 2];
+    for (size_t i = 0; i < xyz_size; i++) {
 
-      if (z > 1.5 && z < 0.5) {
-        continue;
-      }
-
-      int pixel_x, pixel_y, depth_pixel_x, depth_pixel_y;
+      int pixel_x, pixel_y;
 
       // transform depth point to color frame
-      glm::vec3 color_point = glm::vec3(color_T_depth_ * glm::vec4(x, y, z, 1.0f));
-      glm::vec3 opengl_point = glm::vec3(opengl_T_color_ * glm::vec4(x, y, z, 1.0f));
+      glm::vec3 color_point = glm::vec3(color_T_depth_ * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
 
-      pixel_x = static_cast<int>(opengl_point.x / opengl_point.z * color_camera_intrinsics.fx +
+      pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx +
                                  color_camera_intrinsics.cx);
 
-      pixel_y = static_cast<int>(opengl_point.y / opengl_point.z * color_camera_intrinsics.fy +
+      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy +
                                  color_camera_intrinsics.cy);
-
-      depth_pixel_x = static_cast<int>(opengl_point.x / opengl_point.z * depth_camera_intrinsics.fx +
-          depth_camera_intrinsics.cx);
-
-      depth_pixel_y = static_cast<int>(opengl_point.y / opengl_point.z * depth_camera_intrinsics.fy +
-                                       depth_camera_intrinsics.cy);
-
-
-      size_t depth_index = depth_pixel_x + depth_pixel_y * depth_camera_intrinsics.width;
-
-      ProjectiveImage::Point p(opengl_point.x, opengl_point.y, opengl_point.z, depth_index, -1.0f, false);
-
-      if (depth_pixel_x >= 0 && depth_pixel_x < depth_camera_intrinsics.width && depth_pixel_y >= 0 && depth_pixel_y < depth_camera_intrinsics.height) {
-        depth_image_pixels_.getPixelNoCheck(depth_pixel_x, depth_pixel_y).push_back(p);
-      }
 
       size_t index = pixel_x + pixel_y * color_camera_intrinsics.width;
 
       // save rgb point cloud
-      if (index * 3 + 2 >= rgb.size() || pixel_x < 0 && pixel_x >= color_camera_intrinsics.width || pixel_y < 0 && pixel_y >= color_camera_intrinsics.height) {
+      if (index * 3 + 2 >= rgb.size()) {
         //break;
-        continue;
         //LOGE("COLOR BAAAAAAAD INDEX: %d, size: %d", index, rgb.size());
       } else {
 
-        pcd_with_rgb_data_.push_back(opengl_point.x);
-        pcd_with_rgb_data_.push_back(opengl_point.y);
-        pcd_with_rgb_data_.push_back(opengl_point.z);
+        pcd_with_rgb_data_.push_back(color_point.x);
+        pcd_with_rgb_data_.push_back(color_point.y);
+        pcd_with_rgb_data_.push_back(color_point.z);
 
-        xyz_values_.push_back(opengl_point.x);
-        xyz_values_.push_back(opengl_point.y);
-        xyz_values_.push_back(opengl_point.z);
+        xyz_values_.push_back(color_point.x);
+        xyz_values_.push_back(color_point.y);
+        xyz_values_.push_back(color_point.z);
 
         rgb_values_.push_back(rgb[index * 3]);
         rgb_values_.push_back(rgb[index * 3 + 1]);
@@ -200,9 +207,4 @@ namespace rgb_depth_sync {
     //LOGE("PointCloudData : GetPCDData");
     return pcd_with_rgb_data_;
   }
-
-  ProjectiveImage::ImagePixels PCD::GetImagePixels() {
-    return depth_image_pixels_;
-  }
-
 } // namespace rgb_depth_sync

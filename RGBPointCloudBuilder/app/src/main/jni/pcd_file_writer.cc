@@ -89,10 +89,6 @@ namespace rgb_depth_sync {
     // write rgb point cloud buffer
     fwrite(&pcd_[0], pcd_.size(), sizeof(float), file);
     fclose(file);
-
-    //pcd_file_counter_++;
-    //LOGE("write %s stop...", filename);
-    delete[] filename;
   }
 
   void PCDFileWriter::SaveToSocket(std::string addr, int port) {
@@ -121,8 +117,6 @@ namespace rgb_depth_sync {
       c->sendlong(datasize);
       c->sendfilename(filename);
       c->sendpcddata(cstr, pcd_);
-      delete[] filename;
-      delete[] cstr;
 
       pcd_file_counter_++;
     }

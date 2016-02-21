@@ -1,8 +1,7 @@
 apply plugin: 'com.android.application'
-
 android {
     compileSdkVersion 19
-    buildToolsVersion "21.1.2"
+    buildToolsVersion '19.1.0'
 
     defaultConfig {
         applicationId "bashbug.rgbpointcloudbuilder"
@@ -29,14 +28,15 @@ android {
         abortOnError false
     }
 }
-
 tasks.withType(JavaCompile) {
     compileTask -> compileTask.dependsOn ndkBuild
 }
-
 task ndkBuild(type: Exec) {
     Properties properties = new Properties()
     properties.load(project.rootProject.file('local.properties').newDataInputStream())
-    def ndkbuild = properties.getProperty('ndk.dir', null)+"/ndk-build"
+    def ndkbuild = properties.getProperty('ndk.dir', null) + "/ndk-build"
     commandLine ndkbuild, '-C', file('src/main/jni').absolutePath
+}
+
+dependencies {
 }

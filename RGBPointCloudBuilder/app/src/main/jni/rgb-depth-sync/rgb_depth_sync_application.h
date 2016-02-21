@@ -123,6 +123,7 @@ namespace rgb_depth_sync {
       int pcd_count_;
       int img_count_;
       TangoConfig tango_config_;
+      bool pcd_container_optimized_;
       bool save_pcd_;
       bool start_pcd_;
       std::shared_ptr<std::atomic<bool>> optimize_poses_process_started_;

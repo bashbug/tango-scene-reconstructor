@@ -75,10 +75,6 @@ namespace rgb_depth_sync {
     rgb_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
     TangoService_getPoseAtTime(rgb_timestamp, rgb_frame_pair, &pose_ss_T_device_rgb_timestamp);
 
-
-    LOGE("Conversion translation: %f, %f, %f", pose_ss_T_device_rgb_timestamp.translation[0], pose_ss_T_device_rgb_timestamp.translation[1], pose_ss_T_device_rgb_timestamp.translation[2]);
-    LOGE("Conversion rotation: %f, %f, %f, %f", pose_ss_T_device_rgb_timestamp.orientation[3], pose_ss_T_device_rgb_timestamp.orientation[0], pose_ss_T_device_rgb_timestamp.orientation[1], pose_ss_T_device_rgb_timestamp.orientation[2]);
-
     return util::GetMatrixFromPose(&pose_ss_T_device_rgb_timestamp) * device_T_color_;
   }
 

@@ -175,4 +175,26 @@ float util::Deg2Rad(float alpha) {
   return alpha*M_PI/180.0f;
 }
 
+Eigen::Isometry3f util::GetIsometryFromTangoPose(const TangoPoseData* pose_data) {
+  Eigen::Vector3f translation(pose_data->translation[0], pose_data->translation[1], pose_data->translation[2]);
+  // Eigen::Quaternionf(w, x, y, z) TangoPoseData orientation[] has x, y, z, w
+  Eigen::Quaternionf rotation(pose_data->orientation[3], pose_data->orientation[0], pose_data->orientation[1], pose_data->orientation[2]);
+  // normalize rotation before using it for any computation
+  rotation.normalize();
+  return Eigen::Isometry3f(Eigen::Translation3f(translation[0], translation[1], translation[2]))
+         * Eigen::Isometry3f(rotation);
+}
+
+Eigen::Vector3f util::GetTranslationFromIsometry(const Eigen::Isometry3f& pose) {
+  Eigen::Vector3f translation(pose.translation());
+  return translation;
+}
+
+Eigen::Quaternionf util::GetRotationFromIsometry(const Eigen::Isometry3f& pose) {
+  Eigen::Quaternionf rotation(pose.rotation());
+  // normalize rotation before using it for any computation
+  rotation.normalize();
+  return rotation;
+}
+
 }  // namespace rgb_depth_sync

@@ -7,8 +7,12 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp> // ORB and BFMatcher
 //#include <opencv2/xfeatures2d.hpp>
+#include <pcl/point_types.h>
+#include <Eigen/Geometry>
+#include <Eigen/StdVector>
 #include "rgb-depth-sync/pcd.h"
 #include "rgb-depth-sync/pcd_container.h"
+#include "rgb-depth-sync/pcd_outlier_removal.h"
 
 namespace rgb_depth_sync {
 
@@ -45,6 +49,8 @@ namespace rgb_depth_sync {
       int img_count_;
       bool write_pcd_data_;
       //cv::Ptr<cv::SIFT> sift_;
+      PCDOutlierRemoval* pcd_remove_outlier_;
+      TangoPoseData* curr_pose_, prev_pose_;
   };
 }
 

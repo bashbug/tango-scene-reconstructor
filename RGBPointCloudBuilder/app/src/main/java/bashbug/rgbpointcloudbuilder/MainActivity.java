@@ -42,6 +42,7 @@ import android.widget.Switch;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Activity that load up the main screen of the app, this is the launcher activity.
@@ -69,7 +70,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private Point mScreenSize;
 
-    File mFileDirectionPCD, mFileDirectionPPM;
+    File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt;
 
     private boolean mIsConnectedService = false;
 
@@ -127,22 +128,62 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mFileDirectionPCD = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD");
 
+        mFileDirectionPCD_opt = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD_opt");
+
         mFileDirectionPPM = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PPM");
 
+        /*if (mFileDirectionPCD.isDirectory()) {
+            String deleteCmd = "rm -r " + mFileDirectionPCD;
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec(deleteCmd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (mFileDirectionPCD_opt.isDirectory()) {
+            String deleteCmd = "rm -r " + mFileDirectionPCD_opt;
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec(deleteCmd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (mFileDirectionPPM.isDirectory()) {
+            String deleteCmd = "rm -r " + mFileDirectionPPM;
+            Runtime runtime = Runtime.getRuntime();
+            try {
+                runtime.exec(deleteCmd);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }*/
+
         if(!mFileDirectionPCD.isDirectory()) {
             mFileDirectionPCD.mkdirs();
-            Log.e(TAG, "RGBPointCloudBuilder/PCD Directory not exists");
+            Log.i(TAG, "RGBPointCloudBuilder/PCD Directory not exists");
+        }
+        if(!mFileDirectionPCD_opt.isDirectory()) {
+            mFileDirectionPCD_opt.mkdirs();
+            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt Directory not exists");
         }
         if(!mFileDirectionPPM.isDirectory()) {
             mFileDirectionPPM.mkdirs();
-            Log.e(TAG, "RGBPointCloudBuilder/PPM Directory not exists");
+            Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not exists");
         }
         if (!mFileDirectionPCD.isDirectory()) {
-            Log.e(TAG, "RGBPointCloudBuilder/PPM Directory not created");
+            Log.i(TAG, "RGBPointCloudBuilder/PCD Directory not created");
+        }
+        if (!mFileDirectionPCD_opt.isDirectory()) {
+            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt Directory not created");
         }
         if (!mFileDirectionPPM.isDirectory()) {
-            Log.e(TAG, "RGBPointCloudBuilder/PPM Directory not created");
+            Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not created");
         }
     }
 

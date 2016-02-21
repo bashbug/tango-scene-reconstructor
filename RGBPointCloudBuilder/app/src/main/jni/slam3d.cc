@@ -32,7 +32,7 @@ namespace rgb_depth_sync {
 
     loop_closure_detector_ = new rgb_depth_sync::LoopClosureDetector(pcd_container);
 
-    //information_ = Eigen::Matrix<double, 4, 4>::Identity();
+    information_.setIdentity();
     id_ = 0;
     optimize_poses_ = false;
     first_pose_ = true;
@@ -112,10 +112,9 @@ namespace rgb_depth_sync {
     e->setVertex(0, prev_vertex);
     e->setVertex(1, cur_vertex);
 
-    Eigen::Matrix4d relative_transformation = (prev_vertex->estimate().inverse() * cur_vertex->estimate()).matrix();
-    g2o::SE3Quat measurement_mean(Eigen::Quaterniond(relative_transformation.block<3,3>(0,0)), relative_transformation.block<3,1>(0,3));
+    Eigen::Isometry3d relative_transformation = prev_vertex->estimate().inverse() * cur_vertex->estimate();
 
-    e->setMeasurement(measurement_mean);
+    e->setMeasurement(relative_transformation);
     e->setInformation(information_);
     optimizer_->addEdge(e);
   }
@@ -132,12 +131,10 @@ namespace rgb_depth_sync {
     e->setVertex(0, prev_vertex);
     e->setVertex(1, cur_vertex);
 
-    Eigen::Matrix4d relative_transformation = relative_position.matrix();
-    Eigen::Quaterniond rotation(relative_position.rotation());
-    Eigen::Vector3d translation(relative_position.translation());
-    g2o::SE3Quat measurement_mean(rotation, translation);
+    //Eigen::Matrix4d relative_transformation = relative_position.matrix();
+    //g2o::SE3Quat measurement_mean(Eigen::Quaterniond(relative_transformation.block<3,3>(0,0)), relative_transformation.block<3,1>(0,3));
 
-    e->setMeasurement(measurement_mean);
+    e->setMeasurement(relative_position);
     e->setInformation(confidence*information_);
     optimizer_->addEdge(e);
   }
@@ -156,12 +153,16 @@ namespace rgb_depth_sync {
       AddLoopClosure(it_->first.first, it_->first.second, it_->second.second, it_->second.first);
     }
 
+    SaveGraph();
+
     optimizer_->initializeOptimization();
 
     // run optimization for 40 iterations
     optimizer_->optimize(40);
 
     std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f>> all_poses = GetPoses();
+
+    LOGE("Pose graph size: %i", all_poses.size());
 
     for (int i = 0; i < all_poses.size(); i++) {
       glm::mat4 icppose_glm = util::ConvertEigenToGLMPose(all_poses[i]);
@@ -172,6 +173,8 @@ namespace rgb_depth_sync {
       (*(pcd_container_->GetPCDContainer()))[i]->SetTranslation(icp_translation);
       (*(pcd_container_->GetPCDContainer()))[i]->SetRotation(icp_rotation);
     }
+
+    SaveGraph();
 
     optimize_poses_ = false;
     optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);

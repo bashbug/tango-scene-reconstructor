@@ -3,22 +3,22 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../tango-gl/include/tango-gl/conversions.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/glm.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/_fixes.hpp \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cmath \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/climits \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cfloat \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/limits \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cassert \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cmath \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/climits \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cfloat \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/limits \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cassert \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/fwd.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_int.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/setup.hpp \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cstdint \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cstdint \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_float.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/precision.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_mat.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/vec2.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec2.hpp \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cstddef \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cstddef \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec2.inl \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/vec3.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec3.hpp \
@@ -28,8 +28,8 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec4.inl \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/mat2x2.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_mat2x2.hpp \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/initializer_list \
- /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/algorithm \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/initializer_list \
+ /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/algorithm \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_mat2x2.inl \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/mat2x3.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_mat2x3.hpp \
@@ -98,15 +98,15 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/_fixes.hpp:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cmath:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cmath:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/climits:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/climits:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cfloat:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cfloat:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/limits:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/limits:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cassert:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cassert:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/fwd.hpp:
 
@@ -114,7 +114,7 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/setup.hpp:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cstdint:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cstdint:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_float.hpp:
 
@@ -128,7 +128,7 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec2.hpp:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/cstddef:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/cstddef:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_vec2.inl:
 
@@ -148,9 +148,9 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_mat2x2.hpp:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/initializer_list:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/initializer_list:
 
-/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.8/include/algorithm:
+/home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/algorithm:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/glm/glm/detail/type_mat2x2.inl:
 

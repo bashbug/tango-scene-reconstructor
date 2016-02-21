@@ -8,36 +8,13 @@ namespace rgb_depth_sync {
 
   LoopClosureDetector::LoopClosureDetector(PCDContainer* pcd_container) {
     pcd_container_ = pcd_container;
-    max_loop_closure_per_frame_ = 2;
-
-    bf_matcher_ = new cv::BFMatcher(cv::NORM_HAMMING, false); // with true : usually produces best results with minimal number of outliers when there are enough matches. This is alternative to the ratio test
-    orb_ = cv::ORB::create(1000);
 
     TangoErrorType ret = TangoService_getCameraIntrinsics(
         TANGO_CAMERA_COLOR, &color_camera_intrinsics_);
     if (ret != TANGO_SUCCESS) {
       LOGE("SynchronizationApplication: Failed to get the intrinsics for the color camera.");
     }
-
-    curr_depth_point_lu_ = glm::vec3(119.0f, 119.0f, 0.5f);
-    curr_pcd_point_lu_ = ConvertDepthPointTo3DPoint(curr_depth_point_lu_);
-    curr_depth_point_ld_ = glm::vec3(119.0f, 599.0f, 0.5f);
-    curr_pcd_point_ld_ = ConvertDepthPointTo3DPoint(curr_depth_point_ld_);
-    curr_depth_point_cc_ = glm::vec3(639.0f, 359.0f, 0.5f);
-    curr_pcd_point_cc_ = ConvertDepthPointTo3DPoint(curr_depth_point_cc_);
-    curr_depth_point_ru_ = glm::vec3(1159.0f, 119.0f, 0.5f);
-    curr_pcd_point_ru_ = ConvertDepthPointTo3DPoint(curr_depth_point_ru_);
-    curr_depth_point_rd_ = glm::vec3(1159.0f, 599.0f, 0.5f);
-    curr_pcd_point_rd_ = ConvertDepthPointTo3DPoint(curr_depth_point_rd_);
-
-    img_file_writer_ = new rgb_depth_sync::IMGFileWriter();
-
     distance_ = 0;
-    distance_accum_ = 0;
-    distance_accum_counter_ = 0;
-    loop_closure_frame_idx_ = -1;
-    loop_closure_count_ = 0;
-
   }
 
   LoopClosureDetector::~LoopClosureDetector() {
@@ -47,6 +24,7 @@ namespace rgb_depth_sync {
   void LoopClosureDetector::Compute(int lastIndex) {
 
     bool first = true;
+    std::vector<NeighborWithDistance> orderedNeighbors;
 
     curr_rotation_ = glm::quat_cast((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
 
@@ -61,26 +39,46 @@ namespace rgb_depth_sync {
                                       curr_rotation_.y * prev_rotation_.y +
                                       curr_rotation_.z * prev_rotation_.z), 2);
 
-        translation_distance_ = 100.0f *
-                                GetDistance((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetTranslation(),
-                                            (*(pcd_container_->GetPCDContainer()))[i]->GetTranslation());
+        translation_distance_ = 100 * GetDistance(
+            (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetTranslation(),
+            (*(pcd_container_->GetPCDContainer()))[i]->GetTranslation());
 
-        if (translation_distance_ <= 5 && rotation_distance_ < 0.05) {
-          distance_ = 100 - translation_distance_;
-          loop_closure_frame_idx_ = i;
-
-          if (loop_closure_count_ % 10 == 0) {
-            LOGE("%i : %i dist : %f", lastIndex, loop_closure_frame_idx_, distance_);
-            Eigen::Isometry3f loop_pose_async = scan_matcher_->Match(
-                (*(pcd_container_->GetPCDContainer()))[loop_closure_frame_idx_]->GetImagePixels(),
-                (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetImagePixels(),
-                (*(pcd_container_->GetPCDContainer()))[loop_closure_frame_idx_]->GetPose(),
-                (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
-            loop_closure_poses_.insert(std::pair<key, value>(key(loop_closure_frame_idx_, lastIndex), value(distance_, loop_pose_async)));
-          }
-          loop_closure_count_++;
-          break;
+        if (translation_distance_ <= 10) {
+          NeighborWithDistance neighbor;
+          neighbor.distance = translation_distance_;
+          neighbor.id = i;
+          orderedNeighbors.push_back(neighbor);
         }
+      }
+    }
+
+    for (int j = 0 ; j < orderedNeighbors.size() ; j++) {
+      std::sort(orderedNeighbors.begin(), orderedNeighbors.end());
+      if (j > 0 && abs(orderedNeighbors[j-1].id - abs(orderedNeighbors[j].id) < 10))
+        continue;
+      distance_ = 1;
+      loop_closure_frame_idx_ = orderedNeighbors[j].id;
+
+      //if (loop_closure_count_ % 2 == 0) {
+      float overlap;
+      Eigen::Isometry3f loop_pose = scan_matcher_->Match(&overlap,
+                                                         (*(pcd_container_->GetPCDContainer()))[loop_closure_frame_idx_]->GetXYZValues(),
+                                                         (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetXYZValues(),
+                                                         (*(pcd_container_->GetPCDContainer()))[loop_closure_frame_idx_]->GetPose(),
+                                                         (*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
+
+      float distance_after = 100*GetDistance(glm::vec3(0,0,0), glm::vec3(loop_pose.translation().x(), loop_pose.translation().y(), loop_pose.translation().z()));
+
+      if (overlap >= 0.85 && (distance_after < orderedNeighbors[j].distance)) {
+        Eigen::Quaternionf eigen_rot(loop_pose.rotation());
+        glm::vec3 translation = glm::vec3(loop_pose.translation().x(), loop_pose.translation().y(), loop_pose.translation().z());
+        glm::quat rotation = glm::quat(eigen_rot.w(), eigen_rot.x(), eigen_rot.y(), eigen_rot.z());
+        LOGE("translation : %f %f %f", translation.x, translation.y, translation.z);
+        LOGE("rotation : %f %f %f %f", rotation.w, rotation.x, rotation.y, rotation.z);
+        LOGE("[before] %i : %i dist : %f", loop_closure_frame_idx_, lastIndex, orderedNeighbors[j].distance);
+        LOGE("[after] %i : %i dist: %f", loop_closure_frame_idx_, lastIndex, distance_after);
+        LOGE("overlap: %f", overlap);
+        loop_closure_poses_.insert(std::pair<key, value>(key(loop_closure_frame_idx_, lastIndex), value(distance_, loop_pose)));
       }
     }
   }

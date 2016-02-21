@@ -12,7 +12,10 @@
 #include <tango-gl/util.h>
 #include <tango_client_api.h>
 #include <opencv2/opencv.hpp>
-#include <projectiveImage/projectiveImage.h>
+
+#include <pcl/point_types.h>
+#include <Eigen/Geometry>
+#include <Eigen/StdVector>
 
 #include "rgb-depth-sync/tcp_client.h"
 #include "rgb-depth-sync/util.h"
@@ -24,7 +27,8 @@ namespace rgb_depth_sync {
     public:
       PCD();
       ~PCD();
-      void MapXYZWithRGB(const std::vector<float> &xyz, const std::vector<uint8_t> &rgb,
+      void foo();
+      void MapXYZWithRGB(const std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> >& xyz, const std::vector<uint8_t>& rgb,
                          const double &xyz_timestamp, const double &rgb_timestamp);
       void SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors);
       void SetFrame(const cv::Mat& frame);
@@ -49,7 +53,6 @@ namespace rgb_depth_sync {
       std::vector<cv::KeyPoint> GetFrameKeyPoints() { return frame_key_points_; }
       cv::Mat GetFrameDescriptors() { return  frame_descriptors_; }
       cv::Mat GetFrame() { return frame_; }
-      ProjectiveImage::ImagePixels GetImagePixels();
 
     private:
       std::vector<float> pcd_with_rgb_data_;
@@ -66,7 +69,6 @@ namespace rgb_depth_sync {
       cv::Mat frame_descriptors_;
       cv::Mat frame_;
       std::vector<float> depth_xyz_values;
-      ProjectiveImage::ImagePixels depth_image_pixels_;
   };
 
 } // namespace rgb_depth_sync

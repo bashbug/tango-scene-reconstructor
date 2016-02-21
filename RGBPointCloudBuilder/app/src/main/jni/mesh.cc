@@ -122,7 +122,7 @@ namespace rgb_depth_sync {
     GLuint mvp_id = glGetUniformLocation(shader_id, "mvp");
     tango_gl::util::CheckGlError("Mesh glEnable(GL_VERTEX_PROGRAM_POINT_SIZE)");
     // Calculate model view projection matrix.
-    glm::mat4 mvp_mat = projection_mat * view_mat;
+    glm::mat4 mvp_mat = projection_mat * view_mat * model_mat;
     tango_gl::util::CheckGlError("Mesh glm::mat4 mvp_mat = projection_mat * ...");
     glUniformMatrix4fv(mvp_id, 1, GL_FALSE, glm::value_ptr(mvp_mat));
     tango_gl::util::CheckGlError("Mesh glUniformMatrix4fv(mvp_id, 1, GL_FALSE, glm::value_ptr(mvp_mat))");
