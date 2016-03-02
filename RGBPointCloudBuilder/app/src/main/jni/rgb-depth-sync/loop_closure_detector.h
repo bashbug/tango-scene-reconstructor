@@ -19,6 +19,7 @@ namespace rgb_depth_sync {
   struct NeighborWithDistance {
     float distance;
     int id;
+    bool fm = false;
     bool operator < (const NeighborWithDistance& other) const { return distance < other.distance; }
   };
 
@@ -30,6 +31,8 @@ namespace rgb_depth_sync {
       LoopClosureDetector(PCDContainer* pcd_container);
       ~LoopClosureDetector();
       void Compute(int lastIndex);
+      void Compute2(int lastIndex);
+      void Compute3(int lastIndex);
       void GetLoopClosurePoses(std::map<key, value>** loop_closure_poses);
 
     private:
@@ -38,6 +41,8 @@ namespace rgb_depth_sync {
       float rotation_distance_;
       float translation_distance_;
       int loop_closure_frame_idx_;
+      int scan_matcher_count_;
+      int features_machter_count_;
       glm::vec4 ConvertDepthPointTo3DPoint(const glm::vec3 &depth_point);
       glm::quat curr_rotation_;
       glm::quat prev_rotation_;
@@ -46,6 +51,7 @@ namespace rgb_depth_sync {
       float distance_;
       TangoCameraIntrinsics color_camera_intrinsics_;
       ScanMatcher* scan_matcher_;
+      cv::BFMatcher feature_matcher_;
   };
 }
 

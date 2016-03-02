@@ -1,11 +1,14 @@
 #ifndef RGBPOINTCLOUDBUILDER_PCD_WORKER_H
 #define RGBPOINTCLOUDBUILDER_PCD_WORKER_H
 
+#include <tango_support_api.h>
+
 #include <mutex>
 #include <thread>
 #include <condition_variable>
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d.hpp> // ORB and BFMatcher
+#include <opencv2/highgui.hpp>
 //#include <opencv2/xfeatures2d.hpp>
 #include <pcl/point_types.h>
 #include <Eigen/Geometry>
@@ -18,7 +21,7 @@ namespace rgb_depth_sync {
 
   class PCDWorker {
     public:
-      PCDWorker(PCDContainer* pcd_container);
+      PCDWorker(PCDContainer* pcd_container, TangoSupportPointCloudManager* xyz_manager, TangoSupportImageBufferManager* yuv_manager);
       ~PCDWorker();
       void SetXYZBuffer(const TangoXYZij* xyz_buffer);
       void SetRGBBuffer(const TangoImageBuffer* yuv_buffer);
@@ -48,9 +51,11 @@ namespace rgb_depth_sync {
       int pcd_count_;
       int img_count_;
       bool write_pcd_data_;
-      //cv::Ptr<cv::SIFT> sift_;
+      cv::Ptr<cv::ORB> orb_;
       PCDOutlierRemoval* pcd_remove_outlier_;
       TangoPoseData* curr_pose_, prev_pose_;
+      TangoSupportPointCloudManager* xyz_manager_;
+      TangoSupportImageBufferManager* yuv_manager_;
   };
 }
 

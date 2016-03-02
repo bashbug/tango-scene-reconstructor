@@ -107,6 +107,8 @@ namespace rgb_depth_sync {
 
     // Point cloud drawale object.
     TextureDrawable* texture_;
+
+    bool first;
   };
 }  // namespace tango_point_cloud
 

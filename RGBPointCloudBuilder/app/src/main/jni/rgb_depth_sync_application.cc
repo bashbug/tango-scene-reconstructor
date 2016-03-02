@@ -24,6 +24,7 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::OnFrameAvailable(const TangoImageBuffer* buffer) {
+
     if (!(*optimize_poses_process_started_)) {
       TangoPoseData ss_T_device_rgb_timestamp;
       TangoCoordinateFramePair color_frame_pair;
@@ -38,10 +39,10 @@ namespace rgb_depth_sync {
             buffer->timestamp);
       } else {
         if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
-          pcd_worker_->SetRGBBuffer(buffer);
+          TangoSupport_updateImageBuffer(yuv_manager_, buffer);
           img_count_++;
         } else {
-          LOGE("ss_T_device_rgb_timestamp pose not valid");
+          //LOGE("ss_T_device_rgb_timestamp pose not valid");
         }
       }
     }
@@ -59,60 +60,21 @@ namespace rgb_depth_sync {
       TangoCoordinateFramePair depth_frame_pair;
       depth_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
       depth_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
-      if (TangoService_getPoseAtTime(xyz_ij->timestamp, depth_frame_pair,
-                                     &ss_T_device_xyz_timestamp) !=
-          TANGO_SUCCESS) {
-        LOGE(
-            "SynchronizationApplication: Could not find a valid pose at time %lf"
-                " for the depth camera.",
-            xyz_ij->timestamp);
+      if (TangoService_getPoseAtTime(xyz_ij->timestamp, depth_frame_pair, &ss_T_device_xyz_timestamp) != TANGO_SUCCESS) {
+        LOGE("SynchronizationApplication: Could not find a valid pose at time %lf for the depth camera.",
+             xyz_ij->timestamp);
       } else {
         if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
-          pcd_worker_->SetXYZBuffer(xyz_ij);
+          TangoSupport_updatePointCloud(xyz_manager_, xyz_ij);
           pcd_count_++;
         } else {
-          LOGE("ss_T_device_xyz_timestamp pose not valid");
+          //LOGE("ss_T_device_xyz_timestamp pose not valid");
         }
       }
     }
   }
 
   SynchronizationApplication::SynchronizationApplication() {
-    optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
-    pcd_mtx_ = std::make_shared<std::mutex>();
-    consume_pcd_ = std::make_shared<std::condition_variable>();
-
-    save_pcd_ = false;
-    start_pcd_ = false;
-    pcd_count_ = 0;
-    img_count_ = 0;
-    pcd_container_optimized_ = false;
-
-    TangoCameraIntrinsics depth_camera_intrinsics;
-    TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
-    LOGE("depth camera width: %i", depth_camera_intrinsics.width);
-    LOGE("depth camera height: %i", depth_camera_intrinsics.height);
-    LOGE("depth camera fx: %f", depth_camera_intrinsics.fx);
-    LOGE("depth camera fy: %f", depth_camera_intrinsics.fy);
-    LOGE("depth camera cx: %f", depth_camera_intrinsics.cx);
-    LOGE("depth camera cy: %f", depth_camera_intrinsics.cy);
-
-    TangoCameraIntrinsics color_camera_intrinsics;
-    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
-    LOGE("depth camera width: %i", color_camera_intrinsics.width);
-    LOGE("depth camera height: %i", color_camera_intrinsics.height);
-    LOGE("depth camera fx: %f", color_camera_intrinsics.fx);
-    LOGE("depth camera fy: %f", color_camera_intrinsics.fy);
-    LOGE("depth camera cx: %f", color_camera_intrinsics.cx);
-    LOGE("depth camera cy: %f", color_camera_intrinsics.cy);
-
-    pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
-    pcd_worker_ = new rgb_depth_sync::PCDWorker(pcd_container_);
-
-    std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
-    pcd_worker_thread.detach();
-
-    slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
   }
 
   SynchronizationApplication::~SynchronizationApplication() {
@@ -163,6 +125,57 @@ namespace rgb_depth_sync {
       LOGE("Failed to enable low latency imu integration.");
       return ret;
     }*/
+
+    optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
+    pcd_mtx_ = std::make_shared<std::mutex>();
+    consume_pcd_ = std::make_shared<std::condition_variable>();
+
+    int32_t max_point_cloud_elements;
+    ret = TangoConfig_getInt32(tango_config_, "max_point_cloud_elements",
+                                   &max_point_cloud_elements);
+
+    if(ret != TANGO_SUCCESS) {
+      LOGE("Failed to query maximum number of point cloud elements.");
+      return ret;
+    }
+
+    TangoSupport_createPointCloudManager(max_point_cloud_elements, &xyz_manager_);
+    TangoSupport_createImageBufferManager(TANGO_HAL_PIXEL_FORMAT_YCrCb_420_SP, 1280, 720, &yuv_manager_);
+
+    save_pcd_ = false;
+    start_pcd_ = false;
+    pcd_count_ = 0;
+    img_count_ = 0;
+    pcd_container_optimized_ = false;
+
+    TangoCameraIntrinsics depth_camera_intrinsics;
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
+    /*LOGE("depth camera width: %i", depth_camera_intrinsics.width);
+    LOGE("depth camera height: %i", depth_camera_intrinsics.height);
+    LOGE("depth camera fx: %f", depth_camera_intrinsics.fx);
+    LOGE("depth camera fy: %f", depth_camera_intrinsics.fy);
+    LOGE("depth camera cx: %f", depth_camera_intrinsics.cx);
+    LOGE("depth camera cy: %f", depth_camera_intrinsics.cy);*/
+
+    TangoCameraIntrinsics color_camera_intrinsics;
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
+    /*LOGE("depth camera width: %i", color_camera_intrinsics.width);
+    LOGE("depth camera height: %i", color_camera_intrinsics.height);
+    LOGE("depth camera fx: %f", color_camera_intrinsics.fx);
+    LOGE("depth camera fy: %f", color_camera_intrinsics.fy);
+    LOGE("depth camera cx: %f", color_camera_intrinsics.cx);
+    LOGE("depth camera cy: %f", color_camera_intrinsics.cy);*/
+
+    pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
+    pcd_worker_ = new rgb_depth_sync::PCDWorker(pcd_container_, xyz_manager_, yuv_manager_);
+
+    std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
+    pcd_worker_thread.detach();
+
+    slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
+
+    conversion_ = Conversion::GetInstance();
+
     return ret;
   }
 
@@ -225,14 +238,33 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::Render() {
+
     if (!(*optimize_poses_process_started_)) {
       icp_ = glm::mat4();
-      pcd_ = pcd_container_->GetLatestPCD();
-      if (pcd_ != nullptr) {
-        scene_->Render(pcd_->GetOpenGL_T_OpenGLCameraPose(),
-                       pcd_->GetOpenGL_T_RGB(), icp_,
-                       pcd_->GetXYZValues(),
-                       pcd_->GetRGBValues());
+      /*std::vector<float> xyz;
+      std::vector<uint8_t> rgb;
+      glm::mat4 ss_T_device;
+      pcd_container_->GetXYZRGBValues(&xyz, &rgb, &ss_T_device);
+
+      glm::mat4 opengl_T_device = conversion_->OpenGL_T_Device(ss_T_device);
+      glm::mat4 opengl_T_device_T_opengl_camera = conversion_->OpenGL_T_device_T_OpenGLCamera(ss_T_device);
+
+      if (xyz.size() > 0 && rgb.size() > 0) {
+        scene_->Render(opengl_T_device,
+                       opengl_T_device_T_opengl_camera,
+                       icp_,
+                       xyz,
+                       rgb);
+      }*/
+      int index = pcd_container_->GetPCDContainerLastIndex();
+      if (index >= 0) {
+        pcd_ = (*(pcd_container_->GetPCDContainer()))[index];
+        if (pcd_ != nullptr) {
+          scene_->Render(pcd_->GetOpenGL_T_OpenGLCameraPose(),
+                         pcd_->GetOpenGL_T_RGB(), icp_,
+                         pcd_->GetXYZValues(),
+                         pcd_->GetRGBValues());
+        }
       }
     }
   }
@@ -271,9 +303,37 @@ namespace rgb_depth_sync {
 
   void SynchronizationApplication::SavePCD(bool on) {
     if(on) {
-      int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+      /*boost::system::error_code* error;
+      boost::filesystem::path path = "/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/";
+      boost::filesystem::detail::status(path, error);
+
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr out (new pcl::PointCloud<pcl::PointXYZRGB>);
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+      pcl::PointCloud<pcl::PointXYZRGB> trans;
+      int lastIndex = pcd_container_->GetPCDContainerLastIndex();*/
+
+      /*for (int i = 0; i < lastIndex; i++) {
+        pcl::transformPointCloud(*(*(pcd_container_->GetPCDContainer()))[i]->GetPCD(), trans, (*(pcd_container_->GetPCDContainer()))[i]->GetTransformationMatrix());
+        *out += trans;
+      }*/
+
+      //pcl::io::savePCDFileBinary("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_.PCD", *(pcd_container_->GetMergedPCD()));
+
+      /*pcl::VoxelGrid<pcl::PointXYZRGB> sor;
+      sor.setInputCloud (out);
+      sor.setLeafSize (0.001f, 0.001f, 0.001f);
+      sor.filter (*out_filtered);
+
+      pcl::io::savePCDFileBinary("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_f.PCD", *out_filtered);*/
+
+      //pcl::io::savePCDFile("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000.pcd", *(*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPCD());
+      /*pcl::PCDWriter writer;
+      writer.write<pcl::PointXYZRGB> ("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_.pcd", *(*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPCD());*/
+
       PCDFileWriter pcd_file_writer;
       IMGFileWriter img_file_writer;
+
+      int lastIndex = pcd_container_->GetPCDContainerLastIndex();
 
       if (pcd_container_optimized_) {
         for (int i = 0; i <= lastIndex; i++) {

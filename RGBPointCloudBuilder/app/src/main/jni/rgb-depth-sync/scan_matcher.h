@@ -9,6 +9,8 @@
 #include <Eigen/Geometry>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
+#include <pcl/point_types.h>
+#include <pcl/registration/icp.h>
 #include <projectiveScanMatcher3d/projectiveScanMatcher3d.h>
 #include <projectiveImage/sphericalProjectiveImage.h>
 #include "rgb-depth-sync/util.h"
@@ -18,6 +20,11 @@ namespace rgb_depth_sync {
     public:
       ScanMatcher();
       ~ScanMatcher();
+      Eigen::Isometry3f Match2(float* overlap,
+                              pcl::PointCloud<pcl::PointXYZRGB>::Ptr frame_prev,
+                              pcl::PointCloud<pcl::PointXYZRGB>::Ptr frame_curr,
+                              const glm::mat4& glm_odometryPose_prev,
+                              const glm::mat4& glm_odometryPose_curr);
       Eigen::Isometry3f Match(float* overlap,
                               const std::vector<float>& frame_prev,
                               const std::vector<float>& frame_curr,

@@ -37,9 +37,12 @@ namespace rgb_depth_sync {
 
     cloud->height = 1;
     cloud->width = cloud->points.size();
+
+    if (cloud->points.size() == 0)
+      return cloud_filtered->points;
     pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
     sor.setInputCloud(cloud);
-    sor.setMeanK(5);
+    sor.setMeanK(10);
     sor.setStddevMulThresh(1.0);
     sor.filter(*cloud_filtered);
 

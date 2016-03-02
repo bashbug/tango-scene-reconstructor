@@ -2,7 +2,7 @@
 
 namespace rgb_depth_sync {
 
-  PCDWorker::PCDWorker(PCDContainer* pcd_container) {
+  PCDWorker::PCDWorker(PCDContainer* pcd_container, TangoSupportPointCloudManager* xyz_manager, TangoSupportImageBufferManager* yuv_manager) {
     pcd_container_ = pcd_container;
     write_pcd_data_ = true;
     xyz_set_ = false;
@@ -14,6 +14,9 @@ namespace rgb_depth_sync {
     pcd_count_ = 0;
     img_count_ = 0;
     pcd_remove_outlier_ = new rgb_depth_sync::PCDOutlierRemoval();
+    xyz_manager_ = xyz_manager;
+    yuv_manager_ = yuv_manager;
+    orb_ = cv::ORB::create(400);
   }
 
   PCDWorker::~PCDWorker() {
@@ -55,10 +58,56 @@ namespace rgb_depth_sync {
   }
 
   void PCDWorker::OnPCDAvailable(){
-    std::unique_lock<std::mutex> lock(data_mtx_);
-    while(write_pcd_data_ == true) {
-      consume_data_.wait(lock);
-      if(xyz_set_ && rgb_set_) {
+    TangoXYZij* xyz = new TangoXYZij();
+    TangoImageBuffer* yuv = new TangoImageBuffer();
+    bool new_xyz_data = false;
+    bool new_yuv_data = false;
+
+    while(write_pcd_data_) {
+      //LOGE("worker");
+      new_xyz_data = false;
+      TangoSupport_getLatestPointCloudAndNewDataFlag(xyz_manager_, &xyz, &new_xyz_data);
+
+      if(new_xyz_data) {
+        int ret = TangoSupport_getLatestImageBuffer(yuv_manager_, &yuv);
+        if (ret == TANGO_SUCCESS) {
+          //LOGE("PCD && Image available");
+          memcpy(yuv_frame_.data, yuv->data, yuv_size_);
+          cv::cvtColor(yuv_frame_, rgb_frame_, CV_YUV2RGB_NV21);
+          rgb_.clear();
+          rgb_.resize(rgb_size_);
+          memcpy(&rgb_[0], rgb_frame_.data, rgb_size_);
+
+          size_t point_cloud_size = xyz->xyz_count * 3;
+          xyz_.clear();
+          xyz_.resize(point_cloud_size);
+          std::copy(xyz->xyz[0], xyz->xyz[0] + point_cloud_size, xyz_.begin());
+
+          if (xyz->xyz_count > 0 && rgb_.size() > 0){
+            xyz_timestamp_ = xyz->timestamp;
+            rgb_timestamp_ = yuv->timestamp;
+            //LOGE("size: %i", xyz_.size());
+            //LOGE("buffer size: %i", xyz->xyz_count*3);
+            std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25, 1.0, 0.001); // 0.001 = 1cm radius
+            if (xyz_without_outliers.size() == 0)
+              continue;
+            PCD *pcd = new rgb_depth_sync::PCD();
+            pcd->MapXYZWithRGB(xyz_without_outliers, rgb_, xyz_timestamp_, rgb_timestamp_);
+            /*cv::Mat gray_frame, gray_frame_s;
+            cv::Size size(320, 180);
+            cv::cvtColor(rgb_frame_, gray_frame, CV_RGB2GRAY);
+            cv::resize(gray_frame, gray_frame_s, size);
+            std::vector<cv::KeyPoint> keypoints;
+            cv::Mat descriptors;
+            orb_->detectAndCompute(gray_frame, cv::noArray(), keypoints, descriptors);
+            pcd->SetKeyPointsAndDescriptors(keypoints, descriptors);
+            pcd->SetFrame(gray_frame);*/
+            pcd_container_->AddPCD(pcd);
+          }
+        }
+      }
+
+      /*if(new_xyz_data && new_xyz_data) {
 
         PCD *pcd = new rgb_depth_sync::PCD();
 
@@ -84,7 +133,7 @@ namespace rgb_depth_sync {
         // push back the new pcd into the pcd_container
         rgb_set_ = false;
         xyz_set_ = false;
-      }
+      }*/
       //LOGE("PCD WORKER THREAD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
     }
   }

@@ -18,6 +18,9 @@
 #include <g2o/core/sparse_optimizer.h>
 #include <g2o/core/block_solver.h>
 #include <g2o/solvers/csparse/linear_solver_csparse.h>
+#include <g2o/core/solver.h>
+#include <g2o/solvers/pcg/linear_solver_pcg.h>
+#include "g2o/core/optimization_algorithm_factory.h"
 #include <tango-gl/util.h>
 #include "rgb-depth-sync/util.h"
 #include "rgb-depth-sync/pcd_container.h"
@@ -27,6 +30,7 @@ namespace rgb_depth_sync {
 
   typedef g2o::BlockSolver< g2o::BlockSolverTraits<6, 3> >  SlamBlockSolver;
   typedef g2o::LinearSolverCSparse<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
+
   typedef std::pair<int, int> key;
   typedef std::pair<int, Eigen::Isometry3f > value;
 

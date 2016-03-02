@@ -34,10 +34,10 @@ namespace {
   const tango_gl::Color kTraceColorICP(0.0f, 1.0f, 0.0f);
 
 // Color of the ground grid.
-  const tango_gl::Color kGridColor(0.85f, 0.85f, 0.85f);
+  const tango_gl::Color kGridColor(0.2f, 0.2f, 0.2f);
 
 // Frustum scale.
-  const glm::vec3 kFrustumScale = glm::vec3(1.0f, 1.0f, 1.0f);
+  const glm::vec3 kFrustumScale = glm::vec3(0.4f, 0.3f, 0.5f);
 
   static const glm::mat4 kDepth_T_OpenGL =
       glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
@@ -57,12 +57,14 @@ namespace rgb_depth_sync {
     grid_ = new tango_gl::Grid();
     texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
                                                    shader::kPointCloudFragment);
+    first = true;
 
     trace_->SetColor(kTraceColor);
     trace_icp_->SetColor(kTraceColorICP);
     grid_->SetColor(kGridColor);
+    frustum_->SetColor(kGridColor);
     grid_->SetPosition(-kHeightOffset);
-    gesture_camera_->SetCameraType(tango_gl::GestureCamera::CameraType::kThirdPerson);
+    gesture_camera_->SetCameraType(tango_gl::GestureCamera::CameraType::kFirstPerson);
   }
 
   Scene::~Scene() {}
@@ -79,6 +81,7 @@ namespace rgb_depth_sync {
 
   void Scene::SetViewPort(int w, int h) {
 
+    LOGE("width %i, height %i", w, h);
     if (h == 0) {
       LOGE("Setup graphic height not valid");
     }
@@ -101,7 +104,7 @@ namespace rgb_depth_sync {
     tango_gl::util::CheckGlError("PointCloud glEnable(GL_DEPTH_TEST)");
     glEnable(GL_CULL_FACE);
     tango_gl::util::CheckGlError("PointCloud glEnable(GL_CULL_FACE)");
-    glClearColor(0.2f, 0.2f, 0.2f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     tango_gl::util::CheckGlError("PointCloud glClearColor(1.0f, 1.0f, 1.0f, 1.0f)");
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     tango_gl::util::CheckGlError("PointCloud glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT)");

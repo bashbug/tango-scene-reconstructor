@@ -16,15 +16,16 @@ namespace rgb_depth_sync {
       glm::mat4 OpenGL_T_RGB(const glm::mat4 &ss_T_rgb);
       glm::mat4 OpenGL_T_OpenGLCamera(const glm::mat4 &ss_T_rgb);
       glm::mat4 SS_T_RGB(const double &rgb_timestamp);
-
+      glm::mat4 OpenGL_T_Device(const glm::mat4 &ss_T_device);
+      glm::mat4 OpenGL_T_device_T_OpenGLCamera(const glm::mat4 &ss_T_device);
+      glm::mat4 device_T_color_;
+      glm::mat4 device_T_depth_;
+      glm::mat4 color_T_device_;
     private:
       Conversion() {};
       Conversion(Conversion const&) {};
       void operator = (Conversion const&) {};
       void SetMatrices();
-      glm::mat4 device_T_color_;
-      glm::mat4 device_T_depth_;
-      glm::mat4 color_T_device_;
   };
 }
 

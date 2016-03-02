@@ -14,6 +14,8 @@
 #include <opencv2/opencv.hpp>
 
 #include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <boost/make_shared.hpp>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
 
@@ -53,6 +55,8 @@ namespace rgb_depth_sync {
       std::vector<cv::KeyPoint> GetFrameKeyPoints() { return frame_key_points_; }
       cv::Mat GetFrameDescriptors() { return  frame_descriptors_; }
       cv::Mat GetFrame() { return frame_; }
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetPCD();
+      Eigen::Matrix4f GetTransformationMatrix();
 
     private:
       std::vector<float> pcd_with_rgb_data_;
@@ -69,6 +73,8 @@ namespace rgb_depth_sync {
       cv::Mat frame_descriptors_;
       cv::Mat frame_;
       std::vector<float> depth_xyz_values;
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr point_cloud_;
+
   };
 
 } // namespace rgb_depth_sync

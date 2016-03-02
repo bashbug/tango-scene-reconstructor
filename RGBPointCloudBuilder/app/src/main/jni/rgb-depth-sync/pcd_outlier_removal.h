@@ -7,10 +7,10 @@
 
 #include <boost/thread.hpp>
 #include <flann/flann.h>
-#include "pcl/point_types.h"
-#include "pcl/point_cloud.h"
-#include "pcl/io/pcd_io.h"
-#include "pcl/io/ply_io.h"
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
 #include <iostream>
 #include <boost/filesystem.hpp>
 #include <pcl/common/common.h>
@@ -36,7 +36,7 @@ namespace rgb_depth_sync {
     public:
       PCDOutlierRemoval();
       ~PCDOutlierRemoval();
-    std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > Compute(const std::vector<float>& all_points, float min_range, float max_range, float radius);
+      std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > Compute(const std::vector<float>& all_points, float min_range, float max_range, float radius);
   };
 
 }

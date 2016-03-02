@@ -86,4 +86,12 @@ namespace rgb_depth_sync {
     return tango_gl::conversions::opengl_world_T_tango_world() * ss_T_rgb * tango_gl::conversions::color_camera_T_opengl_camera();
   }
 
+  glm::mat4 Conversion::OpenGL_T_Device(const glm::mat4 &ss_T_device) {
+    return tango_gl::conversions::opengl_world_T_tango_world() * ss_T_device;
+  }
+
+  glm::mat4 Conversion::OpenGL_T_device_T_OpenGLCamera(const glm::mat4 &ss_T_device) {
+    return tango_gl::conversions::opengl_world_T_tango_world() * ss_T_device;
+  }
+
 }

@@ -82,6 +82,11 @@ LOCAL_MODULE := libpcl_filters-static
 LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_filters.a
 include $(PREBUILT_STATIC_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_registration-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_registration.a
+include $(PREBUILT_STATIC_LIBRARY)
+
 ### include g2o
 
 G20ROOT := $(PROJECT_ROOT)/third-party/g2o/
@@ -153,6 +158,7 @@ LOCAL_STATIC_LIBRARIES += libpcl_common-static
 LOCAL_STATIC_LIBRARIES += libpcl_kdtree-static
 LOCAL_STATIC_LIBRARIES += libpcl_search-static
 LOCAL_STATIC_LIBRARIES += libpcl_filters-static
+LOCAL_STATIC_LIBRARIES += libpcl_registration-static
 
 LOCAL_SHARED_LIBRARIES += tango_client_api tango_support_api
 

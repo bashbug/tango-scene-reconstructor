@@ -17,6 +17,20 @@
 #ifndef RGB_DEPTH_SYNC_APPLICATION_H_
 #define RGB_DEPTH_SYNC_APPLICATION_H_
 
+#include <tango_support_api.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/io/ply_io.h>
+#include <iostream>
+#include <boost/filesystem.hpp>
+#include <pcl/common/common.h>
+#include <pcl/common/transforms.h>
+#include <boost/make_shared.hpp>
+#include <pcl/impl/instantiate.hpp>
+#include <pcl/ros/conversions.h>
+#include <pcl/filters/voxel_grid.h>
+
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -42,6 +56,7 @@
 #include "rgb-depth-sync/pcd_file_writer.h"
 #include "rgb-depth-sync/scene.h"
 #include "rgb-depth-sync/slam3d.h"
+#include "rgb-depth-sync/conversion.h"
 
 namespace {
 // We want to represent the device properly with respect to the ground so we'll
@@ -137,6 +152,9 @@ namespace rgb_depth_sync {
       PCDContainer* pcd_container_;
       Scene* scene_;
       Slam3D* slam_;
+      TangoSupportPointCloudManager* xyz_manager_;
+      TangoSupportImageBufferManager* yuv_manager_;
+      Conversion* conversion_;
   };
 
 } // namespace rgb_depth_sync

@@ -5,6 +5,7 @@
 #include <Eigen/Core>
 #include <Eigen/StdVector>
 #include <Eigen/Geometry>
+#include <ostream>
 
 #include "g2o/core/optimization_algorithm_levenberg.h"
 
@@ -23,11 +24,14 @@ namespace rgb_depth_sync {
 
     // allocating the optimizer
     optimizer_ = new g2o::SparseOptimizer();
-    optimizer_->setVerbose(true);
+    optimizer_->setVerbose(false);
     SlamLinearSolver* linearSolver = new SlamLinearSolver();
+
     linearSolver->setBlockOrdering(false);
     SlamBlockSolver* solver = new SlamBlockSolver(linearSolver);
     g2o::OptimizationAlgorithmLevenberg* solverLevenberg = new g2o::OptimizationAlgorithmLevenberg(solver);
+    //Set the initial Levenberg-Marquardt lambda
+    solverLevenberg->setUserLambdaInit(1);
     optimizer_->setAlgorithm(solverLevenberg);
 
     loop_closure_detector_ = new rgb_depth_sync::LoopClosureDetector(pcd_container);
@@ -72,7 +76,7 @@ namespace rgb_depth_sync {
         }
 
         // search for loop closures
-        loop_closure_detector_->Compute(lastIndex);
+        loop_closure_detector_->Compute3(lastIndex);
       }
     }
 

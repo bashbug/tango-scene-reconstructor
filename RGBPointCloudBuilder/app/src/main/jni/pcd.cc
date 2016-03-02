@@ -3,6 +3,7 @@
 namespace rgb_depth_sync {
 
   PCD::PCD() {
+    point_cloud_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     //boost::thread* thr = new boost::thread(boost::bind(&rgb_depth_sync::PCD::foo, this));
     /*flann::Matrix<float> flann_data_;
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_curr (new pcl::PointCloud<pcl::PointXYZRGB>);
@@ -120,12 +121,19 @@ namespace rgb_depth_sync {
     translation_ = util::GetTranslationFromMatrix(ss_T_color_);
     rotation_ = util::GetRotationFromMatrix(ss_T_color_);
 
+    point_cloud_->sensor_origin_[0] = translation_[0];
+    point_cloud_->sensor_origin_[1] = translation_[1];
+    point_cloud_->sensor_origin_[2] = translation_[2];
+
+    point_cloud_->sensor_orientation_ = Eigen::Quaternionf(rotation_[0], rotation_[1], rotation_[2], rotation_[3]);
+
     size_t xyz_size = xyz.size();
     size_t rgb_size = rgb.size();
 
     for (size_t i = 0; i < xyz_size; i++) {
 
       int pixel_x, pixel_y;
+      pcl::PointXYZRGB p;
 
       // transform depth point to color frame
       glm::vec3 color_point = glm::vec3(color_T_depth_ * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
@@ -144,6 +152,10 @@ namespace rgb_depth_sync {
         //LOGE("COLOR BAAAAAAAD INDEX: %d, size: %d", index, rgb.size());
       } else {
 
+        p.x = color_point.x;
+        p.y = color_point.y;
+        p.z = color_point.z;
+
         pcd_with_rgb_data_.push_back(color_point.x);
         pcd_with_rgb_data_.push_back(color_point.y);
         pcd_with_rgb_data_.push_back(color_point.z);
@@ -156,6 +168,12 @@ namespace rgb_depth_sync {
         rgb_values_.push_back(rgb[index * 3 + 1]);
         rgb_values_.push_back(rgb[index * 3 + 2]);
 
+        p.r = rgb[index * 3];
+        p.g = rgb[index * 3 + 1];
+        p.b = rgb[index * 3 + 2];
+
+        point_cloud_->points.push_back(p);
+
         // Due to historical reasons (PCL was first developed as a ROS package), the
         // RGB information is packed into an integer and casted to a float.
         uint32_t rgb_tmp =
@@ -164,6 +182,11 @@ namespace rgb_depth_sync {
         pcd_with_rgb_data_.push_back(*reinterpret_cast<float *>(&rgb_tmp));
       }
     }
+
+    point_cloud_->height = 1;
+    point_cloud_->width = point_cloud_->points.size();
+    point_cloud_->header.stamp = rgb_timestamp;
+    point_cloud_->is_dense = true;
   }
 
   void PCD::SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors) {
@@ -191,6 +214,10 @@ namespace rgb_depth_sync {
     return rotation_;
   }
 
+  Eigen::Matrix4f PCD::GetTransformationMatrix() {
+    return util::ConvertGLMToEigenPose(ss_T_color_).matrix();
+  }
+
   std::vector<float> PCD::GetRGBPCDFileValues() {
     return rgb_values_pcd_file_;
   }
@@ -201,6 +228,10 @@ namespace rgb_depth_sync {
 
   std::vector<float> PCD::GetXYZValues() {
     return xyz_values_;
+  }
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr PCD::GetPCD() {
+    return point_cloud_;
   }
 
   std::vector<float> PCD::GetPCDData() {
