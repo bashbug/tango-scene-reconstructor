@@ -2,53 +2,31 @@
 
 This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-c
 
+### Requirements
+- android ndk r10e
+- pcl 1.6
+- opencv 3.1.0
+- g2o
+
 ### Features
+**Outlier filtering**
+- pcl::StatisticalOutlierRemoval is used to remove outliers
+
 **Sync image with point cloud**
 - Using pose of image and point cloud timestamp.
-- Store rgb point cloud as timestamp.PCD binary file in ../Documents/RGBPointCloudBuilder/PCD/
 
 **RGBD visualization**
-- Merged rgb point clouds in real time and visualize with OpenGL
+- Merged rgb point clouds in real time and visualize with OpenGL.
+- Using voxel hashing.
 
-**Send Point Clouds**
-- Socket to send binary rgb point cloud data to a server (uses SocketCommunication/socket.cpp)
+**Loop Closure Detection**
+- Heuristik: Frames with a certain distance will matched. 
+- The matching process (point-to-plane ICP) returns a relative transformation.
 
-**Stores PPM image**
-- Converts YUV image buffer to RGB
-- Saves RGB image as a PPM file in ../Documents/RGBPointCloudBuilder/PPM/
+**Optimize Poses**
+- Create a pose graph with tango and loop clousre poses.
+- Optimize graph With g2o (CSparse linear solver with Levenberg-Marquardt method)
 
-### Todo
-**Optimize pose**
-- Create own ICP
-- Detect loop closures
+**Store Point Clouds**
+- Store rgb point cloud as *.PCD binary file in ../Documents/RGBPointCloudBuilder/PCD/
 
-# SocketCommunication
-
-### Features
-- TCP server socket
-- recieves binary rgb point cloud data and stores it in ./PCD/ as a timestamp.PCD file
-
-Is used for sending binary rgb PCD data via socket in RGBPointCloudBuilder application
-
-usage: ./socket port
-
-# Cloud2Mesh
-
-This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-java
-
-### Features
-**Learn Area**
-- Learn an area with area learning.
-- Store an ADF file.
-
-**Record Point Clouds**
-- Load ADF file.
-- Wait for localization and use device pose w.r.t to ADF file.
-- Store point clouds as ascii *.PCD file.
-
-### Todo
-- Store point clouds as binary *.PCD file to reduce file size.
-
-**Send Point Clouds**
-- Socket to send point cloud *.PCD files to a server
-- Create mesh of point clouds with pcl http://pointclouds.org/
