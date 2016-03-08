@@ -24,8 +24,8 @@ This project is based on the samples from the Google Tango API. You can find it 
 - The matching process (point-to-plane ICP) returns a relative transformation.
 
 **Optimize Poses**
-- Create a pose graph with tango and loop clousre poses.
-- Optimize graph With g2o (CSparse linear solver with Levenberg-Marquardt method)
+- Create a pose graph with tango and loop closure poses.
+- Optimize graph with g2o (CSparse linear solver with Levenberg-Marquardt method)
 
 **Store Point Clouds**
 - Store rgb point cloud as *.PCD binary file in ../Documents/RGBPointCloudBuilder/PCD/
