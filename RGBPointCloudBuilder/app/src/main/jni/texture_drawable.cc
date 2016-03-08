@@ -75,7 +75,7 @@ namespace rgb_depth_sync {
 
     shader_->Bind();
     texture_->Bind(shader_id_);
-    mesh_->Draw();
+    //mesh_->Draw();
     tango_gl::util::CheckGlError("RangeImageTextureDrawable::render");
     glUseProgram(0);
   }
@@ -94,7 +94,7 @@ namespace rgb_depth_sync {
 
     shader_->Bind();
     texture_->Bind(shader_id_, texture_id);
-    mesh_->Draw();
+    //mesh_->Draw();
     tango_gl::util::CheckGlError("RangeImageTextureDrawable::render");
     glUseProgram(0);
   }
@@ -104,7 +104,7 @@ namespace rgb_depth_sync {
                                          const std::vector<float>& vertices,
                                          const std::vector<uint8_t>& rgb_data) {
     shader_->Bind();
-    mesh_->DrawPointCloud(projection_mat, view_mat, model_mat, vertices, rgb_data, shader_id_);
+    //mesh_->DrawPointCloud(projection_mat, view_mat, model_mat, vertices, rgb_data, shader_id_);
     glUseProgram(0);
     tango_gl::util::CheckGlError("Pointcloud::Render");
   }

@@ -171,6 +171,33 @@ Eigen::Isometry3f util::CastIsometry3dTo3f(const Eigen::Isometry3d pose_d) {
   return pose_f;
 }
 
+Eigen::Isometry3d util::CastGLMToEigenPosed(const glm::mat4& glm_pose) {
+  // Eigen::Isometry3d(row, column)
+  Eigen::Isometry3d pose;
+  // Rotation
+  pose(0,0) = static_cast<double>(glm_pose[0][0]);
+  pose(1,0) = static_cast<double>(glm_pose[0][1]);
+  pose(2,0) = static_cast<double>(glm_pose[0][2]);
+  pose(3,0) = static_cast<double>(glm_pose[0][3]);
+
+  pose(0,1) = static_cast<double>(glm_pose[1][0]);
+  pose(1,1) = static_cast<double>(glm_pose[1][1]);
+  pose(2,1) = static_cast<double>(glm_pose[1][2]);
+  pose(3,1) = static_cast<double>(glm_pose[1][3]);
+
+  pose(0,2) = static_cast<double>(glm_pose[2][0]);
+  pose(1,2) = static_cast<double>(glm_pose[2][1]);
+  pose(2,2) = static_cast<double>(glm_pose[2][2]);
+  pose(3,2) = static_cast<double>(glm_pose[2][3]);
+
+  // Translation
+  pose(0,3) = static_cast<double>(glm_pose[3][0]);
+  pose(1,3) = static_cast<double>(glm_pose[3][1]);
+  pose(2,3) = static_cast<double>(glm_pose[3][2]);
+  pose(3,3) = static_cast<double>(glm_pose[3][3]);
+  return pose;
+}
+
 float util::Deg2Rad(float alpha) {
   return alpha*M_PI/180.0f;
 }

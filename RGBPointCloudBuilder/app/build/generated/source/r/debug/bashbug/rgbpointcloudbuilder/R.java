@@ -20,23 +20,22 @@ public final class R {
         public static final int ic_menu=0x7f020002;
     }
     public static final class id {
-        public static final int Button_Cancel=0x7f090009;
-        public static final int Button_Connect=0x7f09000e;
-        public static final int RelativeLayout1=0x7f090008;
-        public static final int destAddress=0x7f09000b;
-        public static final int destPort=0x7f09000a;
+        public static final int Button_Cancel=0x7f090008;
+        public static final int Button_Connect=0x7f09000d;
+        public static final int RelativeLayout1=0x7f090007;
+        public static final int destAddress=0x7f09000a;
+        public static final int destPort=0x7f090009;
         public static final int first_person_button=0x7f090001;
         public static final int gl_surface_view=0x7f090000;
-        public static final int ic_description=0x7f09000f;
-        public static final int ic_file_upload=0x7f090010;
-        public static final int name=0x7f09000d;
-        public static final int optimize_pose_graph_button=0x7f090006;
-        public static final int save_pcd_button=0x7f090007;
-        public static final int start_pcd_button=0x7f090004;
-        public static final int stop_pcd_button=0x7f090005;
+        public static final int ic_description=0x7f09000e;
+        public static final int ic_file_upload=0x7f09000f;
+        public static final int name=0x7f09000c;
+        public static final int optimize_pose_graph_button=0x7f090005;
+        public static final int save_pcd_button=0x7f090006;
+        public static final int start_pcd_button=0x7f090003;
+        public static final int stop_pcd_button=0x7f090004;
         public static final int third_person_button=0x7f090002;
-        public static final int top_down_button=0x7f090003;
-        public static final int uuidDisplay=0x7f09000c;
+        public static final int uuidDisplay=0x7f09000b;
     }
     public static final class layout {
         public static final int activity_main=0x7f040000;
@@ -53,10 +52,16 @@ public final class R {
         public static final int app_name=0x7f060001;
         public static final int cancel=0x7f060002;
         public static final int connect=0x7f060003;
-        public static final int ok=0x7f060004;
-        public static final int port=0x7f060005;
-        public static final int save_image=0x7f060006;
-        public static final int set_socket_dialogTitle=0x7f060007;
+        public static final int model_mode=0x7f060004;
+        public static final int ok=0x7f060005;
+        public static final int optimize=0x7f060006;
+        public static final int port=0x7f060007;
+        public static final int save=0x7f060008;
+        public static final int save_image=0x7f060009;
+        public static final int scan_mode=0x7f06000a;
+        public static final int set_socket_dialogTitle=0x7f06000b;
+        public static final int start=0x7f06000c;
+        public static final int stop=0x7f06000d;
     }
     public static final class style {
         public static final int AppTheme=0x7f070000;

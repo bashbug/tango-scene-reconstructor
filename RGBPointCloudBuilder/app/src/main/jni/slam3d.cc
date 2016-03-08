@@ -64,11 +64,10 @@ namespace rgb_depth_sync {
       if (!optimize_poses_) {
         int lastIndex = pcd_container_->GetPCDContainerLastIndex();
 
-        odometryPose_ = util::ConvertGLMToEigenPose((*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPose());
-        odometryPose_d_ = util::CastIsometry3fTo3d(odometryPose_);
+        odometry_pose_ = util::CastGLMToEigenPosed(pcd_container_->pcd_container_[lastIndex]->GetPose());
 
         // add node to the pose graph
-        id_ = AddNode(odometryPose_d_);
+        id_ = AddNode(odometry_pose_);
 
         if(id_ > 0) {
           // add edge to the pose graph
@@ -76,7 +75,7 @@ namespace rgb_depth_sync {
         }
 
         // search for loop closures
-        loop_closure_detector_->Compute3(lastIndex);
+        loop_closure_detector_->Compute(lastIndex);
       }
     }
 
@@ -173,9 +172,8 @@ namespace rgb_depth_sync {
       glm::vec3 icp_translation = util::GetTranslationFromMatrix(icppose_glm);
       glm::quat icp_rotation = util::GetRotationFromMatrix(icppose_glm);
 
-      //icp_positions[i] = icp_translation;
-      (*(pcd_container_->GetPCDContainer()))[i]->SetTranslation(icp_translation);
-      (*(pcd_container_->GetPCDContainer()))[i]->SetRotation(icp_rotation);
+      pcd_container_->pcd_container_[i]->SetTranslation(icp_translation);
+      pcd_container_->pcd_container_[i]->SetRotation(icp_rotation);
     }
 
     SaveGraph();

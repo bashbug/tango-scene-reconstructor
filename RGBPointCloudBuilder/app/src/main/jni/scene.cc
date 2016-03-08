@@ -17,7 +17,7 @@
 #include <tango-gl/conversions.h>
 
 #include "rgb-depth-sync/scene.h"
-#include "rgb-depth-sync/texture_drawable.h"
+#include "rgb-depth-sync/pcd_drawable.h"
 #include "rgb-depth-sync/shader.h"
 
 
@@ -55,8 +55,10 @@ namespace rgb_depth_sync {
     trace_ = new tango_gl::Trace();
     trace_icp_ = new tango_gl::Trace();
     grid_ = new tango_gl::Grid();
-    texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
-                                                   shader::kPointCloudFragment);
+    /*texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
+                                                   shader::kPointCloudFragment);*/
+    pcd_drawable_ = new rgb_depth_sync::PCDDrawable();
+
     first = true;
 
     trace_->SetColor(kTraceColor);
@@ -76,7 +78,7 @@ namespace rgb_depth_sync {
     delete trace_;
     delete trace_icp_;
     delete grid_;
-    delete texture_;
+    delete pcd_drawable_;
   }
 
   void Scene::SetViewPort(int w, int h) {
@@ -92,38 +94,28 @@ namespace rgb_depth_sync {
 
   void Scene::Render(const glm::mat4& tango_pose,
                      const glm::mat4& point_cloud_transformation,
-                     const glm::mat4& icp_pose,
                      const std::vector<float>& point_cloud_data,
                      const std::vector<uint8_t>& rgb_data) {
 
-    //glViewport(viewport_x_, viewport_y_, viewport_width_, viewport_height_);
-
-    //LOGE("viewport: x %i, y %i, width %i, height %i", viewport_x_, viewport_y_, viewport_width_, viewport_height_);
-
     glEnable(GL_DEPTH_TEST);
-    tango_gl::util::CheckGlError("PointCloud glEnable(GL_DEPTH_TEST)");
     glEnable(GL_CULL_FACE);
-    tango_gl::util::CheckGlError("PointCloud glEnable(GL_CULL_FACE)");
+
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    tango_gl::util::CheckGlError("PointCloud glClearColor(1.0f, 1.0f, 1.0f, 1.0f)");
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    tango_gl::util::CheckGlError("PointCloud glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT)");
 
-    glm::vec3 position = glm::vec3(tango_pose[3][0], tango_pose[3][1], tango_pose[3][2]);
-
-    glm::vec3 position_icp = glm::vec3(icp_pose[3][0], icp_pose[3][1], icp_pose[3][2]);
-
-    //LOGE("icp pose: x:%f y:%f z:%f", position_icp[0], position_icp[1], position_icp[2]);
+    glm::vec3 position =
+        glm::vec3(tango_pose[3][0], tango_pose[3][1],
+                  tango_pose[3][2]);
 
     if (gesture_camera_->GetCameraType() ==
         tango_gl::GestureCamera::CameraType::kFirstPerson) {
-      // In first person mode, we directly control camera's motion.Render
+      // In first person mode, we directly control camera's motion.
       gesture_camera_->SetTransformationMatrix(tango_pose);
     } else {
       // In third person or top down more, we follow the camera movement.
       gesture_camera_->SetAnchorPosition(position);
 
-      frustum_->SetTransformationMatrix(tango_pose);
+      /*frustum_->SetTransformationMatrix(tango_pose);
       // Set the frustum scale to 4:3, this doesn't necessarily match the physical
       // camera's aspect ratio, this is just for visualization purposes.
       frustum_->SetScale(kFrustumScale);
@@ -132,21 +124,22 @@ namespace rgb_depth_sync {
 
       axis_->SetTransformationMatrix(tango_pose);
       axis_->Render(gesture_camera_->GetProjectionMatrix(),
-                    gesture_camera_->GetViewMatrix());
+                    gesture_camera_->GetViewMatrix());*/
     }
 
     //trace_->UpdateVertexArray(position);
-    trace_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
+    /*trace_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
 
     //trace_icp_->UpdateVertexArray(position_icp);
     trace_icp_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
+    grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());*/
 
-    grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
-
-    texture_->RenderPointCloud(gesture_camera_->GetProjectionMatrix(),
-                               gesture_camera_->GetViewMatrix(),
-                               point_cloud_transformation, point_cloud_data,
-                               rgb_data);
+    pcd_drawable_->Render(gesture_camera_->GetProjectionMatrix(),
+                          gesture_camera_->GetViewMatrix(),
+                          point_cloud_transformation,
+                          point_cloud_data,
+                          rgb_data);
+    //glDisable(GL_DEPTH_TEST);
   }
 
   void Scene::SetTrace(std::vector<glm::vec3> positions) {

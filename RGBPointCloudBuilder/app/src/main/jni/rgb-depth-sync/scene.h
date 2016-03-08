@@ -30,7 +30,7 @@
 #include <tango-gl/transform.h>
 #include <tango-gl/util.h>
 
-#include <rgb-depth-sync/texture_drawable.h>
+#include <rgb-depth-sync/pcd_drawable.h>
 
 namespace rgb_depth_sync {
 
@@ -55,7 +55,6 @@ namespace rgb_depth_sync {
     //         frame.
     void Render(const glm::mat4& tango_pose,
                 const glm::mat4& point_cloud_transformation,
-                const glm::mat4& icp_pose,
                 const std::vector<float>& point_cloud_data,
                 const std::vector<uint8_t>& rgb_data);
 
@@ -106,7 +105,7 @@ namespace rgb_depth_sync {
     tango_gl::Trace* trace_icp_;
 
     // Point cloud drawale object.
-    TextureDrawable* texture_;
+    PCDDrawable* pcd_drawable_;
 
     bool first;
   };

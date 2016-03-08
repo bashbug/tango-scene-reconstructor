@@ -12,6 +12,9 @@ namespace rgb_depth_sync {
   PCDOutlierRemoval::PCDOutlierRemoval() {
   }
 
+  PCDOutlierRemoval::~PCDOutlierRemoval() {
+  }
+
   std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > PCDOutlierRemoval::Compute(const std::vector<float>& all_points, float min_range, float max_range, float radius) {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -42,7 +45,7 @@ namespace rgb_depth_sync {
       return cloud_filtered->points;
     pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
     sor.setInputCloud(cloud);
-    sor.setMeanK(10);
+    sor.setMeanK(radius);
     sor.setStddevMulThresh(1.0);
     sor.filter(*cloud_filtered);
 

@@ -50,6 +50,7 @@
 #include "rgb-depth-sync/util.h"
 #include "rgb-depth-sync/img_file_writer.h"
 #include "rgb-depth-sync/pcd.h"
+#include "rgb-depth-sync/pose_data.h"
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/pcd_worker.h"
 #include "rgb-depth-sync/pcd_file_reader.h"
@@ -133,6 +134,8 @@ namespace rgb_depth_sync {
       // @param xyz_ij The point cloud returned by the service.
       void OnXYZijAvailable(const TangoXYZij* xyz_ij);
 
+      void OnPoseAvailable(const TangoPoseData* pose);
+
     private:
       int screen_width_, screen_height_;
       int pcd_count_;
@@ -155,6 +158,20 @@ namespace rgb_depth_sync {
       TangoSupportPointCloudManager* xyz_manager_;
       TangoSupportImageBufferManager* yuv_manager_;
       Conversion* conversion_;
+      TangoXYZij* xyz_;
+      TangoImageBuffer* yuv_;
+      std::mutex pose_mutex_;
+      PoseData* pose_data_;
+      bool new_xyz_data;
+      bool new_yuv_data;
+      std::vector<float> xyz_buffer_;
+      std::vector<uint8_t> rgb_buffer_;
+      glm::mat4 pose_;
+      int curr_index_;
+      int prev_index_;
+      bool first_index_;
+      std::shared_ptr<std::mutex> xyz_mtx_;
+      std::shared_ptr<std::condition_variable> consume_xyz_;
   };
 
 } // namespace rgb_depth_sync

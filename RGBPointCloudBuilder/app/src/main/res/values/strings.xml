@@ -10,4 +10,11 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
 
+    <!-- MAIN VIEW -->
+    <string name="start">START</string>
+    <string name="stop">STOP</string>
+    <string name="optimize">OPTIMIZE</string>
+    <string name="save">SAVE</string>
+    <string name="scan_mode">SCAN MODE</string>
+    <string name="model_mode">MODEL MODE</string>
 </resources>

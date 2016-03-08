@@ -187,18 +187,18 @@ LOCAL_SRC_FILES += conversion.cc \
                    mesh.cc \
                    pcd.cc \
                    pcd_container.cc \
+                   pcd_drawable.cc \
                    pcd_file_reader.cc \
                    pcd_file_writer.cc \
                    pcd_outlier_removal.cc \
                    pcd_worker.cc \
+                   pose_data.cc \
                    rgb_depth_sync_application.cc \
                    scan_matcher.cc \
                    shader.cc \
                    slam3d.cc \
                    scene.cc \
                    tcp_client.cc \
-                   texture.cc \
-                   texture_drawable.cc \
                    util.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/axis.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/bounding_box.cpp \

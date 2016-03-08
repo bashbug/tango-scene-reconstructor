@@ -17,9 +17,11 @@
 package bashbug.rgbpointcloudbuilder;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ConfigurationInfo;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
@@ -101,6 +103,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
               Toast.LENGTH_SHORT).show();
           }
         }
+
+        // Check if the system supports OpenGL ES 2.0.
+        /*final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+        final boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000;
+
+        if (supportsEs2){
+            Log.e(TAG, "SUPPORT OpenGL ES 2.0");
+        }
+        Log.e(TAG, "Version " + configurationInfo.getGlEsVersion() );*/
+
         setContentView(R.layout.activity_main);
 
         // OpenGL view where all of the graphics are drawn
@@ -114,7 +127,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // Buttons for selecting camera view and Set up button click listeners.
         findViewById(R.id.first_person_button).setOnClickListener(this);
         findViewById(R.id.third_person_button).setOnClickListener(this);
-        findViewById(R.id.top_down_button).setOnClickListener(this);
+        //findViewById(R.id.top_down_button).setOnClickListener(this);
 
         findViewById(R.id.start_pcd_button).setOnClickListener(this);
         findViewById(R.id.stop_pcd_button).setOnClickListener(this);
@@ -217,9 +230,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.third_person_button:
                 JNIInterface.setCamera(1);
                 break;
-            case R.id.top_down_button:
+            /*case R.id.top_down_button:
                 JNIInterface.setCamera(2);
-                break;
+                break;*/
             case R.id.optimize_pose_graph_button:
                 JNIInterface.optimizePoseGraph(true);
                 break;

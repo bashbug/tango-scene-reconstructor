@@ -61,8 +61,7 @@ namespace rgb_depth_sync {
       std::map<key, value>::iterator it_;
       int id_;
       int counter_;
-      Eigen::Isometry3f odometryPose_;
-      Eigen::Isometry3d odometryPose_d_;
+      Eigen::Isometry3d odometry_pose_;
       bool optimize_poses_;
       bool first_pose_;
       bool start_OnPCDAvailable_thread_;

@@ -42,7 +42,7 @@ namespace rgb_depth_sync {
           TangoSupport_updateImageBuffer(yuv_manager_, buffer);
           img_count_++;
         } else {
-          //LOGE("ss_T_device_rgb_timestamp pose not valid");
+          LOGE("ss_T_device_rgb_timestamp pose not valid");
         }
       }
     }
@@ -66,12 +66,29 @@ namespace rgb_depth_sync {
       } else {
         if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
           TangoSupport_updatePointCloud(xyz_manager_, xyz_ij);
+          consume_xyz_->notify_one();
           pcd_count_++;
         } else {
-          //LOGE("ss_T_device_xyz_timestamp pose not valid");
+          LOGE("ss_T_device_xyz_timestamp pose not valid");
         }
       }
     }
+  }
+
+  // This function routes onPoseAvailable callbacks to the application object for
+// handling.
+//
+// @param context, context will be a pointer to a PointCloudApp
+//        instance on which to call callbacks.
+// @param pose, pose data to route to onPoseAvailable function.
+  void OnPoseAvailableRouter(void* context, const TangoPoseData* pose) {
+    SynchronizationApplication* app = static_cast<SynchronizationApplication*>(context);
+    app->OnPoseAvailable(pose);
+  }
+
+  void SynchronizationApplication::OnPoseAvailable(const TangoPoseData* pose) {
+    std::lock_guard<std::mutex> lock(pose_mutex_);
+    pose_data_->UpdatePose(pose);
   }
 
   SynchronizationApplication::SynchronizationApplication() {
@@ -129,6 +146,8 @@ namespace rgb_depth_sync {
     optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
     pcd_mtx_ = std::make_shared<std::mutex>();
     consume_pcd_ = std::make_shared<std::condition_variable>();
+    xyz_mtx_ = std::make_shared<std::mutex>();
+    consume_xyz_ = std::make_shared<std::condition_variable>();
 
     int32_t max_point_cloud_elements;
     ret = TangoConfig_getInt32(tango_config_, "max_point_cloud_elements",
@@ -141,6 +160,10 @@ namespace rgb_depth_sync {
 
     TangoSupport_createPointCloudManager(max_point_cloud_elements, &xyz_manager_);
     TangoSupport_createImageBufferManager(TANGO_HAL_PIXEL_FORMAT_YCrCb_420_SP, 1280, 720, &yuv_manager_);
+
+    curr_index_ = -1;
+    prev_index_ = -1;
+    first_index_ = true;
 
     save_pcd_ = false;
     start_pcd_ = false;
@@ -167,14 +190,15 @@ namespace rgb_depth_sync {
     LOGE("depth camera cy: %f", color_camera_intrinsics.cy);*/
 
     pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
-    pcd_worker_ = new rgb_depth_sync::PCDWorker(pcd_container_, xyz_manager_, yuv_manager_);
+    pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_, xyz_manager_, yuv_manager_);
 
     std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
     pcd_worker_thread.detach();
 
     slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
 
-    conversion_ = Conversion::GetInstance();
+    pose_data_ = PoseData::GetInstance();
+    pose_data_->SetColorCameraIntrinsics(color_camera_intrinsics);
 
     return ret;
   }
@@ -195,6 +219,20 @@ namespace rgb_depth_sync {
                "code: %d", ret);
       return ret;
     }
+
+    // Setting up the frame pair for the onPoseAvailable callback.
+    TangoCoordinateFramePair pairs;
+    pairs.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
+    pairs.target = TANGO_COORDINATE_FRAME_DEVICE;
+
+    // Attach the onPoseAvailable callback.
+    // The callback will be called after the service is connected.
+    ret = TangoService_connectOnPoseAvailable(1, &pairs, OnPoseAvailableRouter);
+    if (ret != TANGO_SUCCESS) {
+      LOGE("PointCloudApp: Failed to connect to pose callback with error"
+               "code: %d", ret);
+      return ret;
+    }
   }
 
   int SynchronizationApplication::TangoConnect() {
@@ -207,16 +245,66 @@ namespace rgb_depth_sync {
 
   int SynchronizationApplication::TangoSetIntrinsicsAndExtrinsics() {
 
-    TangoCameraIntrinsics color_camera_intrinsics;
+    TangoErrorType ret;
+    TangoPoseData pose_data;
+    TangoCoordinateFramePair frame_pair;
 
-    TangoErrorType ret = TangoService_getCameraIntrinsics(
-      TANGO_CAMERA_COLOR, &color_camera_intrinsics);
-
+    // TangoService_getPoseAtTime function is used for query device extrinsics
+    // as well. We use timestamp 0.0 and the target frame pair to get the
+    // extrinsics from the sensors.
+    //
+    // Get device with respect to imu transformation matrix.
+    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
+    frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
+    ret = TangoService_getPoseAtTime(0.0, frame_pair, &pose_data);
     if (ret != TANGO_SUCCESS) {
-    LOGE( "SynchronizationApplication: Failed to get the intrinsics for the color"
-              "camera.");
+      LOGE(
+          "PointCloudApp: Failed to get transform between the IMU frame and "
+              "device frames");
       return ret;
     }
+    pose_data_->SetImuTDevice(pose_data_->GetMatrixFromPose(pose_data));
+
+    // Get color camera with respect to imu transformation matrix.
+    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
+    frame_pair.target = TANGO_COORDINATE_FRAME_CAMERA_DEPTH;
+    ret = TangoService_getPoseAtTime(0.0, frame_pair, &pose_data);
+    if (ret != TANGO_SUCCESS) {
+      LOGE(
+          "PointCloudApp: Failed to get transform between the color camera frame "
+              "and device frames");
+      return ret;
+    }
+    pose_data_->SetImuTDepthCamera(pose_data_->GetMatrixFromPose(pose_data));
+
+    TangoPoseData pose_imu_T_device;
+    TangoPoseData pose_imu_T_color;
+    TangoPoseData pose_imu_T_depth;
+
+    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
+    frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
+    TangoService_getPoseAtTime(0.0, frame_pair, &pose_imu_T_device);
+
+    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
+    frame_pair.target = TANGO_COORDINATE_FRAME_CAMERA_COLOR;
+    TangoService_getPoseAtTime(0.0, frame_pair, &pose_imu_T_color);
+
+    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
+    frame_pair.target = TANGO_COORDINATE_FRAME_CAMERA_DEPTH;
+    TangoService_getPoseAtTime(0.0, frame_pair, &pose_imu_T_depth);
+
+    glm::mat4 imu_T_device = util::GetMatrixFromPose(&pose_imu_T_device);
+    glm::mat4 imu_T_color = util::GetMatrixFromPose(&pose_imu_T_color);
+    glm::mat4 imu_T_depth = util::GetMatrixFromPose(&pose_imu_T_depth);
+
+    glm::mat4 device_T_color = glm::inverse(imu_T_device) * imu_T_color;
+    glm::mat4 device_T_depth = glm::inverse(imu_T_device) * imu_T_depth;
+    glm::mat4 color_T_device = glm::inverse(device_T_color);
+
+    pose_data_->SetImuTColorCamera(imu_T_color);
+    pose_data_->SetDeviceTColorCamera(device_T_color);
+    pose_data_->SetDeviceTDepthCamera(device_T_depth);
+    pose_data_->SetColorCameraTDevice(color_T_device);
 
     return ret;
   }
@@ -240,7 +328,41 @@ namespace rgb_depth_sync {
   void SynchronizationApplication::Render() {
 
     if (!(*optimize_poses_process_started_)) {
-      icp_ = glm::mat4();
+
+      curr_index_ = pcd_container_->GetPCDContainerLastIndex();
+
+      glm::mat4 curr_pose = pose_data_->GetLatestPoseMatrix();
+      std::vector<float> xyz = pcd_container_->GetXYZValues(glm::inverse(curr_pose));
+      std::vector<uint8_t> rgb = pcd_container_->GetRGBValues();
+
+      bool newData = true;
+      /*if (curr_index_ == prev_index_) {
+        newData = false;
+        //LOGE("NO new data");
+        if (xyz.size() > 0 && rgb.size() > 0) {
+          /*pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
+          main_scene_.Render(pose_, pose_, xyz, rgb, newData);
+          if (first_index_) {
+            first_index_ = false;
+          }
+        }
+      } else {*/
+        //LOGE("YES new data");
+        if (xyz.size() > 0 && rgb.size() > 0) {
+          pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
+          //LOGE("size: %i", xyz.size());
+          scene_->Render(pose_, pose_, xyz, rgb);
+          if (first_index_) {
+            first_index_ = false;
+          }
+        }
+      //}
+
+      if (!first_index_) {
+        prev_index_ = curr_index_;
+      }
+
+      /*icp_ = glm::mat4();
       /*std::vector<float> xyz;
       std::vector<uint8_t> rgb;
       glm::mat4 ss_T_device;
@@ -255,7 +377,7 @@ namespace rgb_depth_sync {
                        icp_,
                        xyz,
                        rgb);
-      }*/
+      }
       int index = pcd_container_->GetPCDContainerLastIndex();
       if (index >= 0) {
         pcd_ = (*(pcd_container_->GetPCDContainer()))[index];
@@ -265,7 +387,7 @@ namespace rgb_depth_sync {
                          pcd_->GetXYZValues(),
                          pcd_->GetRGBValues());
         }
-      }
+      }*/
     }
   }
 
@@ -338,9 +460,9 @@ namespace rgb_depth_sync {
       if (pcd_container_optimized_) {
         for (int i = 0; i <= lastIndex; i++) {
           pcd_file_writer.SetPCDRGBData(
-              (*(pcd_container_->GetPCDContainer()))[i]->GetPCDData(),
-              (*(pcd_container_->GetPCDContainer()))[i]->GetTranslation(),
-              (*(pcd_container_->GetPCDContainer()))[i]->GetRotation());
+              pcd_container_->pcd_container_[i]->GetPCD(),
+              pcd_container_->pcd_container_[i]->GetTranslation(),
+              pcd_container_->pcd_container_[i]->GetRotation());
           pcd_file_writer.SetUnordered();
           // save files asynchron
           pcd_file_writer.SaveToFile("PCD_opt", i);
@@ -350,9 +472,9 @@ namespace rgb_depth_sync {
       } else {
         for (int i = 0; i <= lastIndex; i++) {
           pcd_file_writer.SetPCDRGBData(
-              (*(pcd_container_->GetPCDContainer()))[i]->GetPCDData(),
-              (*(pcd_container_->GetPCDContainer()))[i]->GetTranslation(),
-              (*(pcd_container_->GetPCDContainer()))[i]->GetRotation());
+              pcd_container_->pcd_container_[i]->GetPCD(),
+              pcd_container_->pcd_container_[i]->GetTranslation(),
+              pcd_container_->pcd_container_[i]->GetRotation());
           pcd_file_writer.SetUnordered();
           // save files asynchron
           pcd_file_writer.SaveToFile("PCD", i);
