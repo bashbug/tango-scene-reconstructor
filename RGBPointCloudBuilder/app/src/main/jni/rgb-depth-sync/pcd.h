@@ -9,11 +9,14 @@
 #include <vector>
 #include <tango-gl/util.h>
 #include <tango_client_api.h>
-#include <rgb-depth-sync/pose_data.h>
-#include <rgb-depth-sync/util.h>
 #include <pcl/point_types.h>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
+#include <opencv2/opencv.hpp>
+#include <opencv2/features2d/features2d.hpp>
+
+#include "rgb-depth-sync/pose_data.h"
+#include "rgb-depth-sync/util.h"
 
 namespace rgb_depth_sync {
 
@@ -32,8 +35,13 @@ namespace rgb_depth_sync {
     glm::quat GetRotation();
     void SetTranslation(const glm::vec3& translation);
     void SetRotation(const glm::quat rotation);
+    void SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors);
+    void SetFrame(const cv::Mat& frame);
     std::vector<float> GetXYZValuesTSS();
     std::vector<float> GetPCD();
+    std::vector<cv::KeyPoint> GetFrameKeyPoints();
+    cv::Mat GetFrameDescriptors();
+    cv::Mat GetFrame();
   private:
     std::vector<float> xyz_values_color_camera_;
     std::vector<float> xyz_values_ss_;
@@ -45,6 +53,9 @@ namespace rgb_depth_sync {
     glm::quat rotation_;
     glm::vec3 translation_;
     Eigen::Matrix4f transformation_matrix_;
+    std::vector<cv::KeyPoint> frame_key_points_;
+    cv::Mat frame_descriptors_;
+    cv::Mat frame_;
   };
 } // namespace rgb_depth_sync
 

@@ -1048,6 +1048,7 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/OpenCV-android-sdk/sdk/native/jni/include/opencv2/videoio/videoio_c.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/OpenCV-android-sdk/sdk/native/jni/include/opencv2/ml.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/OpenCV-android-sdk/sdk/native/jni/include/opencv2/features2d/features2d.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pose_data.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_container.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/mesh.h \
@@ -1348,6 +1349,7 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/optimization_algorithm_factory.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/optimization_algorithm_property.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/loop_closure_detector.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scan_matcher.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl-1.6/pcl/registration/icp.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl-1.6/pcl/sample_consensus/ransac.h \
@@ -3714,6 +3716,8 @@
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd.h:
 
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/OpenCV-android-sdk/sdk/native/jni/include/opencv2/features2d/features2d.hpp:
+
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pose_data.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/pcd_container.h:
@@ -4313,6 +4317,8 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/g2o/g2o/core/optimization_algorithm_property.h:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/loop_closure_detector.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/OpenCV-android-sdk/sdk/native/jni/include/opencv2/core/core.hpp:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scan_matcher.h:
 

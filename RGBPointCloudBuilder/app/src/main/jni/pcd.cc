@@ -12,8 +12,18 @@ namespace rgb_depth_sync {
   void PCD::SetTranslation(const glm::vec3& translation) {
     translation_ = translation;
   }
+
   void PCD::SetRotation(const glm::quat rotation) {
     rotation_ = rotation;
+  }
+
+  void PCD::SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors) {
+    frame_key_points_ = frame_key_points;
+    frame_descriptors_ = frame_descriptors;
+  }
+
+  void PCD::SetFrame(const cv::Mat& frame) {
+    frame_ = frame;
   }
 
   void PCD::MapXYZWithRGB(const std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> >& xyz,
@@ -56,6 +66,9 @@ namespace rgb_depth_sync {
 
       pixel_y = static_cast<int>(xyz[i+1] / xyz[i+2] * color_camera_intrinsics.fy +
                                  color_camera_intrinsics.cy);*/
+
+      if (pixel_x < 0 || pixel_x > color_camera_intrinsics.width || pixel_y < 0 || pixel_y > color_camera_intrinsics.height)
+        continue;
 
       size_t index = pixel_x + pixel_y * color_camera_intrinsics.width;
 
@@ -111,5 +124,17 @@ namespace rgb_depth_sync {
 
   std::vector<float> PCD::GetPCD() {
     return pcd_;
+  }
+
+  std::vector<cv::KeyPoint> PCD::GetFrameKeyPoints() {
+    return frame_key_points_;
+  }
+
+  cv::Mat PCD::GetFrameDescriptors() {
+    return frame_descriptors_;
+  }
+
+  cv::Mat PCD::GetFrame() {
+    return frame_;
   }
 } // namespace rgb_depth_sync

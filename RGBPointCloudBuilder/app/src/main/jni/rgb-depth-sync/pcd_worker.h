@@ -6,9 +6,11 @@
 #include <thread>
 #include <condition_variable>
 #include <chrono>         // std::chrono::seconds
+#include <ctime>
 
 #include <tango_support_api.h>
 #include <opencv2/opencv.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 #include <pcl/point_types.h>
 #include <Eigen/Geometry>
@@ -44,12 +46,15 @@ namespace rgb_depth_sync {
       uint32_t rgb_size_;
       cv::Mat yuv_frame_;
       cv::Mat rgb_frame_;
+      cv::Mat gray_frame_;
+      cv::Mat gray_frame_320x180_;
       PCDContainer* pcd_container_;
-
+      PCDOutlierRemoval* pcd_remove_outlier_;
       TangoXYZij* xyz_buffer_;
       TangoImageBuffer* yuv_buffer_;
       bool new_xyz_data;
       bool new_yuv_data;
+      cv::Ptr<cv::ORB> orb_;
   };
 }
 

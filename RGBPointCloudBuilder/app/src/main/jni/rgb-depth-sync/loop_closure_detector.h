@@ -2,10 +2,13 @@
 #define RGBPOINTCLOUDBUILDER_LOOPCLOSUREDETECTOR_H
 
 #include <map>
+#include <ctime>
 #include <utility>
 #include <Eigen/Geometry>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
+#include "opencv2/core/core.hpp"
+#include "opencv2/features2d/features2d.hpp"
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/scan_matcher.h"
 
@@ -43,6 +46,8 @@ namespace rgb_depth_sync {
     std::map<key, value> loop_closure_poses_;
     float distance_;
     ScanMatcher* scan_matcher_;
+    cv::BFMatcher feature_matcher_;
+    int orb_dist_th_;
   };
 }
 

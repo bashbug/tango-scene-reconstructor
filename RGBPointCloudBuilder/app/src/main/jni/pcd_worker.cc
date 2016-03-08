@@ -17,6 +17,9 @@ namespace rgb_depth_sync {
     rgb_size_ = 720*1280*3;
     yuv_size_ = 720*3/2*1280;
     pcd_container_ = pcd_container;
+
+    orb_ = cv::ORB::create(400);
+    pcd_remove_outlier_ = new rgb_depth_sync::PCDOutlierRemoval();
   }
 
   PCDWorker::~PCDWorker() {
@@ -56,12 +59,28 @@ namespace rgb_depth_sync {
           PCD* pcd = new rgb_depth_sync::PCD();
           //pcd->SetTangoXYZij(xyz_buffer_);
           // sync xyz and rgb
-          PCDOutlierRemoval pcd_outlier_removal;
-          std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_outlier_removal.Compute(xyz_, 0.25f, 1.0f, 10);
+          std::clock_t start = std::clock();
+          std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25f, 1.0f, 10);
+          int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+          LOGE("Outlier filtering  ----- time %i", diff);
           if (xyz_without_outliers.size() > 0) {
+            std::clock_t start_1 = std::clock();
             pcd->MapXYZWithRGB(xyz_without_outliers, rgb_, xyz_buffer_->timestamp, yuv_buffer_->timestamp);
+            diff = (std::clock() - start_1) / (double)(CLOCKS_PER_SEC / 1000);
+            LOGE("RGBD sync -------------- time %i", diff);
           }
           if (pcd->GetPCD().size() > 0) {
+            cv::Size size(320, 180);
+            cv::cvtColor(rgb_frame_, gray_frame_, CV_RGB2GRAY);
+            cv::resize(gray_frame_, gray_frame_320x180_, size);
+            std::vector<cv::KeyPoint> keypoints;
+            cv::Mat descriptors;
+            std::clock_t start_2 = std::clock();
+            orb_->detectAndCompute(gray_frame_320x180_, cv::noArray(), keypoints, descriptors);
+            pcd->SetKeyPointsAndDescriptors(keypoints, descriptors);
+            pcd->SetFrame(gray_frame_320x180_);
+            diff = (std::clock() - start_2) / (double)(CLOCKS_PER_SEC / 1000);
+            LOGE("Features detection  ---- time %i", diff);
             pcd_container_->AddPCD(pcd);
           }
         }
