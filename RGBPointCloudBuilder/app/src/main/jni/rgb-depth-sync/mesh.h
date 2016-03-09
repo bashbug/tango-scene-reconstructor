@@ -1,6 +1,8 @@
 #ifndef RGBPOINTCLOUDBUILDER_MESH_H
 #define RGBPOINTCLOUDBUILDER_MESH_H
 
+#include <mutex>
+#include <condition_variable>
 #include <boost/make_shared.hpp>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
@@ -44,7 +46,8 @@ namespace rgb_depth_sync {
       std::vector<float> GetXYZValues(glm::mat4 curr_pose);
       std::vector<uint8_t> GetRGBValues();
       void AddPointCloud(PCD* pcd);
-
+      bool Reset();
+      bool IsRunning();
     private:
       int Hesh(float x_f, float y_f, float z_f);
       std::vector<float> xyz_values_;
@@ -53,6 +56,8 @@ namespace rgb_depth_sync {
       bool first_;
       int p1, p2, p3;
       int hash_table_size_;
+      bool is_running_;
+      std::mutex mesh_mtx_;
   };
 }
 

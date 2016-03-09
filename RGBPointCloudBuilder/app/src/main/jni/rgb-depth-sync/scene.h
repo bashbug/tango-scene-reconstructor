@@ -30,6 +30,8 @@
 #include <tango-gl/transform.h>
 #include <tango-gl/util.h>
 
+#include <tango-gl/cube.h>
+
 #include <rgb-depth-sync/pcd_drawable.h>
 
 namespace rgb_depth_sync {
@@ -46,6 +48,8 @@ namespace rgb_depth_sync {
 
     // Setup GL view port.
     void SetViewPort(int w, int h);
+
+    void Reset();
 
     // Render loop.
     // @param: cur_pose_transformation, latest pose's transformation.
@@ -107,7 +111,8 @@ namespace rgb_depth_sync {
     // Point cloud drawale object.
     PCDDrawable* pcd_drawable_;
 
-    bool first;
+    bool first_;
+    tango_gl::Cube* cube_;
   };
 }  // namespace tango_point_cloud
 

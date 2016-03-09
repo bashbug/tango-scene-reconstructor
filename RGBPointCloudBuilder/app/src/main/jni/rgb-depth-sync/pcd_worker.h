@@ -31,7 +31,9 @@ namespace rgb_depth_sync {
                 TangoSupportImageBufferManager* yuv_manager);
       ~PCDWorker();
       void OnPCDAvailable();
-      void StopPCDWorker();
+      void Stop();
+      void Start();
+      bool IsRunning();
     private:
       std::shared_ptr<std::mutex> xyz_mtx_;
       std::shared_ptr<std::condition_variable> consume_xyz_;
@@ -55,6 +57,7 @@ namespace rgb_depth_sync {
       bool new_xyz_data;
       bool new_yuv_data;
       cv::Ptr<cv::ORB> orb_;
+      bool is_running_;
   };
 }
 

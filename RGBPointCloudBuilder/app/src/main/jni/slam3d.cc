@@ -42,44 +42,76 @@ namespace rgb_depth_sync {
     first_pose_ = true;
     counter_ = 0;
     start_OnPCDAvailable_thread_ = false;
+    is_running_ = false;
+  }
+
+  bool Slam3D::IsRunning() {
+    return is_running_;
+  }
+
+  void Slam3D::Reset() {
+    while(is_running_) {
+      LOGE("SLAM 3D still running");
+    }
+    // allocating the optimizer
+    optimizer_ = new g2o::SparseOptimizer();
+    optimizer_->setVerbose(false);
+    SlamLinearSolver* linearSolver = new SlamLinearSolver();
+
+    linearSolver->setBlockOrdering(false);
+    SlamBlockSolver* solver = new SlamBlockSolver(linearSolver);
+    g2o::OptimizationAlgorithmLevenberg* solverLevenberg = new g2o::OptimizationAlgorithmLevenberg(solver);
+    //Set the initial Levenberg-Marquardt lambda
+    solverLevenberg->setUserLambdaInit(1);
+    optimizer_->setAlgorithm(solverLevenberg);
+
+    loop_closure_detector_ = new rgb_depth_sync::LoopClosureDetector(pcd_container_);
+
+    information_.setIdentity();
+    id_ = 0;
+    optimize_poses_ = false;
+    first_pose_ = true;
+    counter_ = 0;
+    start_OnPCDAvailable_thread_ = false;
+    is_running_ = false;
   }
 
   Slam3D::~Slam3D() {
     delete optimizer_;
   }
 
-  void Slam3D::StartOnFrameAvailableThread() {
+  void Slam3D::Start() {
     start_OnPCDAvailable_thread_ = true;
   }
 
-  void Slam3D::StopOnFrameAvailableThread() {
+  void Slam3D::Stop() {
     start_OnPCDAvailable_thread_ = false;
   }
 
-  int Slam3D::OnPCDAvailable() {
+  void Slam3D::OnPCDAvailable() {
     std::unique_lock<std::mutex> lock(*pcd_mtx_);
-
-    while(start_OnPCDAvailable_thread_) {
+    while(true) {
       consume_pcd_->wait(lock);
-      if (!optimize_poses_) {
-        int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+      if (start_OnPCDAvailable_thread_) {
+        is_running_ = true;
+        if (!optimize_poses_) {
+          int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+          odometry_pose_ = util::CastGLMToEigenPosed(pcd_container_->pcd_container_[lastIndex]->GetPose());
 
-        odometry_pose_ = util::CastGLMToEigenPosed(pcd_container_->pcd_container_[lastIndex]->GetPose());
+          // add node to the pose graph
+          id_ = AddNode(odometry_pose_);
 
-        // add node to the pose graph
-        id_ = AddNode(odometry_pose_);
+          if(id_ > 0) {
+            // add edge to the pose graph
+            AddEdge(id_-1, id_);
+          }
 
-        if(id_ > 0) {
-          // add edge to the pose graph
-          AddEdge(id_-1, id_);
+          // search for loop closures
+          loop_closure_detector_->Compute(lastIndex);
         }
-
-        // search for loop closures
-        loop_closure_detector_->Compute(lastIndex);
+        is_running_ = false;
       }
     }
-
-    return -1;
   }
 
   g2o::VertexSE3* Slam3D::GetNode(int id) {

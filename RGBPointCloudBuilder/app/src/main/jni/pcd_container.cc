@@ -40,6 +40,10 @@ namespace rgb_depth_sync {
   }
 
   void PCDContainer::ResetPCD() {
+    while(!mesh_->Reset()) {
+      LOGE("mesh is still running");
+    }
     pcd_container_.clear();
+    LOGE("MESH abd CONATINER are reseted");
   }
 } // namespace rgb_depth_syn

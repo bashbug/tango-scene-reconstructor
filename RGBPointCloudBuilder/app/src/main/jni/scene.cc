@@ -37,7 +37,9 @@ namespace {
   const tango_gl::Color kGridColor(0.2f, 0.2f, 0.2f);
 
 // Frustum scale.
-  const glm::vec3 kFrustumScale = glm::vec3(0.4f, 0.3f, 0.5f);
+  const glm::vec3 kFrustumScale = 2.0f*glm::vec3(0.4f, 0.3f, 0.5f);
+
+  const float kCubeScale = 1.5f;
 
   static const glm::mat4 kDepth_T_OpenGL =
       glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
@@ -55,11 +57,14 @@ namespace rgb_depth_sync {
     trace_ = new tango_gl::Trace();
     trace_icp_ = new tango_gl::Trace();
     grid_ = new tango_gl::Grid();
+    cube_ = new tango_gl::Cube();
+    cube_->render_mode_ = GL_LINES;
+    cube_->SetColor(0.7f, 0.7f, 0.7f);
     /*texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
                                                    shader::kPointCloudFragment);*/
     pcd_drawable_ = new rgb_depth_sync::PCDDrawable();
 
-    first = true;
+    first_ = true;
 
     trace_->SetColor(kTraceColor);
     trace_icp_->SetColor(kTraceColorICP);
@@ -92,6 +97,11 @@ namespace rgb_depth_sync {
     glViewport(0, 0, w, h);
   }
 
+  void Scene::Reset() {
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  }
+
   void Scene::Render(const glm::mat4& tango_pose,
                      const glm::mat4& point_cloud_transformation,
                      const std::vector<float>& point_cloud_data,
@@ -100,7 +110,7 @@ namespace rgb_depth_sync {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glm::vec3 position =
@@ -134,11 +144,22 @@ namespace rgb_depth_sync {
     trace_icp_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
     grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());*/
 
-    pcd_drawable_->Render(gesture_camera_->GetProjectionMatrix(),
-                          gesture_camera_->GetViewMatrix(),
-                          point_cloud_transformation,
-                          point_cloud_data,
-                          rgb_data);
+    if (point_cloud_data.size() > 0 && rgb_data.size() > 0) {
+      pcd_drawable_->Render(gesture_camera_->GetProjectionMatrix(),
+                            gesture_camera_->GetViewMatrix(),
+                            point_cloud_transformation,
+                            point_cloud_data,
+                            rgb_data);
+    }
+    /*if (first_) {
+      glm::mat4 mvp_mat = tango_pose;
+      //cube_->SetInitPosition(glm::inverse(tango_pose));
+      cube_->SetTransformationMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0, -0.3, -0.6f)));
+      first_ = false;
+    }
+
+    cube_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());*/
+
     //glDisable(GL_DEPTH_TEST);
   }
 

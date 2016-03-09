@@ -190,12 +190,15 @@ namespace rgb_depth_sync {
     LOGE("depth camera cy: %f", color_camera_intrinsics.cy);*/
 
     pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
-    pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_, xyz_manager_, yuv_manager_);
 
+    pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_, xyz_manager_, yuv_manager_);
     std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
     pcd_worker_thread.detach();
+    pcd_worker_->Start();
 
     slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
+    std::thread slam_thread(&rgb_depth_sync::Slam3D::OnPCDAvailable, slam_);
+    slam_thread.detach();
 
     pose_data_ = PoseData::GetInstance();
     pose_data_->SetColorCameraIntrinsics(color_camera_intrinsics);
@@ -327,68 +330,14 @@ namespace rgb_depth_sync {
 
   void SynchronizationApplication::Render() {
 
-    if (!(*optimize_poses_process_started_)) {
+    LOGE("RENDER thread");
+    glm::mat4 curr_pose = pose_data_->GetLatestPoseMatrix();
+    std::vector<float> xyz = pcd_container_->GetXYZValues(glm::inverse(curr_pose));
+    std::vector<uint8_t> rgb = pcd_container_->GetRGBValues();
+    LOGE("SIZE rgb %i, xyz %i", rgb.size(), xyz.size());
+    pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
+    scene_->Render(pose_, pose_, xyz, rgb);
 
-      curr_index_ = pcd_container_->GetPCDContainerLastIndex();
-
-      glm::mat4 curr_pose = pose_data_->GetLatestPoseMatrix();
-      std::vector<float> xyz = pcd_container_->GetXYZValues(glm::inverse(curr_pose));
-      std::vector<uint8_t> rgb = pcd_container_->GetRGBValues();
-
-      bool newData = true;
-      /*if (curr_index_ == prev_index_) {
-        newData = false;
-        //LOGE("NO new data");
-        if (xyz.size() > 0 && rgb.size() > 0) {
-          /*pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
-          main_scene_.Render(pose_, pose_, xyz, rgb, newData);
-          if (first_index_) {
-            first_index_ = false;
-          }
-        }
-      } else {*/
-        //LOGE("YES new data");
-        if (xyz.size() > 0 && rgb.size() > 0) {
-          pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
-          //LOGE("size: %i", xyz.size());
-          scene_->Render(pose_, pose_, xyz, rgb);
-          if (first_index_) {
-            first_index_ = false;
-          }
-        }
-      //}
-
-      if (!first_index_) {
-        prev_index_ = curr_index_;
-      }
-
-      /*icp_ = glm::mat4();
-      /*std::vector<float> xyz;
-      std::vector<uint8_t> rgb;
-      glm::mat4 ss_T_device;
-      pcd_container_->GetXYZRGBValues(&xyz, &rgb, &ss_T_device);
-
-      glm::mat4 opengl_T_device = conversion_->OpenGL_T_Device(ss_T_device);
-      glm::mat4 opengl_T_device_T_opengl_camera = conversion_->OpenGL_T_device_T_OpenGLCamera(ss_T_device);
-
-      if (xyz.size() > 0 && rgb.size() > 0) {
-        scene_->Render(opengl_T_device,
-                       opengl_T_device_T_opengl_camera,
-                       icp_,
-                       xyz,
-                       rgb);
-      }
-      int index = pcd_container_->GetPCDContainerLastIndex();
-      if (index >= 0) {
-        pcd_ = (*(pcd_container_->GetPCDContainer()))[index];
-        if (pcd_ != nullptr) {
-          scene_->Render(pcd_->GetOpenGL_T_OpenGLCameraPose(),
-                         pcd_->GetOpenGL_T_RGB(), icp_,
-                         pcd_->GetXYZValues(),
-                         pcd_->GetRGBValues());
-        }
-      }*/
-    }
   }
 
   void SynchronizationApplication::OptimizePoseGraph(bool on) {
@@ -401,24 +350,45 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::StartPCD(bool on) {
-    if(on && !start_pcd_) {
-      start_pcd_ = true;
+    if(on) {
+      //scene_->Reset();
       // reset pcd_container data
+      pcd_worker_->Stop();
+      LOGE("stop PCD worker");
+      slam_->Stop();
+      LOGE("stop SLAM");
+
+      while(pcd_worker_->IsRunning()) {
+        LOGE("pcd_worker is still running");
+      }
+
+      while(slam_->IsRunning()) {
+        LOGE("slam is still running");
+      }
+
       pcd_container_->ResetPCD();
+
+
+      LOGE("Reset PCD container");
+      pcd_worker_->Start();
+      LOGE("Start PCD worker");
+
+      slam_->Reset();
+      LOGE("Reset SLAM");
       // start slam thread with loop closure detection
-      slam_->StartOnFrameAvailableThread();
-      std::thread slam_thread(&rgb_depth_sync::Slam3D::OnPCDAvailable, slam_);
-      slam_thread.detach();
+      slam_->Start();
+      LOGE("Start SLAM");
       LOGE("START PCD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
     }
   }
 
   void SynchronizationApplication::StopPCD(bool on) {
-    if(on && start_pcd_) {
+    if(on) {
       // start slam thread with loop closure detection
-      slam_->StopOnFrameAvailableThread();
-      start_pcd_ = false;
-      pcd_worker_->StopPCDWorker();
+      pcd_worker_->Stop();
+      LOGE("stop PCD worker");
+      slam_->Stop();
+      LOGE("stop SLAM");
       LOGE("STOP PCD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
     }
   }

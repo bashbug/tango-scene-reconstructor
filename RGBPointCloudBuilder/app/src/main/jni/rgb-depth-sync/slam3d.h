@@ -46,11 +46,13 @@ namespace rgb_depth_sync {
       g2o::VertexSE3* GetNode(int id);
       Eigen::Isometry3f GetPose(int id);
       void OptimizeGraph();
-      void StartOnFrameAvailableThread();
-      void StopOnFrameAvailableThread();
+      void Start();
+      void Reset();
+      void Stop();
       std::vector<Eigen::Isometry3f, Eigen::aligned_allocator<Eigen::Isometry3f> > GetPoses();
       void SaveGraph();
-      int OnPCDAvailable();
+      void OnPCDAvailable();
+      bool IsRunning();
     private:
       LoopClosureDetector* loop_closure_detector_;
       g2o::SparseOptimizer* optimizer_;
@@ -69,6 +71,7 @@ namespace rgb_depth_sync {
       std::shared_ptr<std::mutex> pcd_mtx_;
       std::shared_ptr<std::condition_variable> consume_pcd_;
       std::shared_ptr<std::atomic<bool>> optimize_poses_process_started_;
+      bool is_running_;
   };
 }
 

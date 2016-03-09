@@ -23,7 +23,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -40,8 +42,11 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,6 +80,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt;
 
     private boolean mIsConnectedService = false;
+
+    private ToggleButton mStartAndStopButton;
 
     private static final String TAG = "RGBDepthSync";
 
@@ -129,9 +136,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.third_person_button).setOnClickListener(this);
         //findViewById(R.id.top_down_button).setOnClickListener(this);
 
-        findViewById(R.id.start_pcd_button).setOnClickListener(this);
-        findViewById(R.id.stop_pcd_button).setOnClickListener(this);
+        mStartAndStopButton = (ToggleButton) findViewById(R.id.start_stop_button);
+
         findViewById(R.id.save_pcd_button).setOnClickListener(this);
+
+        // start and stop recording point clouds
+        //mStartStopButton = (RadioButton) findViewById(R.id.start_stop_button);
+        /*mStartStopButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (mStartStopButton.isChecked()) {
+                    JNIInterface.startPCD(true);
+                } else {
+                    JNIInterface.stopPCD(true);
+                }
+            }
+        });*/
 
         // Button to start the pose optimization thread
         findViewById(R.id.optimize_pose_graph_button).setOnClickListener(this);
@@ -221,8 +240,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    public void onToggleClick(View v) {
+        if (mStartAndStopButton.isChecked()) {
+            JNIInterface.startPCD(true);
+            Log.e(TAG, "is checked");
+        } else {
+            JNIInterface.stopPCD(true);
+            Log.e(TAG, "is NOT checked");
+        }
+    }
+
     @Override
     public void onClick(View v) {
+
         switch (v.getId()) {
             case R.id.first_person_button:
                 JNIInterface.setCamera(0);
@@ -230,17 +260,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.third_person_button:
                 JNIInterface.setCamera(1);
                 break;
-            /*case R.id.top_down_button:
-                JNIInterface.setCamera(2);
-                break;*/
             case R.id.optimize_pose_graph_button:
                 JNIInterface.optimizePoseGraph(true);
-                break;
-            case R.id.start_pcd_button:
-                JNIInterface.startPCD(true);
-                break;
-            case R.id.stop_pcd_button:
-                JNIInterface.stopPCD(true);
                 break;
             case R.id.save_pcd_button:
                 JNIInterface.savePCD(true);

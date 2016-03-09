@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/values/colors.xml -->
+    <eat-comment/>
+    <color name="apptheme_color">#ff4444</color>
     <!-- From: file:/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/res/values/dimens.xml -->
     <eat-comment/>
     <dimen name="activity_horizontal_margin">16dp</dimen>
@@ -25,5 +28,14 @@
     <style name="AppTheme" parent="android:Theme.Holo.Light">
         <item name="android:windowActionBar">false</item>
         <item name="android:windowNoTitle">true</item>
+    </style>
+    <style name="Widget.Button.Toggle" parent="android:Widget">
+        <item name="android:background">@drawable/apptheme_btn_radio_holo_light</item>
+        <item name="android:disabledAlpha">?android:attr/disabledAlpha</item>
+    </style>
+    <style name="toggleButton" parent="android:Theme.Holo.Light">
+        <item name="android:buttonStyleToggle">@style/Widget.Button.Toggle</item>
+        <item name="android:textOn"/>
+        <item name="android:textOff"/>
     </style>
 </resources>
