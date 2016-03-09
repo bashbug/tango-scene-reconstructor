@@ -21,7 +21,7 @@ This project is based on the samples from the Google Tango API. You can find it 
 
 **Loop Closure Detection**
 - Heuristik: Frames with a certain distance will matched. 
-- The matching process (point-to-plane ICP) returns a relative transformation.
+- The matching process (point-to-plane ICP) returns a relative transformation (used ICP is not open source).
 
 **Optimize Poses**
 - Create a pose graph with tango and loop closure poses.
