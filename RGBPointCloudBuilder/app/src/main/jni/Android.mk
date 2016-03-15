@@ -83,6 +83,11 @@ LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_filters.a
 include $(PREBUILT_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_sample_consensus-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_sample_consensus.a
+include $(PREBUILT_STATIC_LIBRARY)
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := libpcl_registration-static
 LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_registration.a
 include $(PREBUILT_STATIC_LIBRARY)
@@ -155,9 +160,10 @@ LOCAL_STATIC_LIBRARIES += libboost_thread-static
 LOCAL_STATIC_LIBRARIES += libpcl_io-static
 LOCAL_STATIC_LIBRARIES += libpcl_io_ply-static
 LOCAL_STATIC_LIBRARIES += libpcl_common-static
-LOCAL_STATIC_LIBRARIES += libpcl_kdtree-static
 LOCAL_STATIC_LIBRARIES += libpcl_search-static
+LOCAL_STATIC_LIBRARIES += libpcl_kdtree-static
 LOCAL_STATIC_LIBRARIES += libpcl_filters-static
+#LOCAL_STATIC_LIBRARIES += libpcl_sample_consensus-static
 LOCAL_STATIC_LIBRARIES += libpcl_registration-static
 
 LOCAL_SHARED_LIBRARIES += tango_client_api tango_support_api
@@ -173,10 +179,10 @@ LOCAL_CFLAGS    += -std=c++11 -frtti -fexceptions -fopenmp -w
 
 LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-gl/include \
                     $(PROJECT_ROOT)/third-party/glm/ \
-                    $(PROJECT_ROOT)/third-party/eigen/ \
+                    $(PROJECT_ROOT)/third-party/Eigen/ \
                     $(BOOST_ROOT)/include/ \
                     $(FLANN_ROOT)/include/ \
-                    $(PCL_ROOT)/include/pcl-1.6/ \
+                    $(PCL_ROOT)/include/ \
                     $(PROJECT_ROOT)/third-party/g2o/ \
                     $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/
 

@@ -18,7 +18,7 @@
 #define RGB_DEPTH_SYNC_APPLICATION_H_
 
 #include <tango_support_api.h>
-#include <pcl/point_types.h>
+/*#include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
@@ -29,7 +29,7 @@
 #include <boost/make_shared.hpp>
 #include <pcl/impl/instantiate.hpp>
 #include <pcl/ros/conversions.h>
-#include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/voxel_grid.h>*/
 
 #include <mutex>
 #include <condition_variable>

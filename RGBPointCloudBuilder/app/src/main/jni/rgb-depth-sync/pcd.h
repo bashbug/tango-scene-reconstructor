@@ -10,6 +10,7 @@
 #include <tango-gl/util.h>
 #include <tango_client_api.h>
 #include <pcl/point_types.h>
+#include "pcl/point_cloud.h"
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
 #include <opencv2/opencv.hpp>
@@ -39,6 +40,7 @@ namespace rgb_depth_sync {
     void SetFrame(const cv::Mat& frame);
     std::vector<float> GetXYZValuesTSS();
     std::vector<float> GetPCD();
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetPointCloud();
     std::vector<cv::KeyPoint> GetFrameKeyPoints();
     cv::Mat GetFrameDescriptors();
     cv::Mat GetFrame();
@@ -56,6 +58,7 @@ namespace rgb_depth_sync {
     std::vector<cv::KeyPoint> frame_key_points_;
     cv::Mat frame_descriptors_;
     cv::Mat frame_;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_;
   };
 } // namespace rgb_depth_sync
 

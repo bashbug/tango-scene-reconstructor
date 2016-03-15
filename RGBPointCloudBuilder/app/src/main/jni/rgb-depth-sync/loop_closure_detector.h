@@ -7,8 +7,10 @@
 #include <Eigen/Geometry>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
-#include "opencv2/core/core.hpp"
-#include "opencv2/features2d/features2d.hpp"
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
+#include <pcl/point_types.h>
+#include <pcl/registration/icp.h>
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/scan_matcher.h"
 
@@ -18,6 +20,7 @@ namespace rgb_depth_sync {
     float distance;
     int id;
     bool fm = false;
+    int no_matches = 0;
     bool operator < (const NeighborWithDistance& other) const { return distance < other.distance; }
   };
 
@@ -29,6 +32,9 @@ namespace rgb_depth_sync {
     LoopClosureDetector(PCDContainer* pcd_container);
     ~LoopClosureDetector();
     void Compute(int lastIndex);
+    void Compute2(int lastIndex);
+    void ComputeAll(int lastIndex);
+    void ComputeAllPCL(int lastIndex);
     void GetLoopClosurePoses(std::map<key, value>** loop_closure_poses);
 
   private:

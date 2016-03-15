@@ -3,6 +3,7 @@
 namespace rgb_depth_sync {
 
   PCD::PCD() {
+    cloud_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
   }
 
   PCD::~PCD() {
@@ -44,11 +45,18 @@ namespace rgb_depth_sync {
     translation_ = util::GetTranslationFromMatrix(pose_);
     rotation_ = util::GetRotationFromMatrix(pose_);
 
+    cloud_->sensor_origin_[0] = translation_[0];
+    cloud_->sensor_origin_[1] = translation_[1];
+    cloud_->sensor_origin_[2] = translation_[2];
+
+    cloud_->sensor_orientation_ = Eigen::Quaternionf(rotation_[0], rotation_[1], rotation_[2], rotation_[3]);
+
     size_t xyz_size = xyz.size();
     size_t rgb_size = rgb.size();
 
     for (int i = 0; i < xyz_size; i++) {
       int pixel_x, pixel_y;
+      pcl::PointXYZRGB p;
 
       // transform depth point to color frame
       glm::vec3 color_point = glm::vec3(color_T_depth * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
@@ -75,6 +83,14 @@ namespace rgb_depth_sync {
       if (index * 3 + 2 >= rgb_size)
         continue;
 
+      p.x = color_point.x;
+      p.y = color_point.y;
+      p.z = color_point.z;
+      p.r = rgb[index * 3];
+      p.g = rgb[index * 3 + 1];
+      p.b = rgb[index * 3 + 2];
+      cloud_->points.push_back(p);
+
       xyz_values_color_camera_.push_back(color_point.x);
       xyz_values_color_camera_.push_back(color_point.y);
       xyz_values_color_camera_.push_back(color_point.z);
@@ -96,6 +112,8 @@ namespace rgb_depth_sync {
 
       pcd_.push_back(*reinterpret_cast<float *>(&tmp));
     }
+    cloud_->height = 1;
+    cloud_->width = cloud_->points.size();
   }
 
   std::vector<float> PCD::GetXYZValues() {
@@ -124,6 +142,10 @@ namespace rgb_depth_sync {
 
   std::vector<float> PCD::GetPCD() {
     return pcd_;
+  }
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr PCD::GetPointCloud() {
+    return cloud_;
   }
 
   std::vector<cv::KeyPoint> PCD::GetFrameKeyPoints() {

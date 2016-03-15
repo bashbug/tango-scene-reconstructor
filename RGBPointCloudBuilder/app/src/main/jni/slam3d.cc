@@ -107,7 +107,7 @@ namespace rgb_depth_sync {
           }
 
           // search for loop closures
-          loop_closure_detector_->Compute(lastIndex);
+          //loop_closure_detector_->Compute2(lastIndex);
         }
         is_running_ = false;
       }
@@ -177,6 +177,10 @@ namespace rgb_depth_sync {
   void Slam3D::OptimizeGraph() {
     LOGE("optimiziation start...");
     optimize_poses_ = true;
+
+    int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+
+    loop_closure_detector_->ComputeAllPCL(lastIndex);
 
     // Add all loop closure poses to the graph
     loop_closure_detector_->GetLoopClosurePoses(&loop_closure_poses_);

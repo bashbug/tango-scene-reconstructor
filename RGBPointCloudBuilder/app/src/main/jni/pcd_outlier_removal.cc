@@ -22,7 +22,11 @@ namespace rgb_depth_sync {
 
     // copy xyz float array to cv matrix of Point3f values
     for(int i = 0; i < all_points.size(); i+=3) {
-      if(all_points[i+2] > max_range || all_points[i+2] < min_range) {
+      /*if(all_points[i+2] > max_range || all_points[i+2] < min_range) {
+        continue;
+      }*/
+
+      if(all_points[i+2] > max_range) {
         continue;
       }
       // remove nan points
@@ -43,6 +47,7 @@ namespace rgb_depth_sync {
 
     if (cloud->points.size() == 0)
       return cloud_filtered->points;
+
     pcl::StatisticalOutlierRemoval<pcl::PointXYZ> sor;
     sor.setInputCloud(cloud);
     sor.setMeanK(radius);

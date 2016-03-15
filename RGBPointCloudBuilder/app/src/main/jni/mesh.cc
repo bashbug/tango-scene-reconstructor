@@ -10,7 +10,8 @@ namespace rgb_depth_sync {
     p1 = 73856093;
     p2 = 19349669;
     p3 = 83492791;
-    hash_table_size_ = 400000;
+    hash_table_size_ = 200000;
+    resolution_ = 0.01f; // 1cm resolution
     is_running_ = false;
   }
 
@@ -62,6 +63,38 @@ namespace rgb_depth_sync {
     return xyz_values_transformed;
   }
 
+  /*typedef z_coord::iterator z_coord_iter;
+  typedef y_coord::iterator y_coord_iter;
+  typedef x_coord::iterator x_coord_iter;*/
+
+  /*std::vector<float> Mesh::GetXYZValues(glm::mat4 curr_pose) {
+
+    std::vector <float> xyz_values_transformed;
+    rgb_values_.clear();
+
+    {
+      std::lock_guard <std::mutex> lock(mesh_mtx_);
+      is_running_ = true;
+      if (map_.size() > 0) {
+        for(x_coord_iter x = map_.begin(); x != map_.end(); x++) {
+          for(y_coord_iter y = x->second.begin(); y!= x->second.end(); y++) {
+            for(z_coord_iter z = y->second.begin(); z!= y->second.end(); z++) {
+              glm::vec3 device_point = glm::vec3(curr_pose * glm::vec4 (z->second.x, z->second.y, z->second.z, 1.0f));
+              xyz_values_transformed.push_back(device_point.x);
+              xyz_values_transformed.push_back(device_point.y);
+              xyz_values_transformed.push_back(device_point.z);
+
+              rgb_values_.push_back(z->second.r);
+              rgb_values_.push_back(z->second.g);
+              rgb_values_.push_back(z->second.b);
+            }
+          }
+        }
+      }
+    }
+    return xyz_values_transformed;
+  }*/
+
   std::vector<uint8_t> Mesh::GetRGBValues() {
     return rgb_values_;
   }
@@ -82,6 +115,25 @@ namespace rgb_depth_sync {
         v.r = tmp_rgb[i];
         v.g = tmp_rgb[i + 1];
         v.b = tmp_rgb[i + 2];
+
+        /*float tmp_x = v.x / resolution_;
+        float tmp_y = v.y / resolution_;
+        float tmp_z = v.z / resolution_;*/
+
+        /*float tmp_x = v.x;
+        float tmp_y = v.y;
+        float tmp_z = v.z;
+
+        int key_x = *reinterpret_cast<int*>(&tmp_x);
+        int key_y = *reinterpret_cast<int*>(&tmp_y);
+        int key_z = *reinterpret_cast<int*>(&tmp_z);*/
+
+        /*int key_x = v.x / 0.000001;
+        int key_y = v.y / 0.000001;
+        int key_z = v.z / 0.000001;
+
+        map_[key_x][key_y][key_z] = v;*/
+
         int hesh = Hesh(v.x, v.y, v.z);
         point_cloud_[hesh] = v;
       }

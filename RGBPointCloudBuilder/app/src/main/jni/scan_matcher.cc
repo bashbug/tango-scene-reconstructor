@@ -34,7 +34,7 @@ namespace rgb_depth_sync {
     Eigen::Isometry3f sensorPose = Eigen::Isometry3f::Identity();
     SphericalProjectiveImage projective_image(angular_resolution_X, angular_resolution_Y, sensorPose, ProjectiveImage::CAMERA_FRAME);
 
-    projective_image.resizeImage(260, 260, 26, 26);
+    projective_image.resizeImage(260, 260, 0, 0);
 
     ProjectiveScanMatcher3d projective_scan_matcher;
 
@@ -43,7 +43,7 @@ namespace rgb_depth_sync {
     projective_scan_matcher.parameters.sourceImageStartStepSizeX = projective_scan_matcher.parameters.sourceImageStartStepSizeY = 2;
     projective_scan_matcher.parameters.maxDistanceStart = 0.2f;
     projective_scan_matcher.parameters.maxDistanceEnd = 0.02f;
-    projective_scan_matcher.parameters.numIterations = 100;
+    projective_scan_matcher.parameters.numIterations = 200;
     projective_scan_matcher.parameters.maxDistanceBetweenScans = 0.5;
 
     projective_image.setSensorPose(Eigen::Isometry3f::Identity());

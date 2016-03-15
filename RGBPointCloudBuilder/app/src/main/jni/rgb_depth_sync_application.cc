@@ -329,23 +329,26 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::Render() {
-
-    LOGE("RENDER thread");
     glm::mat4 curr_pose = pose_data_->GetLatestPoseMatrix();
     std::vector<float> xyz = pcd_container_->GetXYZValues(glm::inverse(curr_pose));
     std::vector<uint8_t> rgb = pcd_container_->GetRGBValues();
-    LOGE("SIZE rgb %i, xyz %i", rgb.size(), xyz.size());
     pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
+    //LOGE("Render : size %i", xyz.size());
     scene_->Render(pose_, pose_, xyz, rgb);
-
   }
 
   void SynchronizationApplication::OptimizePoseGraph(bool on) {
     if (on) {
+      pcd_worker_->Stop();
+      while(pcd_worker_->IsRunning()) {
+        //LOGE("pcd_worker is still running");
+      }
+      SavePCD(true);
       optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(true);
       std::thread slam_thread(&rgb_depth_sync::Slam3D::OptimizeGraph, slam_);
-      slam_thread.detach();
+      slam_thread.join();
       pcd_container_optimized_ = true;
+      SavePCD(true);
     }
   }
 
@@ -359,11 +362,11 @@ namespace rgb_depth_sync {
       LOGE("stop SLAM");
 
       while(pcd_worker_->IsRunning()) {
-        LOGE("pcd_worker is still running");
+        //LOGE("pcd_worker is still running");
       }
 
       while(slam_->IsRunning()) {
-        LOGE("slam is still running");
+        //LOGE("slam is still running");
       }
 
       pcd_container_->ResetPCD();

@@ -39,6 +39,14 @@ namespace rgb_depth_sync {
     uint8_t r, g, b;
   };
 
+  typedef std::map<int , Voxel> z_coord;
+  typedef std::map<int, z_coord> y_coord;
+  typedef std::map<int, y_coord> x_coord;
+
+  typedef z_coord::iterator z_coord_iter;
+  typedef y_coord::iterator y_coord_iter;
+  typedef x_coord::iterator x_coord_iter;
+
   class Mesh {
     public:
       Mesh();
@@ -53,10 +61,12 @@ namespace rgb_depth_sync {
       std::vector<float> xyz_values_;
       std::vector<uint8_t> rgb_values_;
       std::map<int, Voxel> point_cloud_;
+      std::map<int, std::map<int, std::map<int, Voxel> > > map_;
       bool first_;
       int p1, p2, p3;
       int hash_table_size_;
       bool is_running_;
+      int resolution_;
       std::mutex mesh_mtx_;
   };
 }

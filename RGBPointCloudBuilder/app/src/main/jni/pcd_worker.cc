@@ -81,7 +81,7 @@ namespace rgb_depth_sync {
               diff = (std::clock() - start_1) / (double)(CLOCKS_PER_SEC / 1000);
               LOGE("RGBD sync -------------- time %i", diff);
             }
-            if (pcd->GetPCD().size() > 0) {
+            if (pcd->GetPCD().size() > 600) {
               cv::Size size(320, 180);
               cv::cvtColor(rgb_frame_, gray_frame_, CV_RGB2GRAY);
               cv::resize(gray_frame_, gray_frame_320x180_, size);
@@ -94,6 +94,8 @@ namespace rgb_depth_sync {
               diff = (std::clock() - start_2) / (double)(CLOCKS_PER_SEC / 1000);
               LOGE("Features detection  ---- time %i", diff);
               pcd_container_->AddPCD(pcd);
+            } else {
+              LOGE("PCD < 600 points");
             }
           }
           is_running_ = false;

@@ -77,7 +77,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private Point mScreenSize;
 
-    File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt;
+    File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt, mFileDirectionGraph;
 
     private boolean mIsConnectedService = false;
 
@@ -166,6 +166,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mFileDirectionPPM = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PPM");
 
+        mFileDirectionGraph = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/Graph");
+
         /*if (mFileDirectionPCD.isDirectory()) {
             String deleteCmd = "rm -r " + mFileDirectionPCD;
             Runtime runtime = Runtime.getRuntime();
@@ -208,6 +211,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mFileDirectionPPM.mkdirs();
             Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not exists");
         }
+        if(!mFileDirectionGraph.isDirectory()) {
+            mFileDirectionGraph.mkdirs();
+            Log.i(TAG, "RGBPointCloudBuilder/Graph Directory not exists");
+        }
         if (!mFileDirectionPCD.isDirectory()) {
             Log.i(TAG, "RGBPointCloudBuilder/PCD Directory not created");
         }
@@ -216,6 +223,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
         if (!mFileDirectionPPM.isDirectory()) {
             Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not created");
+        }
+        if (!mFileDirectionGraph.isDirectory()) {
+            Log.i(TAG, "RGBPointCloudBuilder/Graph Directory not created");
         }
     }
 
