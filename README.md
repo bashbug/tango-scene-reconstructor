@@ -4,7 +4,7 @@ This project is based on the samples from the Google Tango API. You can find it 
 
 ### Requirements
 - android ndk r10e
-- pcl 1.6
+- pcl 1.8
 - opencv 3.1.0
 - g2o
 
