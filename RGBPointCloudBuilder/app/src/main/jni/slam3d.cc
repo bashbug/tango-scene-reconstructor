@@ -180,7 +180,7 @@ namespace rgb_depth_sync {
 
     int lastIndex = pcd_container_->GetPCDContainerLastIndex();
 
-    loop_closure_detector_->ComputeAllPCL(lastIndex);
+    loop_closure_detector_->ComputeAllSM(lastIndex);
 
     // Add all loop closure poses to the graph
     loop_closure_detector_->GetLoopClosurePoses(&loop_closure_poses_);

@@ -25,123 +25,45 @@
 
 namespace rgb_depth_sync {
 
-// PoseData holds all pose related data. E.g. pose position, rotation and time-
-// stamp. It also produce the debug information strings.
   class PoseData {
     public:
       static PoseData* GetInstance();
-
-      // Update current pose and previous pose.
-      //
-      // @param pose: pose data of current frame.
       void UpdatePose(const TangoPoseData* pose_data);
-
-      // Compose the pose debug string.
-      //
-      // @return: pose debug strings for dispaly on Java activity.
-      std::string GetPoseDebugString();
-
-      // Get latest pose in matrix format with extrinsics in OpenGl space.
-      //
-      // @return: latest pose in matrix format.
-      glm::mat4 GetLatestPoseMatrix();
-
-      glm::mat4 GetPoseAtTime(double timestamp);
-
-      // @return: device frame with respect to IMU frame matrix.
-      glm::mat4 GetImuTDevice() { return imu_T_device_; }
-
-      // Set device frame with respect to IMU frame matrix.
-      // @param: imu_T_device, imu_T_device_ matrix.
-      void SetImuTDevice(const glm::mat4& imu_T_device) {
-        imu_T_device_ = imu_T_device;
-      }
-
-      // @return: depth camera frame with respect to IMU frame.
-      glm::mat4 GetImuTDepthCamera() { return imu_T_depth_camera_; }
-
-      // Set depth camera frame with respect to IMU frame matrix.
-      // @param: imu_T_color_camera, imu_T_color_camera_ matrix.
-      void SetImuTDepthCamera(const glm::mat4& imu_T_depth_camera) {
-        imu_T_depth_camera_ = imu_T_depth_camera;
-      }
-
-      void SetImuTColorCamera(const glm::mat4& imu_T_color) {
-        imu_T_color_camera_ = imu_T_color;
-      }
-
-      void SetDeviceTColorCamera(const glm::mat4& device_T_color) {
-        device_T_color_camera_ = device_T_color;
-      }
-
-      void SetDeviceTDepthCamera(const glm::mat4& device_T_depth) {
-        device_T_depth_camera_ = device_T_depth;
-      }
-
-      void SetColorCameraTDevice(const glm::mat4& color_T_device) {
-        color_camera_T_device_ = color_T_device;
-      }
-
+      void SetImuTDevice(const glm::mat4& imu_T_device);
+      void SetImuTDepthCamera(const glm::mat4& imu_T_depth_camera);
+      void SetImuTColorCamera(const glm::mat4& imu_T_color);
+      void SetDeviceTColorCamera(const glm::mat4& device_T_color);
+      void SetDeviceTDepthCamera(const glm::mat4& device_T_depth);
+      void SetColorCameraTDevice(const glm::mat4& color_T_device);
       void SetColorCameraIntrinsics(TangoCameraIntrinsics color_camera_intrinsics);
-
       TangoCameraIntrinsics GetColorCameraIntrinsics();
-
+      std::string GetPoseDebugString();
+      glm::mat4 GetLatestPoseMatrix();
+      glm::mat4 GetPoseAtTime(double timestamp);
+      glm::mat4 GetImuTDevice();
+      glm::mat4 GetImuTDepthCamera();
       glm::mat4 GetSSTColorCamera(double timestamp);
       glm::mat4 GetSSTDepthCamera(double timestamp);
       glm::mat4 GetColorCameraTDepthCamera(double color_timestamp, double depth_timestamp);
-
-      // Get pose transformation in OpenGL coordinate system. This function also
-      // applies sensor extrinsics transformation to the current pose.
-      //
-      // @param: pose, pose to be converted to matrix.
-      //
-      // @return: corresponding matrix of the pose data.
       glm::mat4 GetMatrixFromPose(const TangoPoseData& pose);
-
-      // Apply extrinsics and coordinate frame transformations to the matrix.
-      // This funciton will transform the passed in matrix into opengl world frame.
       glm::mat4 GetExtrinsicsAppliedOpenGLWorldFrame(const glm::mat4 pose_matrix);
 
     private:
       PoseData() {};
       PoseData(PoseData const&) {};
       void operator = (PoseData const&) {};
-      //void SetMatrices();
-
-      // Convert TangoPoseStatusType to string.
-      //
-      // @param: status, status code needs to be converted.
-      //
-      // @return: corresponding string based on status passed in.
       std::string GetStringFromStatusCode(TangoPoseStatusType status);
-
-      // Format the pose debug string based on current pose and previous pose data.
       void FormatPoseString();
-
-      // Device frame with respect to IMU frame.
       glm::mat4 imu_T_device_;
-
-      // Color camera frame with respect to IMU frame.
       glm::mat4 imu_T_depth_camera_;
-
       glm::mat4 device_T_color_camera_;
       glm::mat4 device_T_depth_camera_;
       glm::mat4 color_camera_T_device_;
       glm::mat4 imu_T_color_camera_;
-
-      // Pose data of current frame.
       TangoPoseData cur_pose_;
-
-      // prev_pose_, pose_counter_ and pose_debug_string_ are used for composing the
-      // debug string to display the useful information on screen.
       TangoPoseData prev_pose_;
-
       TangoCameraIntrinsics color_camera_intrinsics_;
-
-      // Debug pose string.
       std::string pose_string_;
-
-      // Pose counter for debug purpose.
       size_t pose_counter_;
   };
 }  // namespace tango_point_cloud

@@ -72,7 +72,7 @@ namespace rgb_depth_sync {
             //pcd->SetTangoXYZij(xyz_buffer_);
             // sync xyz and rgb
             std::clock_t start = std::clock();
-            std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25f, 1.0f, 10);
+            std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25f, 1.5f, 10);
             int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
             LOGE("Outlier filtering  ----- time %i", diff);
             if (xyz_without_outliers.size() > 0) {

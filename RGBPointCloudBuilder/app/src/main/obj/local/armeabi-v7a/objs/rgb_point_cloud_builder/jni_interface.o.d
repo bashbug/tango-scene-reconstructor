@@ -887,6 +887,22 @@
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/convergence_criteria.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/impl/default_convergence_criteria.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/impl/icp.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/range_image/range_image.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/common_headers.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/norms.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/norms.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/angles.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/angles.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/file_io.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/file_io.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/vector_average.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/vector_average.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/range_image/impl/range_image.hpp \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/distances.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/transformation_validation_euclidean.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/transformation_validation.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/features/feature.h \
+ /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/impl/transformation_validation_euclidean.hpp \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scan_matcher.h \
  /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.h \
  /home/anastasia/android-ndk-r10e/sources/cxx-stl/gnu-libstdc++/4.9/include/tr1/memory \
@@ -2673,6 +2689,38 @@
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/impl/default_convergence_criteria.hpp:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/impl/icp.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/range_image/range_image.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/common_headers.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/norms.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/norms.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/angles.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/angles.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/file_io.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/file_io.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/vector_average.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/impl/vector_average.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/range_image/impl/range_image.hpp:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/common/distances.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/transformation_validation_euclidean.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/transformation_validation.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/features/feature.h:
+
+/home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/../../../../../third-party/pcl-android//include/pcl/registration/impl/transformation_validation_euclidean.hpp:
 
 /home/anastasia/Projects/TangoProject/RGBPointCloudBuilder/app/src/main/jni/rgb-depth-sync/scan_matcher.h:
 

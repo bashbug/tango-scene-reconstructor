@@ -4,6 +4,7 @@ namespace rgb_depth_sync {
 
   PCD::PCD() {
     cloud_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
+    pose_data_ = PoseData::GetInstance();
   }
 
   PCD::~PCD() {
@@ -35,7 +36,6 @@ namespace rgb_depth_sync {
     xyz_timestamp_ = xyz_timestamp;
     rgb_timestamp_ = rgb_timestamp;
 
-    PoseData* pose_data_ = PoseData::GetInstance();
     pose_ = pose_data_->GetSSTColorCamera(xyz_timestamp);  // ss_T_color
     TangoCameraIntrinsics color_camera_intrinsics = pose_data_->GetColorCameraIntrinsics();
 
@@ -49,19 +49,22 @@ namespace rgb_depth_sync {
     cloud_->sensor_origin_[1] = translation_[1];
     cloud_->sensor_origin_[2] = translation_[2];
 
-    cloud_->sensor_orientation_ = Eigen::Quaternionf(rotation_[0], rotation_[1], rotation_[2], rotation_[3]);
+    // Eigen::Quaternionf(w, x, y, z);
+    cloud_->sensor_orientation_ = Eigen::Quaternionf(rotation_.w, rotation_.x, rotation_.y, rotation_.z);
 
-    size_t xyz_size = xyz.size();
-    size_t rgb_size = rgb.size();
+    int xyz_size = xyz.size();
+    int rgb_size = rgb.size();
 
     for (int i = 0; i < xyz_size; i++) {
       int pixel_x, pixel_y;
       pcl::PointXYZRGB p;
 
       // transform depth point to color frame
-      glm::vec3 color_point = glm::vec3(color_T_depth * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
+      glm::vec3 color_point = glm::vec3(
+          color_T_depth * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
 
-      glm::vec3 ss_point = glm::vec3(pose_ * glm::vec4 (color_point.x, color_point.y, color_point.z, 1.0f));
+      glm::vec3 ss_point = glm::vec3(
+          pose_ * glm::vec4(color_point.x, color_point.y, color_point.z, 1.0f));
 
       pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx +
                                  color_camera_intrinsics.cx);
@@ -75,13 +78,16 @@ namespace rgb_depth_sync {
       pixel_y = static_cast<int>(xyz[i+1] / xyz[i+2] * color_camera_intrinsics.fy +
                                  color_camera_intrinsics.cy);*/
 
-      if (pixel_x < 0 || pixel_x > color_camera_intrinsics.width || pixel_y < 0 || pixel_y > color_camera_intrinsics.height)
+      if (pixel_x < 0 || pixel_x > color_camera_intrinsics.width || pixel_y < 0 ||
+                                                                    pixel_y > color_camera_intrinsics.height) {
         continue;
+      }
 
-      size_t index = pixel_x + pixel_y * color_camera_intrinsics.width;
+
+      int index = pixel_x + pixel_y * color_camera_intrinsics.width;
 
       if (index * 3 + 2 >= rgb_size)
-        continue;
+            continue;
 
       p.x = color_point.x;
       p.y = color_point.y;
@@ -107,11 +113,13 @@ namespace rgb_depth_sync {
       rgb_values_.push_back(rgb[index * 3 + 1]);
       rgb_values_.push_back(rgb[index * 3 + 2]);
 
-
-      uint32_t tmp = ((uint32_t) (rgb[index * 3])) << 16 | ((uint32_t) (rgb[index * 3 + 1])) << 8 | ((uint32_t) (rgb[index * 3 +2]));
+      uint32_t tmp =
+          ((uint32_t)(rgb[index * 3])) << 16 | ((uint32_t)(rgb[index * 3 + 1])) << 8 |
+          ((uint32_t)(rgb[index * 3 + 2]));
 
       pcd_.push_back(*reinterpret_cast<float *>(&tmp));
     }
+
     cloud_->height = 1;
     cloud_->width = cloud_->points.size();
   }

@@ -30,6 +30,30 @@ namespace rgb_depth_sync {
     return instance;
   }
 
+  void PoseData::SetImuTDevice(const glm::mat4& imu_T_device) {
+    imu_T_device_ = imu_T_device;
+  }
+
+  void PoseData::SetImuTDepthCamera(const glm::mat4& imu_T_depth_camera) {
+    imu_T_depth_camera_ = imu_T_depth_camera;
+  }
+
+  void PoseData::SetImuTColorCamera(const glm::mat4& imu_T_color) {
+    imu_T_color_camera_ = imu_T_color;
+  }
+
+  void PoseData::SetDeviceTColorCamera(const glm::mat4& device_T_color) {
+    device_T_color_camera_ = device_T_color;
+  }
+
+  void PoseData::SetDeviceTDepthCamera(const glm::mat4& device_T_depth) {
+    device_T_depth_camera_ = device_T_depth;
+  }
+
+  void PoseData::SetColorCameraTDevice(const glm::mat4& color_T_device) {
+    color_camera_T_device_ = color_T_device;
+  }
+
   void PoseData::UpdatePose(const TangoPoseData* pose_data) {
 
     if(pose_data->status_code == TANGO_POSE_VALID) {
@@ -47,21 +71,23 @@ namespace rgb_depth_sync {
     prev_pose_ = cur_pose_;
   }
 
-  std::string PoseData::GetPoseDebugString() { return pose_string_; }
+  std::string PoseData::GetPoseDebugString() {
+    return pose_string_;
+  }
 
   glm::mat4 PoseData::GetLatestPoseMatrix() {
     return GetMatrixFromPose(cur_pose_);
   }
 
   glm::mat4 PoseData::GetPoseAtTime(double timestamp) {
-
     TangoPoseData pose_ss_T_device;
     TangoCoordinateFramePair frame_pair;
     frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
     frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
     TangoService_getPoseAtTime(timestamp, frame_pair, &pose_ss_T_device);
+
     if(pose_ss_T_device.status_code != TANGO_POSE_VALID) {
-      LOGE("xyz pose invalid");
+      LOGE("ss_T_device pose invalid");
     }
 
     return GetMatrixFromPose(pose_ss_T_device);
@@ -73,6 +99,14 @@ namespace rgb_depth_sync {
 
   TangoCameraIntrinsics PoseData::GetColorCameraIntrinsics() {
     return color_camera_intrinsics_;
+  }
+
+  glm::mat4 PoseData::GetImuTDevice() {
+    return imu_T_device_;
+  }
+
+  glm::mat4 PoseData::GetImuTDepthCamera() {
+    return imu_T_depth_camera_;
   }
 
   glm::mat4 PoseData::GetSSTColorCamera(double timestamp) {

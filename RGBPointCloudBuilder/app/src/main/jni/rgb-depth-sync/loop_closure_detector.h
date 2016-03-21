@@ -11,6 +11,8 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <pcl/point_types.h>
 #include <pcl/registration/icp.h>
+#include <pcl/range_image/range_image.h>
+#include <pcl/registration/transformation_validation_euclidean.h>
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/scan_matcher.h"
 
@@ -35,6 +37,7 @@ namespace rgb_depth_sync {
     void Compute2(int lastIndex);
     void ComputeAll(int lastIndex);
     void ComputeAllPCL(int lastIndex);
+    void ComputeAllSM(int lastIndex);
     void GetLoopClosurePoses(std::map<key, value>** loop_closure_poses);
 
   private:

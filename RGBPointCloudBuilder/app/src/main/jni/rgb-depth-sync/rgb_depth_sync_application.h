@@ -170,6 +170,7 @@ namespace rgb_depth_sync {
       int curr_index_;
       int prev_index_;
       bool first_index_;
+      int point_cloud_count_;
       std::shared_ptr<std::mutex> xyz_mtx_;
       std::shared_ptr<std::condition_variable> consume_xyz_;
   };

@@ -51,6 +51,7 @@ namespace rgb_depth_sync {
     std::vector<float> pcd_;
     double xyz_timestamp_;
     double rgb_timestamp_;
+    PoseData* pose_data_;
     glm::mat4 pose_;
     glm::quat rotation_;
     glm::vec3 translation_;
