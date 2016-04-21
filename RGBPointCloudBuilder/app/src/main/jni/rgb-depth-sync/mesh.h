@@ -54,6 +54,9 @@ namespace rgb_depth_sync {
       std::vector<float> GetXYZValues(glm::mat4 curr_pose);
       std::vector<uint8_t> GetRGBValues();
       void AddPointCloud(PCD* pcd);
+      void AddPointCloudOptWithSM(PCD* pcd);
+      void AddPointCloudOptWithMSM(PCD* pcd);
+      void DownsampleMesh();
       bool Reset();
       bool IsRunning();
     private:
@@ -62,12 +65,14 @@ namespace rgb_depth_sync {
       std::vector<uint8_t> rgb_values_;
       std::map<int, Voxel> point_cloud_;
       std::map<int, std::map<int, std::map<int, Voxel> > > map_;
+
       bool first_;
       int p1, p2, p3;
       int hash_table_size_;
       bool is_running_;
       int resolution_;
       std::mutex mesh_mtx_;
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_mesh_;
   };
 }
 

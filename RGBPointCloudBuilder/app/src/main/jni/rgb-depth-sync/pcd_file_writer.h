@@ -22,7 +22,7 @@ namespace rgb_depth_sync {
       ~PCDFileWriter();
       void SetOrdered(int width, int height);
       void SetUnordered();
-      void SaveToFile(std::string dest_folder, int num);
+      void SaveToFile(const char* dest_folder, int num);
       void SaveToSocket(std::string addr, int port);
       void SetPCDRGBData(const std::vector<float> pcd,
                          const std::vector<float> translation,

@@ -17,20 +17,24 @@
 namespace rgb_depth_sync {
   class PCDContainer {
     public:
-      PCDContainer(std::shared_ptr<std::mutex> pcd_mtx,
-                   std::shared_ptr<std::condition_variable> consume_pcd);
+      PCDContainer();
       ~PCDContainer();
       void AddPCD(PCD *pcd);
       PCD* GetLatestPCD();
       int GetPCDContainerLastIndex();
       std::vector<float> GetXYZValues(glm::mat4 curr_pose);
       std::vector<uint8_t> GetRGBValues();
+      std::vector<float> GetXYZValuesOptWithSM(glm::mat4 curr_pose);
+      std::vector<float> GetXYZValuesOptWithMSM(glm::mat4 curr_pose);
+      std::vector<uint8_t> GetRGBOptWithSMValues();
+      std::vector<uint8_t> GetRGBOptWithMSMValues();
+      void OptimizeMesh();
       void ResetPCD();
       std::vector<PCD*> pcd_container_;
     private:
-      std::shared_ptr<std::mutex> pcd_mtx_;
-      std::shared_ptr<std::condition_variable> consume_pcd_;
       Mesh* mesh_;
+      Mesh* mesh_sm_;
+      Mesh* mesh_msm_;
   };
 } // namespace rgb_depth_sync
 

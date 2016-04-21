@@ -31,6 +31,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -44,12 +45,17 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SeekBar;
 import android.widget.Switch;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.widget.CheckBox;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Activity that load up the main screen of the app, this is the launcher activity.
@@ -77,13 +83,36 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private Point mScreenSize;
 
-    File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt, mFileDirectionGraph;
+    File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt, mFileDirectionPCD_opt_mf, mFileDirectionGraph;
+    String FolderName;
 
     private boolean mIsConnectedService = false;
 
     private ToggleButton mStartAndStopButton;
+    private SeekBar mRangeSeekbar;
+
+    private CheckBox mSMMeshCheckbox;
+    private CheckBox mMSMMeshCheckbox;
+    private CheckBox mUnOPTMeshCheckbox;
 
     private static final String TAG = "RGBDepthSync";
+
+    private class RangeSeekbarListener implements SeekBar.OnSeekBarChangeListener {
+        int minimumValue = 200;
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+            int progressChanged = minimumValue + progress;
+            JNIInterface.setRangeValue((float) progressChanged / (float) seekBar.getMax());
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {}
+
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {}
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,10 +131,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         int status = JNIInterface.tangoInitialize(this);
         if (status != TANGO_SUCCESS) {
           if (status == TANGO_INVALID) {
-            Toast.makeText(this, 
+            Toast.makeText(this,
               "Tango Service version mis-match", Toast.LENGTH_SHORT).show();
           } else {
-            Toast.makeText(this, 
+            Toast.makeText(this,
               "Tango Service initialize internal error",
               Toast.LENGTH_SHORT).show();
           }
@@ -157,11 +186,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         // Make sure that the directories exists before saving files. Otherwise it will
         // throw an exception
-        mFileDirectionPCD = new File(Environment.getExternalStoragePublicDirectory(
+        /*mFileDirectionPCD = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD");
 
         mFileDirectionPCD_opt = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD_opt");
+
+        mFileDirectionPCD_opt_mf = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD_opt_mf");
 
         mFileDirectionPPM = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PPM");
@@ -169,7 +201,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mFileDirectionGraph = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/Graph");
 
-        /*if (mFileDirectionPCD.isDirectory()) {
+        if (mFileDirectionPCD.isDirectory()) {
             String deleteCmd = "rm -r " + mFileDirectionPCD;
             Runtime runtime = Runtime.getRuntime();
             try {
@@ -197,7 +229,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
 
         if(!mFileDirectionPCD.isDirectory()) {
             mFileDirectionPCD.mkdirs();
@@ -206,6 +238,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if(!mFileDirectionPCD_opt.isDirectory()) {
             mFileDirectionPCD_opt.mkdirs();
             Log.i(TAG, "RGBPointCloudBuilder/PCD_opt Directory not exists");
+        }
+        if(!mFileDirectionPCD_opt_mf.isDirectory()) {
+            mFileDirectionPCD_opt_mf.mkdirs();
+            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt_mf Directory not exists");
         }
         if(!mFileDirectionPPM.isDirectory()) {
             mFileDirectionPPM.mkdirs();
@@ -221,12 +257,56 @@ public class MainActivity extends Activity implements View.OnClickListener {
         if (!mFileDirectionPCD_opt.isDirectory()) {
             Log.i(TAG, "RGBPointCloudBuilder/PCD_opt Directory not created");
         }
+        if (!mFileDirectionPCD_opt_mf.isDirectory()) {
+            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt_mf Directory not created");
+        }
         if (!mFileDirectionPPM.isDirectory()) {
             Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not created");
         }
         if (!mFileDirectionGraph.isDirectory()) {
             Log.i(TAG, "RGBPointCloudBuilder/Graph Directory not created");
-        }
+        }*/
+
+        mRangeSeekbar = (SeekBar) findViewById(R.id.range_seekbar);
+        mRangeSeekbar.setOnSeekBarChangeListener(new RangeSeekbarListener());
+
+        mSMMeshCheckbox = (CheckBox) findViewById(R.id.single_frame_opt_checkbox);
+        mSMMeshCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked) {
+                    mMSMMeshCheckbox.setChecked(false);
+                    mUnOPTMeshCheckbox.setChecked(false);
+                    JNIInterface.showSMMesh();
+                } else {
+                    mUnOPTMeshCheckbox.setChecked(true);
+                }
+            }
+        });
+
+        mMSMMeshCheckbox = (CheckBox) findViewById(R.id.multi_frame_opt_checkbox);
+        mMSMMeshCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked) {
+                    mSMMeshCheckbox.setChecked(false);
+                    mUnOPTMeshCheckbox.setChecked(false);
+                    JNIInterface.showMSMMesh();
+                } else {
+                    mUnOPTMeshCheckbox.setChecked(true);
+                }
+            }
+        });
+
+        mUnOPTMeshCheckbox = (CheckBox) findViewById(R.id.unopt_checkbox);
+        mUnOPTMeshCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
+                if (isChecked) {
+                    mSMMeshCheckbox.setChecked(false);
+                    mMSMMeshCheckbox.setChecked(false);
+                    JNIInterface.showUnOPTMesh();
+                }
+            }
+        });
+
     }
 
     @Override
@@ -252,10 +332,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void onToggleClick(View v) {
         if (mStartAndStopButton.isChecked()) {
-            JNIInterface.startPCD(true);
+            JNIInterface.startPCDWorker();
             Log.e(TAG, "is checked");
         } else {
-            JNIInterface.stopPCD(true);
+            JNIInterface.stopPCDWorker();
             Log.e(TAG, "is NOT checked");
         }
     }
@@ -271,10 +351,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 JNIInterface.setCamera(1);
                 break;
             case R.id.optimize_pose_graph_button:
-                JNIInterface.optimizePoseGraph(true);
+                JNIInterface.setCamera(1);
+                String date = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
+                FolderName = Environment.getExternalStorageDirectory().toString() + "/Documents/RGBPointCloudBuilder/" + date + "/";
+                Log.e(TAG, FolderName);
+                JNIInterface.optimizeAndSaveToFolder(FolderName);
                 break;
             case R.id.save_pcd_button:
-                JNIInterface.savePCD(true);
+                //JNIInterface.savePCD(true);
                 break;
             default:
                 Log.w(TAG, "Unrecognized button click.");
@@ -370,6 +454,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             Log.e(TAG, "Failed to extrinsics and intrinsics code: "  + ret);
             finish();
         }
+
+        //JNIInterface.setRangeValue(0.000001f);
 
         mIsConnectedService = true;
     }

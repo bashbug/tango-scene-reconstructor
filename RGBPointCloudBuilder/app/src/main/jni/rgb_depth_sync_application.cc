@@ -24,29 +24,28 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::OnFrameAvailable(const TangoImageBuffer* buffer) {
+      if (!optimize_) {
+        TangoPoseData ss_T_device_rgb_timestamp;
+        TangoCoordinateFramePair color_frame_pair;
+        color_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
+        color_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
 
-    if (!(*optimize_poses_process_started_)) {
-      TangoPoseData ss_T_device_rgb_timestamp;
-      TangoCoordinateFramePair color_frame_pair;
-      color_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
-      color_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
-      if (TangoService_getPoseAtTime(buffer->timestamp, color_frame_pair,
-                                     &ss_T_device_rgb_timestamp) !=
-          TANGO_SUCCESS) {
-        LOGE(
-            "SynchronizationApplication: Could not find a valid pose at time %lf"
-                " for the color camera.",
-            buffer->timestamp);
-      } else {
-        if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
-          TangoSupport_updateImageBuffer(yuv_manager_, buffer);
-          img_count_++;
+        if (TangoService_getPoseAtTime(buffer->timestamp, color_frame_pair,
+                                       &ss_T_device_rgb_timestamp) !=
+            TANGO_SUCCESS) {
+          LOGE(
+              "SynchronizationApplication: Could not find a valid pose at time %lf"
+                  " for the color camera.",
+              buffer->timestamp);
         } else {
-          LOGE("ss_T_device_rgb_timestamp pose not valid");
+          if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
+            TangoSupport_updateImageBuffer(yuv_manager_, buffer);
+            img_count_++;
+          } else {
+            LOGE("ss_T_device_rgb_timestamp pose not valid");
+          }
         }
       }
-    }
-
   }
 
   void OnXYZijAvailableRouter(void* context, const TangoXYZij* xyz_ij) {
@@ -55,33 +54,31 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
-    if (!(*optimize_poses_process_started_)) {
-      TangoPoseData ss_T_device_xyz_timestamp;
-      TangoCoordinateFramePair depth_frame_pair;
-      depth_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
-      depth_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
-      if (TangoService_getPoseAtTime(xyz_ij->timestamp, depth_frame_pair, &ss_T_device_xyz_timestamp) != TANGO_SUCCESS) {
-        LOGE("SynchronizationApplication: Could not find a valid pose at time %lf for the depth camera.",
-             xyz_ij->timestamp);
-      } else {
-        if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
-          TangoSupport_updatePointCloud(xyz_manager_, xyz_ij);
-          consume_xyz_->notify_one();
-          pcd_count_++;
+      if (!optimize_) {
+        TangoPoseData ss_T_device_xyz_timestamp;
+        TangoCoordinateFramePair depth_frame_pair;
+        depth_frame_pair.base = TANGO_COORDINATE_FRAME_START_OF_SERVICE;
+        depth_frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
+        if (TangoService_getPoseAtTime(xyz_ij->timestamp, depth_frame_pair, &ss_T_device_xyz_timestamp) != TANGO_SUCCESS) {
+          LOGE("SynchronizationApplication: Could not find a valid pose at time %lf for the depth camera.",
+               xyz_ij->timestamp);
         } else {
-          LOGE("ss_T_device_xyz_timestamp pose not valid");
+          if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
+            //std::unique_lock<std::mutex> lock(*xyz_mtx_);
+            TangoSupport_updatePointCloud(xyz_manager_, xyz_ij);
+            consume_xyz_->notify_one();
+            pcd_count_++;
+          } else {
+            LOGE("ss_T_device_xyz_timestamp pose not valid");
+          }
         }
       }
-    }
   }
 
-  // This function routes onPoseAvailable callbacks to the application object for
-// handling.
-//
-// @param context, context will be a pointer to a PointCloudApp
-//        instance on which to call callbacks.
-// @param pose, pose data to route to onPoseAvailable function.
-  void OnPoseAvailableRouter(void* context, const TangoPoseData* pose) {
+  void OnPoseAvailable  void SynchronizationApplication::SetSocket(std::string addr, int port) {
+    socket_addr_ = addr;
+    socket_port_ = port;
+  }Router(void* context, const TangoPoseData* pose) {
     SynchronizationApplication* app = static_cast<SynchronizationApplication*>(context);
     app->OnPoseAvailable(pose);
   }
@@ -99,9 +96,6 @@ namespace rgb_depth_sync {
   }
 
   int SynchronizationApplication::TangoInitialize(JNIEnv* env, jobject caller_activity) {
-    // The first thing we need to do for any Tango enabled application is to
-    // initialize the service. We'll do that here, passing on the JNI environment
-    // and jobject corresponding to the Android activity that is calling us.
     return TangoService_initialize(env, caller_activity);
   }
 
@@ -134,16 +128,11 @@ namespace rgb_depth_sync {
       return ret;
     }
 
-    // Note that it's super important for AR applications that we enable low
-    // latency imu integration so that we have pose information available as
-    // quickly as possible.
-    /*ret = TangoConfig_setBool(tango_config_, "config_enable_low_latency_imu_integration", true);
-    if (ret != TANGO_SUCCESS) {
-      LOGE("Failed to enable low latency imu integration.");
-      return ret;
-    }*/
+    show_sm_mesh_ = false;
+    show_msm_mesh_ = false;
+    show_unopt_mesh_ = false;
+    optimize_ = false;
 
-    optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(false);
     pcd_mtx_ = std::make_shared<std::mutex>();
     consume_pcd_ = std::make_shared<std::condition_variable>();
     xyz_mtx_ = std::make_shared<std::mutex>();
@@ -170,38 +159,23 @@ namespace rgb_depth_sync {
     pcd_count_ = 0;
     img_count_ = 0;
     pcd_container_optimized_ = false;
+    pcd_container_optimized_mf_ = false;
 
-    TangoCameraIntrinsics depth_camera_intrinsics;
-    TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
-    /*LOGE("depth camera width: %i", depth_camera_intrinsics.width);
-    LOGE("depth camera height: %i", depth_camera_intrinsics.height);
-    LOGE("depth camera fx: %f", depth_camera_intrinsics.fx);
-    LOGE("depth camera fy: %f", depth_camera_intrinsics.fy);
-    LOGE("depth camera cx: %f", depth_camera_intrinsics.cx);
-    LOGE("depth camera cy: %f", depth_camera_intrinsics.cy);*/
-
-    TangoCameraIntrinsics color_camera_intrinsics;
-    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
-    /*LOGE("depth camera width: %i", color_camera_intrinsics.width);
-    LOGE("depth camera height: %i", color_camera_intrinsics.height);
-    LOGE("depth camera fx: %f", color_camera_intrinsics.fx);
-    LOGE("depth camera fy: %f", color_camera_intrinsics.fy);
-    LOGE("depth camera cx: %f", color_camera_intrinsics.cx);
-    LOGE("depth camera cy: %f", color_camera_intrinsics.cy);*/
-
-    pcd_container_ = new rgb_depth_sync::PCDContainer(pcd_mtx_, consume_pcd_);
+    pcd_container_ = new rgb_depth_sync::PCDContainer();
 
     pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_, xyz_manager_, yuv_manager_);
     std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
     pcd_worker_thread.detach();
     pcd_worker_->Start();
 
-    slam_ = new rgb_depth_sync::Slam3D(pcd_container_, pcd_mtx_, consume_pcd_, optimize_poses_process_started_);
-    std::thread slam_thread(&rgb_depth_sync::Slam3D::OnPCDAvailable, slam_);
-    slam_thread.detach();
+    TangoCameraIntrinsics depth_camera_intrinsics;
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
+    TangoCameraIntrinsics color_camera_intrinsics;
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
 
     pose_data_ = PoseData::GetInstance();
     pose_data_->SetColorCameraIntrinsics(color_camera_intrinsics);
+    pose_data_->SetDepthCameraIntrinsics(depth_camera_intrinsics);
 
     return ret;
   }
@@ -252,10 +226,6 @@ namespace rgb_depth_sync {
     TangoPoseData pose_data;
     TangoCoordinateFramePair frame_pair;
 
-    // TangoService_getPoseAtTime function is used for query device extrinsics
-    // as well. We use timestamp 0.0 and the target frame pair to get the
-    // extrinsics from the sensors.
-    //
     // Get device with respect to imu transformation matrix.
     frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
     frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
@@ -329,132 +299,135 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::Render() {
-    glm::mat4 curr_pose = pose_data_->GetLatestPoseMatrix();
-    std::vector<float> xyz = pcd_container_->GetXYZValues(glm::inverse(curr_pose));
-    std::vector<uint8_t> rgb = pcd_container_->GetRGBValues();
-    pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(pose_data_->GetLatestPoseMatrix());
-    //LOGE("Render : size %i", xyz.size());
-    scene_->Render(pose_, pose_, xyz, rgb);
-  }
-
-  void SynchronizationApplication::OptimizePoseGraph(bool on) {
-    if (on) {
-      pcd_worker_->Stop();
-      while(pcd_worker_->IsRunning()) {
-        //LOGE("pcd_worker is still running");
-      }
-      SavePCD(true);
-      optimize_poses_process_started_ = std::make_shared<std::atomic<bool>>(true);
-      std::thread slam_thread(&rgb_depth_sync::Slam3D::OptimizeGraph, slam_);
-      slam_thread.join();
-      pcd_container_optimized_ = true;
-      SavePCD(true);
-    }
-  }
-
-  void SynchronizationApplication::StartPCD(bool on) {
-    if(on) {
-      //scene_->Reset();
-      // reset pcd_container data
-      pcd_worker_->Stop();
-      LOGE("stop PCD worker");
-      slam_->Stop();
-      LOGE("stop SLAM");
-
-      while(pcd_worker_->IsRunning()) {
-        //LOGE("pcd_worker is still running");
-      }
-
-      while(slam_->IsRunning()) {
-        //LOGE("slam is still running");
-      }
-
-      pcd_container_->ResetPCD();
-
-
-      LOGE("Reset PCD container");
-      pcd_worker_->Start();
-      LOGE("Start PCD worker");
-
-      slam_->Reset();
-      LOGE("Reset SLAM");
-      // start slam thread with loop closure detection
-      slam_->Start();
-      LOGE("Start SLAM");
-      LOGE("START PCD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
-    }
-  }
-
-  void SynchronizationApplication::StopPCD(bool on) {
-    if(on) {
-      // start slam thread with loop closure detection
-      pcd_worker_->Stop();
-      LOGE("stop PCD worker");
-      slam_->Stop();
-      LOGE("stop SLAM");
-      LOGE("STOP PCD pcd_counter: %i, img_counter: %i", pcd_count_, img_count_);
-    }
-  }
-
-  void SynchronizationApplication::SavePCD(bool on) {
-    if(on) {
-      /*boost::system::error_code* error;
-      boost::filesystem::path path = "/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/";
-      boost::filesystem::detail::status(path, error);
-
-      pcl::PointCloud<pcl::PointXYZRGB>::Ptr out (new pcl::PointCloud<pcl::PointXYZRGB>);
-      pcl::PointCloud<pcl::PointXYZRGB>::Ptr out_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
-      pcl::PointCloud<pcl::PointXYZRGB> trans;
-      int lastIndex = pcd_container_->GetPCDContainerLastIndex();*/
-
-      /*for (int i = 0; i < lastIndex; i++) {
-        pcl::transformPointCloud(*(*(pcd_container_->GetPCDContainer()))[i]->GetPCD(), trans, (*(pcd_container_->GetPCDContainer()))[i]->GetTransformationMatrix());
-        *out += trans;
-      }*/
-
-      //pcl::io::savePCDFileBinary("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_.PCD", *(pcd_container_->GetMergedPCD()));
-
-      /*pcl::VoxelGrid<pcl::PointXYZRGB> sor;
-      sor.setInputCloud (out);
-      sor.setLeafSize (0.001f, 0.001f, 0.001f);
-      sor.filter (*out_filtered);
-
-      pcl::io::savePCDFileBinary("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_f.PCD", *out_filtered);*/
-
-      //pcl::io::savePCDFile("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000.pcd", *(*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPCD());
-      /*pcl::PCDWriter writer;
-      writer.write<pcl::PointXYZRGB> ("/storage/emulated/0/Documents/RGBPointCloudBuilder/PCD/00000000_.pcd", *(*(pcd_container_->GetPCDContainer()))[lastIndex]->GetPCD());*/
-
-      PCDFileWriter pcd_file_writer;
-      IMGFileWriter img_file_writer;
-
-      int lastIndex = pcd_container_->GetPCDContainerLastIndex();
-
-      if (pcd_container_optimized_) {
-        for (int i = 0; i <= lastIndex; i++) {
-          pcd_file_writer.SetPCDRGBData(
-              pcd_container_->pcd_container_[i]->GetPCD(),
-              pcd_container_->pcd_container_[i]->GetTranslation(),
-              pcd_container_->pcd_container_[i]->GetRotation());
-          pcd_file_writer.SetUnordered();
-          // save files asynchron
-          pcd_file_writer.SaveToFile("PCD_opt", i);
-          // save img asynchron
-          //img_file_writer.SaveToFile(i, (*(pcd_container_->GetPCDContainer()))[i]->GetFrame());
-        }
+    if (!optimize_) {
+      curr_pose_ = pose_data_->GetLatestPoseMatrix();
+      xyz_buffer_.clear();
+      xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_));
+      rgb_buffer_.clear();
+      rgb_buffer_ = pcd_container_->GetRGBValues();
+      curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
+      scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
+    } else {
+      //LOGE("Render : size %i", xyz.size());
+      if (show_msm_mesh_) {
+        xyz_buffer_.clear();
+        xyz_buffer_ = pcd_container_->GetXYZValuesOptWithMSM(glm::inverse(curr_pose_));
+        rgb_buffer_.clear();
+        rgb_buffer_ = pcd_container_->GetRGBOptWithMSMValues();
+        curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
+        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
+        show_msm_mesh_ = false;
+      } else if (show_sm_mesh_) {
+        xyz_buffer_.clear();
+        xyz_buffer_ = pcd_container_->GetXYZValuesOptWithSM(glm::inverse(curr_pose_));
+        rgb_buffer_.clear();
+        rgb_buffer_ = pcd_container_->GetRGBOptWithSMValues();
+        curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
+        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
+        show_sm_mesh_ = false;
+      } else if (show_unopt_mesh_) {
+        xyz_buffer_.clear();
+        xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_));
+        rgb_buffer_.clear();
+        rgb_buffer_ = pcd_container_->GetRGBValues();
+        curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
+        //LOGE("Render : size %i", xyz.size());
+        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
+        show_unopt_mesh_ = false;
       } else {
-        for (int i = 0; i <= lastIndex; i++) {
-          pcd_file_writer.SetPCDRGBData(
-              pcd_container_->pcd_container_[i]->GetPCD(),
-              pcd_container_->pcd_container_[i]->GetTranslation(),
-              pcd_container_->pcd_container_[i]->GetRotation());
-          pcd_file_writer.SetUnordered();
-          // save files asynchron
-          pcd_file_writer.SaveToFile("PCD", i);
-          // save img asynchron
-          //img_file_writer.SaveToFile(i, (*(pcd_container_->GetPCDContainer()))[i]->GetFrame());
-        }
+        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
       }
+    }
+  }
+
+  void SynchronizationApplication::OptimizeAndSaveToFolder(std::string folder_name) {
+    StopPCDWorker();
+
+    optimize_ = true;
+    folder_name_ = folder_name;
+    CreateSubFolders(folder_name);
+
+    SavePCD(folder_name, "PCD/RAW/");
+
+    FrameToFrameScanMatcher ftfsm;
+    ftfsm.Init(pcd_container_);
+    ftfsm.Optimize();
+    SavePCD(folder_name, "PCD/FTFSM/");
+
+    MultiframeScanMatcher mfsm;
+    mfsm.Init(pcd_container_);
+    mfsm.Optimize();
+    SavePCD(folder_name, "PCD/MFSM/");
+
+    std::clock_t start = std::clock();
+    pcd_container_->OptimizeMesh();
+    int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+    show_msm_mesh_ = true;
+
+    LOGE("Build sm and msm mesh stops after %i ms", diff);
+  }
+
+  void SynchronizationApplication::CreateSubFolders(std::string folder_name) {
+    std::string dir_name = folder_name + "PCD/FTFSM";
+    boost::filesystem::path dir = dir_name.c_str();
+    boost::filesystem::create_directories(dir);
+    dir_name = folder_name + "PCD/MFSM";
+    dir = dir_name.c_str();
+    boost::filesystem::create_directories(dir);
+    dir_name = folder_name + "PCD/RAW";
+    dir = dir_name.c_str();
+    boost::filesystem::create_directories(dir);
+    dir_name = folder_name + "Mesh";
+    dir = dir_name.c_str();
+    boost::filesystem::create_directories(dir);
+  }
+
+  void SynchronizationApplication::StopPCDWorker() {
+    pcd_worker_->Stop();
+    LOGE("stop PCD worker");
+    while(pcd_worker_->IsRunning()) {
+      // wait until all processes finished
+    }
+  }
+
+  void SynchronizationApplication::StartPCDWorker() {
+    pcd_worker_->Stop();
+    LOGE("stop PCD worker");
+    while(pcd_worker_->IsRunning()) {
+      // wait until all processes finished
+    }
+    pcd_container_->ResetPCD();
+    pcd_worker_->Start();
+  }
+
+  void SynchronizationApplication::SavePCD(std::string folder_name, std::string subfolder_name) {
+    PCDFileWriter pcd_file_writer;
+
+    int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+
+    for (int i = 0; i <= lastIndex; i++) {
+      if (subfolder_name == "PCD/RAW/") {
+        pcd_file_writer.SetPCDRGBData(
+            pcd_container_->pcd_container_[i]->GetPCD(),
+            pcd_container_->pcd_container_[i]->GetTranslation(),
+            pcd_container_->pcd_container_[i]->GetRotation());
+      }
+      if (subfolder_name == "PCD/FTFSM/") {
+        pcd_file_writer.SetPCDRGBData(
+            pcd_container_->pcd_container_[i]->GetPCD(),
+            pcd_container_->pcd_container_[i]->GetTranslationSM(),
+            pcd_container_->pcd_container_[i]->GetRotationSM());
+      }
+      if (subfolder_name == "PCD/MFSM/") {
+        pcd_file_writer.SetPCDRGBData(
+            pcd_container_->pcd_container_[i]->GetPCD(),
+            pcd_container_->pcd_container_[i]->GetTranslationMSM(),
+            pcd_container_->pcd_container_[i]->GetRotationMSM());
+      }
+
+      std::string dir_path = folder_name + subfolder_name;
+      pcd_file_writer.SetUnordered();
+      pcd_file_writer.SaveToFile(dir_path.c_str(), i);
     }
   }
 
@@ -471,8 +444,30 @@ namespace rgb_depth_sync {
   void SynchronizationApplication::FreeGLContent() {
   }
 
-  void SynchronizationApplication::SetSocket(std::string addr, int port) {
-    socket_addr_ = addr;
-    socket_port_ = port;
+  void SynchronizationApplication::SetRangeValue(float range) {
+    range_ = range;
+    pcd_worker_->SetRangeValue(range);
+    LOGE("RANGE VALUE: %f", range_);
+  }
+
+  void SynchronizationApplication::ShowSMMesh() {
+    show_sm_mesh_ = true;
+    show_msm_mesh_ = false;
+    show_unopt_mesh_ = false;
+    LOGE("Show SM Mesh");
+  }
+
+  void SynchronizationApplication::ShowMSMMesh() {
+    show_msm_mesh_ = true;
+    show_sm_mesh_ = false;
+    show_unopt_mesh_ = false;
+    LOGE("Show MSM Mesh");
+  }
+
+  void SynchronizationApplication::ShowUnOPTMesh() {
+    show_unopt_mesh_ = true;
+    show_msm_mesh_ = false;
+    show_sm_mesh_ = false;
+    LOGE("Show Unoptimized Mesh");
   }
 }  // namespace rgb_depth_sync

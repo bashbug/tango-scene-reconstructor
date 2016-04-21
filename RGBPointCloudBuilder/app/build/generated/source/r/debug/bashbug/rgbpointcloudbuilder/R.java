@@ -32,23 +32,29 @@ public final class R {
         public static final int ic_description=0x7f02000b;
         public static final int ic_file_upload=0x7f02000c;
         public static final int ic_menu=0x7f02000d;
+        public static final int ic_play_arrow_white_24dp=0x7f02000e;
+        public static final int ic_stop_white_24dp=0x7f02000f;
     }
     public static final class id {
-        public static final int Button_Cancel=0x7f0a0007;
-        public static final int Button_Connect=0x7f0a000c;
-        public static final int RelativeLayout1=0x7f0a0006;
-        public static final int destAddress=0x7f0a0009;
-        public static final int destPort=0x7f0a0008;
-        public static final int first_person_button=0x7f0a0001;
+        public static final int Button_Cancel=0x7f0a000b;
+        public static final int Button_Connect=0x7f0a0010;
+        public static final int RelativeLayout1=0x7f0a000a;
+        public static final int destAddress=0x7f0a000d;
+        public static final int destPort=0x7f0a000c;
+        public static final int first_person_button=0x7f0a0004;
         public static final int gl_surface_view=0x7f0a0000;
-        public static final int ic_description=0x7f0a000d;
-        public static final int ic_file_upload=0x7f0a000e;
-        public static final int name=0x7f0a000b;
-        public static final int optimize_pose_graph_button=0x7f0a0003;
-        public static final int save_pcd_button=0x7f0a0004;
-        public static final int start_stop_button=0x7f0a0005;
-        public static final int third_person_button=0x7f0a0002;
-        public static final int uuidDisplay=0x7f0a000a;
+        public static final int ic_description=0x7f0a0011;
+        public static final int ic_file_upload=0x7f0a0012;
+        public static final int multi_frame_opt_checkbox=0x7f0a0002;
+        public static final int name=0x7f0a000f;
+        public static final int optimize_pose_graph_button=0x7f0a0006;
+        public static final int range_seekbar=0x7f0a0008;
+        public static final int save_pcd_button=0x7f0a0007;
+        public static final int single_frame_opt_checkbox=0x7f0a0001;
+        public static final int start_stop_button=0x7f0a0009;
+        public static final int third_person_button=0x7f0a0005;
+        public static final int unopt_checkbox=0x7f0a0003;
+        public static final int uuidDisplay=0x7f0a000e;
     }
     public static final class layout {
         public static final int activity_main=0x7f040000;

@@ -34,6 +34,7 @@ namespace rgb_depth_sync {
       void Stop();
       void Start();
       bool IsRunning();
+      void SetRangeValue(float range);
     private:
       std::shared_ptr<std::mutex> xyz_mtx_;
       std::shared_ptr<std::condition_variable> consume_xyz_;
@@ -58,6 +59,7 @@ namespace rgb_depth_sync {
       bool new_yuv_data;
       cv::Ptr<cv::ORB> orb_;
       bool is_running_;
+      float range_;
   };
 }
 

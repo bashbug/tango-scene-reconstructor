@@ -32,21 +32,15 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoInitialize(
 }
 
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_savePCD(
-        JNIEnv*, jobject, bool is_checked) {
-    app.SavePCD(is_checked);
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_startPCDWorker(
+    JNIEnv*, jobject) {
+  app.StartPCDWorker();
 }
 
 JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_startPCD(
-    JNIEnv*, jobject, bool is_checked) {
-  app.StartPCD(is_checked);
-}
-
-JNIEXPORT jint JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_stopPCD(
-    JNIEnv*, jobject, bool is_checked) {
-  app.StopPCD(is_checked);
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_stopPCDWorker(
+    JNIEnv*, jobject) {
+  app.StopPCDWorker();
 }
 
 JNIEXPORT jint JNICALL
@@ -92,6 +86,12 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_setViewPort(
 }
 
 JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setRangeValue(
+    JNIEnv*, jobject, jfloat range) {
+  app.SetRangeValue(range);
+}
+
+JNIEXPORT void JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_render(JNIEnv*, jobject) {
   app.Render();
 }
@@ -100,12 +100,6 @@ JNIEXPORT void JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_freeGLContent(
     JNIEnv*, jobject) {
   app.FreeGLContent();
-}
-
-JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_optimizePoseGraph(
-    JNIEnv*, jobject, jboolean on) {
-  return app.OptimizePoseGraph(on);
 }
 
 std::string ConvertJString(JNIEnv* env, jstring str)  {
@@ -139,6 +133,31 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_setCamera(
   using namespace tango_gl;
   GestureCamera::CameraType cam_type = static_cast<GestureCamera::CameraType>(camera_index);
   app.SetCameraType(cam_type);
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_showSMMesh(
+    JNIEnv*, jobject) {
+  app.ShowSMMesh();
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_showMSMMesh(
+    JNIEnv*, jobject) {
+  app.ShowMSMMesh();
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_showUnOPTMesh(
+    JNIEnv*, jobject) {
+app.ShowUnOPTMesh();
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_optimizeAndSaveToFolder(
+    JNIEnv* env, jobject, jstring folder_name) {
+std::string folder_name_s = ConvertJString(env, folder_name);
+app.OptimizeAndSaveToFolder(folder_name_s);
 }
 
 #ifdef __cplusplus

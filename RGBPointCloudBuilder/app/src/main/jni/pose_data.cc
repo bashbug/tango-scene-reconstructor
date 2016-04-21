@@ -97,6 +97,14 @@ namespace rgb_depth_sync {
     color_camera_intrinsics_ = color_camera_intrinsics;
   }
 
+  void PoseData::SetDepthCameraIntrinsics(TangoCameraIntrinsics depth_camera_intrinsics) {
+    depth_camera_intrinsics_ = depth_camera_intrinsics;
+  }
+
+  TangoCameraIntrinsics PoseData::GetDepthCameraIntrinsics() {
+    return depth_camera_intrinsics_;
+  }
+
   TangoCameraIntrinsics PoseData::GetColorCameraIntrinsics() {
     return color_camera_intrinsics_;
   }

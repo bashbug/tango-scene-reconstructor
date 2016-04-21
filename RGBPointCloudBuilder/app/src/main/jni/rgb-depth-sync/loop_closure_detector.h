@@ -46,6 +46,7 @@ namespace rgb_depth_sync {
                           const glm::vec3& prev_translation, const glm::quat& prev_rotation);
     float rotation_distance_;
     float translation_distance_;
+    int last_index_;
     int loop_closure_frame_idx_;
     int scan_matcher_count_;
     int features_machter_count_;

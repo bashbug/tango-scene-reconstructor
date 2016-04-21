@@ -9,6 +9,34 @@
         android:layout_gravity="top"
         android:layout_alignParentTop="true" />
 
+    <CheckBox
+        android:id="@+id/single_frame_opt_checkbox"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="single frame optimized"
+        android:checked="false"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"/>
+    <CheckBox
+        android:id="@+id/multi_frame_opt_checkbox"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:text="multi frame optimized"
+        android:checked="false"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/single_frame_opt_checkbox"/>
+    <CheckBox
+        android:id="@+id/unopt_checkbox"
+        android:layout_width="300dp"
+        android:layout_height="wrap_content"
+        android:text="unoptimized"
+        android:checked="false"
+        android:layout_marginLeft="2dp"
+        android:layout_marginRight="2dp"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/multi_frame_opt_checkbox"/>
     <Button
         android:id="@+id/first_person_button"
         android:layout_width="160dp"
@@ -43,8 +71,18 @@
         android:layout_height="wrap_content"
         android:layout_marginLeft="5dp"
         android:text="@string/save"
-        android:layout_alignParentBottom="true"
+        android:layout_above="@+id/range_seekbar"
         android:layout_alignParentStart="true"/>
+
+    <SeekBar
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/range_seekbar"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:max="200"
+        android:progress="100"
+        android:indeterminate="false" />
 
     <ToggleButton
         android:layout_width="60dp"

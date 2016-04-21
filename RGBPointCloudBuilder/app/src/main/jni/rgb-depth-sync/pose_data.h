@@ -36,7 +36,9 @@ namespace rgb_depth_sync {
       void SetDeviceTDepthCamera(const glm::mat4& device_T_depth);
       void SetColorCameraTDevice(const glm::mat4& color_T_device);
       void SetColorCameraIntrinsics(TangoCameraIntrinsics color_camera_intrinsics);
+      void SetDepthCameraIntrinsics(TangoCameraIntrinsics depth_camera_intrinsics);
       TangoCameraIntrinsics GetColorCameraIntrinsics();
+      TangoCameraIntrinsics GetDepthCameraIntrinsics();
       std::string GetPoseDebugString();
       glm::mat4 GetLatestPoseMatrix();
       glm::mat4 GetPoseAtTime(double timestamp);
@@ -63,6 +65,7 @@ namespace rgb_depth_sync {
       TangoPoseData cur_pose_;
       TangoPoseData prev_pose_;
       TangoCameraIntrinsics color_camera_intrinsics_;
+      TangoCameraIntrinsics depth_camera_intrinsics_;
       std::string pose_string_;
       size_t pose_counter_;
   };

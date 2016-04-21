@@ -2,21 +2,18 @@
 
 namespace rgb_depth_sync {
 
-  PCDContainer::PCDContainer(std::shared_ptr<std::mutex> pcd_mtx,
-                             std::shared_ptr<std::condition_variable> consume_pcd) {
-    pcd_mtx_ = pcd_mtx;
-    consume_pcd_ = consume_pcd;
+  PCDContainer::PCDContainer() {
     mesh_ = new rgb_depth_sync::Mesh();
+    mesh_sm_ = new rgb_depth_sync::Mesh();
+    mesh_msm_ = new rgb_depth_sync::Mesh();
   }
 
   PCDContainer::~PCDContainer(){
   }
 
   void PCDContainer::AddPCD(PCD *pcd) {
-    std::unique_lock<std::mutex> lock(*pcd_mtx_);
     pcd_container_.push_back(pcd);
     mesh_->AddPointCloud(pcd);
-    consume_pcd_->notify_one();
   }
 
   PCD* PCDContainer::GetLatestPCD() {
@@ -37,6 +34,31 @@ namespace rgb_depth_sync {
 
   std::vector<uint8_t> PCDContainer::GetRGBValues() {
     return mesh_->GetRGBValues();
+  }
+
+  void PCDContainer::OptimizeMesh() {
+    for (int i = 0; i < pcd_container_.size(); i++) {
+      mesh_sm_->AddPointCloudOptWithSM(pcd_container_[i]);
+      mesh_msm_->AddPointCloudOptWithMSM(pcd_container_[i]);
+    }
+    mesh_sm_->DownsampleMesh();
+    mesh_msm_->DownsampleMesh();
+  }
+
+  std::vector<float> PCDContainer::GetXYZValuesOptWithSM(glm::mat4 curr_pose) {
+    return mesh_sm_->GetXYZValues(curr_pose);
+  }
+
+  std::vector<uint8_t> PCDContainer::GetRGBOptWithSMValues() {
+    return mesh_sm_->GetRGBValues();
+  }
+
+  std::vector<float> PCDContainer::GetXYZValuesOptWithMSM(glm::mat4 curr_pose) {
+    return mesh_msm_->GetXYZValues(curr_pose);
+  }
+
+  std::vector<uint8_t> PCDContainer::GetRGBOptWithMSMValues() {
+    return mesh_msm_->GetRGBValues();
   }
 
   void PCDContainer::ResetPCD() {

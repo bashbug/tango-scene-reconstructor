@@ -92,6 +92,11 @@ LOCAL_MODULE := libpcl_registration-static
 LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_registration.a
 include $(PREBUILT_STATIC_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := libpcl_features-static
+LOCAL_SRC_FILES := $(PCL_ROOT)/lib/libpcl_features.a
+include $(PREBUILT_STATIC_LIBRARY)
+
 ### include g2o
 
 G20ROOT := $(PROJECT_ROOT)/third-party/g2o/
@@ -165,6 +170,7 @@ LOCAL_STATIC_LIBRARIES += libpcl_kdtree-static
 LOCAL_STATIC_LIBRARIES += libpcl_filters-static
 #LOCAL_STATIC_LIBRARIES += libpcl_sample_consensus-static
 LOCAL_STATIC_LIBRARIES += libpcl_registration-static
+LOCAL_STATIC_LIBRARIES += libpcl_features-static
 
 LOCAL_SHARED_LIBRARIES += tango_client_api tango_support_api
 
@@ -184,13 +190,15 @@ LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-gl/include \
                     $(FLANN_ROOT)/include/ \
                     $(PCL_ROOT)/include/ \
                     $(PROJECT_ROOT)/third-party/g2o/ \
-                    $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/
+                    $(PROJECT_ROOT)/third-party/projective-scan-matcher-3d/ \
+                    $(PROJECT_ROOT_FROM_JNI)/third-party/multiframe-scan-matcher-3d/
 
 LOCAL_SRC_FILES += conversion.cc \
+                   frame_to_frame_scan_matcher.cc \
                    img_file_writer.cc \
                    jni_interface.cc \
-                   loop_closure_detector.cc \
                    mesh.cc \
+                   multiframe_scan_matcher.cc \
                    pcd.cc \
                    pcd_container.cc \
                    pcd_drawable.cc \
@@ -202,7 +210,6 @@ LOCAL_SRC_FILES += conversion.cc \
                    rgb_depth_sync_application.cc \
                    scan_matcher.cc \
                    shader.cc \
-                   slam3d.cc \
                    scene.cc \
                    tcp_client.cc \
                    util.cc \
@@ -221,7 +228,9 @@ LOCAL_SRC_FILES += conversion.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/trace.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/transform.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/util.cpp \
-                   $(PROJECT_ROOT_FROM_JNI)/third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.cpp
+                   $(PROJECT_ROOT_FROM_JNI)/third-party/projective-scan-matcher-3d/projectiveScanMatcher3d/projectiveScanMatcher3d.cpp \
+                   $(PROJECT_ROOT_FROM_JNI)/third-party/multiframe-scan-matcher-3d/g2oEdgeTypeGicp.cpp \
+                   $(PROJECT_ROOT_FROM_JNI)/third-party/multiframe-scan-matcher-3d/multiFrameIcp.cpp \
 
 LOCAL_LDLIBS += -llog -lGLESv2 -L$(SYSROOT)/usr/lib
 LOCAL_LDFLAGS += -fopenmp

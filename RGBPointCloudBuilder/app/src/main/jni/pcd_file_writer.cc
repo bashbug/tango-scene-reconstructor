@@ -71,11 +71,10 @@ namespace rgb_depth_sync {
     with_rgb_ = false;
   }
 
-  void PCDFileWriter::SaveToFile(std::string dest_folder, int num) {
+  void PCDFileWriter::SaveToFile(const char* dest_folder, int num) {
     char filename[1024];
     //LOGE("write file %i start...", pcd_file_counter_);
-    sprintf(filename, "/storage/emulated/0/Documents/RGBPointCloudBuilder/%s/%05d.pcd", dest_folder.c_str(),
-            num);
+    sprintf(filename, "%s/%05d.pcd", dest_folder, num);
 
     FILE *file = fopen(filename, "wb");
 

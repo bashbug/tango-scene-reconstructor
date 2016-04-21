@@ -48,13 +48,11 @@ public class JNIInterface {
 
     public static native void setSocket(String addr, int port);
 
-    public static native void optimizePoseGraph(boolean on);
+    public static native void startPCDWorker();
 
-    public static native void startPCD(boolean on);
+    public static native void stopPCDWorker();
 
-    public static native void stopPCD(boolean on);
-
-    public static native void savePCD(boolean on);
+    public static native void setRangeValue(float range);
 
     // Pass touch events to the native layer.
     public static native void onTouchEvent(int touchCount, int event0,
@@ -62,4 +60,13 @@ public class JNIInterface {
     // Set the render camera's viewing angle:
     //   first person, third person, or top down.
     public static native void setCamera(int cameraIndex);
+
+    public static native void showSMMesh();
+
+    public static native void showMSMMesh();
+
+    public static native void showUnOPTMesh();
+
+    public static native void optimizeAndSaveToFolder(String folder_name);
+
 }

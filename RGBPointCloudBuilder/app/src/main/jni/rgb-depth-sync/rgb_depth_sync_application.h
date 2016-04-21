@@ -35,7 +35,9 @@
 #include <condition_variable>
 #include <thread>
 #include <mutex>
+#include <string>
 #include <memory>
+#include <boost/filesystem.hpp>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
 #include <tango-gl/axis.h>
@@ -55,8 +57,9 @@
 #include "rgb-depth-sync/pcd_worker.h"
 #include "rgb-depth-sync/pcd_file_reader.h"
 #include "rgb-depth-sync/pcd_file_writer.h"
+#include "rgb-depth-sync/frame_to_frame_scan_matcher.h"
+#include "rgb-depth-sync/multiframe_scan_matcher.h"
 #include "rgb-depth-sync/scene.h"
-#include "rgb-depth-sync/slam3d.h"
 #include "rgb-depth-sync/conversion.h"
 
 namespace {
@@ -102,9 +105,15 @@ namespace rgb_depth_sync {
       // @param: camera_type, camera type includes first person, third person and
       //         top down
       void SetCameraType(tango_gl::GestureCamera::CameraType camera_type);
-      void StartPCD(bool on);
-      void StopPCD(bool on);
+      void StartPCDWorker();
+      void StopPCDWorker();
       void SavePCD(bool on);
+      void ShowSMMesh();
+      void ShowMSMMesh();
+      void ShowUnOPTMesh();
+      void SetRangeValue(float range);
+      void OptimizeAndSaveToFolder(std::string folder_name);
+      void CreateSubFolders(std::string folder_name);
       // Touch event passed from android activity. This function only supports two
       // touches.
       //
@@ -124,7 +133,6 @@ namespace rgb_depth_sync {
       void Render();
       // Release all OpenGL resources that are allocated in this app.
       void FreeGLContent();
-      void OptimizePoseGraph(bool on);
       // Set whether to use GPU or CPU upsampling
       void SetSocket(std::string addr, int port);
       // Callback for image data that come in from the Tango service.
@@ -137,14 +145,16 @@ namespace rgb_depth_sync {
       void OnPoseAvailable(const TangoPoseData* pose);
 
     private:
+      void SavePCD(std::string folder_name, std::string subfolder_name);
       int screen_width_, screen_height_;
       int pcd_count_;
       int img_count_;
       TangoConfig tango_config_;
       bool pcd_container_optimized_;
+      bool pcd_container_optimized_mf_;
       bool save_pcd_;
       bool start_pcd_;
-      std::shared_ptr<std::atomic<bool>> optimize_poses_process_started_;
+      //std::shared_ptr<std::atomic<bool>> optimize_poses_process_started_;
       std::shared_ptr<std::mutex> pcd_mtx_;
       std::shared_ptr<std::condition_variable> consume_pcd_;
       std::string socket_addr_;
@@ -154,18 +164,19 @@ namespace rgb_depth_sync {
       glm::mat4 icp_;
       PCDContainer* pcd_container_;
       Scene* scene_;
-      Slam3D* slam_;
       TangoSupportPointCloudManager* xyz_manager_;
       TangoSupportImageBufferManager* yuv_manager_;
       Conversion* conversion_;
       TangoXYZij* xyz_;
       TangoImageBuffer* yuv_;
       std::mutex pose_mutex_;
+      std::mutex optimize_mutex_;
       PoseData* pose_data_;
       bool new_xyz_data;
       bool new_yuv_data;
       std::vector<float> xyz_buffer_;
       std::vector<uint8_t> rgb_buffer_;
+      glm::mat4 curr_pose_;
       glm::mat4 pose_;
       int curr_index_;
       int prev_index_;
@@ -173,6 +184,10 @@ namespace rgb_depth_sync {
       int point_cloud_count_;
       std::shared_ptr<std::mutex> xyz_mtx_;
       std::shared_ptr<std::condition_variable> consume_xyz_;
+      bool show_sm_mesh_, show_msm_mesh_, show_unopt_mesh_;
+      float range_;
+      std::string folder_name_;
+      bool optimize_;
   };
 
 } // namespace rgb_depth_sync

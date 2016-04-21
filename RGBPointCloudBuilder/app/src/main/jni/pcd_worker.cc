@@ -17,6 +17,7 @@ namespace rgb_depth_sync {
     rgb_size_ = 720*1280*3;
     yuv_size_ = 720*3/2*1280;
     pcd_container_ = pcd_container;
+    range_ = 1.0f;
 
     orb_ = cv::ORB::create(400);
     pcd_remove_outlier_ = new rgb_depth_sync::PCDOutlierRemoval();
@@ -26,6 +27,10 @@ namespace rgb_depth_sync {
 
   PCDWorker::~PCDWorker() {
 
+  }
+
+  void PCDWorker::SetRangeValue(float range) {
+    range_ = range;
   }
 
   bool PCDWorker::IsRunning() {
@@ -63,16 +68,19 @@ namespace rgb_depth_sync {
             xyz_.resize(xyz_buffer_->xyz_count * 3);
             std::copy(xyz_buffer_->xyz[0], xyz_buffer_->xyz[0] + xyz_buffer_->xyz_count * 3, xyz_.begin());
             // copy yuv buffer
-            memcpy(yuv_frame_.data, yuv_buffer_->data, yuv_size_);
-            cv::cvtColor(yuv_frame_, rgb_frame_, CV_YUV2RGB_NV21);
+            cv::Mat yuv_frame, rgb_frame;
+            yuv_frame.create(720*3/2, 1280, CV_8UC1);
+            rgb_frame.create(720, 1280, CV_8UC3);
+            memcpy(yuv_frame.data, yuv_buffer_->data, yuv_size_);
+            cv::cvtColor(yuv_frame, rgb_frame, CV_YUV2RGB_NV21);
             rgb_.clear();
             rgb_.resize(rgb_size_);
-            memcpy(&rgb_[0], rgb_frame_.data, rgb_size_);
+            memcpy(&rgb_[0], rgb_frame.data, rgb_size_);
             PCD* pcd = new rgb_depth_sync::PCD();
             //pcd->SetTangoXYZij(xyz_buffer_);
             // sync xyz and rgb
             std::clock_t start = std::clock();
-            std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25f, 1.5f, 10);
+            std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > xyz_without_outliers = pcd_remove_outlier_->Compute(xyz_, 0.25f, range_, 5);
             int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
             LOGE("Outlier filtering  ----- time %i", diff);
             if (xyz_without_outliers.size() > 0) {
@@ -83,14 +91,16 @@ namespace rgb_depth_sync {
             }
             if (pcd->GetPCD().size() > 600) {
               cv::Size size(320, 180);
-              cv::cvtColor(rgb_frame_, gray_frame_, CV_RGB2GRAY);
-              cv::resize(gray_frame_, gray_frame_320x180_, size);
+              cv::Mat gray_frame, gray_frame_320x180;
+              cv::cvtColor(rgb_frame, gray_frame, CV_RGB2GRAY);
+              cv::resize(gray_frame, gray_frame_320x180, size);
               std::vector<cv::KeyPoint> keypoints;
               cv::Mat descriptors;
               std::clock_t start_2 = std::clock();
-              orb_->detectAndCompute(gray_frame_320x180_, cv::noArray(), keypoints, descriptors);
+              orb_->detectAndCompute(gray_frame_320x180, cv::noArray(), keypoints, descriptors);
               pcd->SetKeyPointsAndDescriptors(keypoints, descriptors);
-              pcd->SetFrame(gray_frame_320x180_);
+              pcd->SetFrame(gray_frame_320x180);
+              pcd->SetRGBImage(rgb_frame);
               diff = (std::clock() - start_2) / (double)(CLOCKS_PER_SEC / 1000);
               LOGE("Features detection  ---- time %i", diff);
               pcd_container_->AddPCD(pcd);
