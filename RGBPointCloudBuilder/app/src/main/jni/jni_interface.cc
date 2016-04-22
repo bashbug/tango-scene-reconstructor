@@ -112,14 +112,6 @@ std::string ConvertJString(JNIEnv* env, jstring str)  {
 }
 
 JNIEXPORT void JNICALL
-Java_bashbug_rgbpointcloudbuilder_JNIInterface_setSocket(
-    JNIEnv* env, jobject, jstring addr, jint port) {
-
-  std::string s_addr = ConvertJString(env, addr);
-  return app.SetSocket(s_addr, port);
-}
-
-JNIEXPORT void JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_onTouchEvent(
     JNIEnv*, jobject, int touch_count, int event, float x0, float y0, float x1, float y1) {
   using namespace tango_gl;

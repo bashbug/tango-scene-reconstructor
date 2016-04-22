@@ -26,11 +26,11 @@ namespace rgb_depth_sync {
     public:
       PCDWorker(std::shared_ptr<std::mutex> xyz_mtx,
                 std::shared_ptr<std::condition_variable> consume_xyz,
-                PCDContainer* pcd_container,
-                TangoSupportPointCloudManager* xyz_manager,
-                TangoSupportImageBufferManager* yuv_manager);
+                PCDContainer* pcd_container);
       ~PCDWorker();
       void OnPCDAvailable();
+      void SetManagers(TangoSupportPointCloudManager* xyz_manager,
+                       TangoSupportImageBufferManager* yuv_manager);
       void Stop();
       void Start();
       bool IsRunning();

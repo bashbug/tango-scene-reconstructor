@@ -53,10 +53,12 @@ namespace rgb_depth_sync {
       ~Mesh();
       std::vector<float> GetXYZValues(glm::mat4 curr_pose);
       std::vector<uint8_t> GetRGBValues();
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetPCDFile();
       void AddPointCloud(PCD* pcd);
       void AddPointCloudOptWithSM(PCD* pcd);
       void AddPointCloudOptWithMSM(PCD* pcd);
       void DownsampleMesh();
+      void FilterMesh(float radius=10);
       bool Reset();
       bool IsRunning();
     private:

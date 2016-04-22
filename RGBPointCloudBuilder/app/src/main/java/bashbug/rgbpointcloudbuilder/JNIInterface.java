@@ -46,8 +46,6 @@ public class JNIInterface {
 
     public static native void render();
 
-    public static native void setSocket(String addr, int port);
-
     public static native void startPCDWorker();
 
     public static native void stopPCDWorker();

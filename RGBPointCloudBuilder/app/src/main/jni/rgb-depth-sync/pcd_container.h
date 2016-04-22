@@ -28,13 +28,17 @@ namespace rgb_depth_sync {
       std::vector<float> GetXYZValuesOptWithMSM(glm::mat4 curr_pose);
       std::vector<uint8_t> GetRGBOptWithSMValues();
       std::vector<uint8_t> GetRGBOptWithMSMValues();
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetFTFSMMeshPCDFile();
+      pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetMFSMMeshPCDFile();
       void OptimizeMesh();
       void ResetPCD();
       std::vector<PCD*> pcd_container_;
     private:
       Mesh* mesh_;
-      Mesh* mesh_sm_;
-      Mesh* mesh_msm_;
+      Mesh* mesh_sm_filtered_;
+      Mesh* mesh_msm_filtered_;
+      Mesh* mesh_sm_downsampled_;
+      Mesh* mesh_msm_downsampled_;
   };
 } // namespace rgb_depth_sync
 

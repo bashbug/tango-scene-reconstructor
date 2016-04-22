@@ -75,10 +75,7 @@ namespace rgb_depth_sync {
       }
   }
 
-  void OnPoseAvailable  void SynchronizationApplication::SetSocket(std::string addr, int port) {
-    socket_addr_ = addr;
-    socket_port_ = port;
-  }Router(void* context, const TangoPoseData* pose) {
+  void OnPoseAvailableRouter(void* context, const TangoPoseData* pose) {
     SynchronizationApplication* app = static_cast<SynchronizationApplication*>(context);
     app->OnPoseAvailable(pose);
   }
@@ -96,7 +93,39 @@ namespace rgb_depth_sync {
   }
 
   int SynchronizationApplication::TangoInitialize(JNIEnv* env, jobject caller_activity) {
-    return TangoService_initialize(env, caller_activity);
+
+    int ret = TangoService_initialize(env, caller_activity);
+
+    show_sm_mesh_ = false;
+    show_msm_mesh_ = false;
+    show_unopt_mesh_ = false;
+
+    pcd_mtx_ = std::make_shared<std::mutex>();
+    consume_pcd_ = std::make_shared<std::condition_variable>();
+    xyz_mtx_ = std::make_shared<std::mutex>();
+    consume_xyz_ = std::make_shared<std::condition_variable>();
+
+    curr_index_ = -1;
+    prev_index_ = -1;
+    first_index_ = true;
+
+    save_pcd_ = false;
+    start_pcd_ = false;
+    pcd_count_ = 0;
+    img_count_ = 0;
+    pcd_container_optimized_ = false;
+    pcd_container_optimized_mf_ = false;
+
+    pcd_container_ = new rgb_depth_sync::PCDContainer();
+
+    pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_);
+    std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
+    pcd_worker_thread.detach();
+    pcd_worker_->Start();
+
+    pose_data_ = PoseData::GetInstance();
+
+    return ret;
   }
 
   int SynchronizationApplication::TangoSetupConfig() {
@@ -128,19 +157,11 @@ namespace rgb_depth_sync {
       return ret;
     }
 
-    show_sm_mesh_ = false;
-    show_msm_mesh_ = false;
-    show_unopt_mesh_ = false;
-    optimize_ = false;
-
-    pcd_mtx_ = std::make_shared<std::mutex>();
-    consume_pcd_ = std::make_shared<std::condition_variable>();
-    xyz_mtx_ = std::make_shared<std::mutex>();
-    consume_xyz_ = std::make_shared<std::condition_variable>();
-
     int32_t max_point_cloud_elements;
     ret = TangoConfig_getInt32(tango_config_, "max_point_cloud_elements",
                                    &max_point_cloud_elements);
+
+    LOGE("MAX POINT CLOUD ELEMENTS %i", max_point_cloud_elements);
 
     if(ret != TANGO_SUCCESS) {
       LOGE("Failed to query maximum number of point cloud elements.");
@@ -150,32 +171,7 @@ namespace rgb_depth_sync {
     TangoSupport_createPointCloudManager(max_point_cloud_elements, &xyz_manager_);
     TangoSupport_createImageBufferManager(TANGO_HAL_PIXEL_FORMAT_YCrCb_420_SP, 1280, 720, &yuv_manager_);
 
-    curr_index_ = -1;
-    prev_index_ = -1;
-    first_index_ = true;
-
-    save_pcd_ = false;
-    start_pcd_ = false;
-    pcd_count_ = 0;
-    img_count_ = 0;
-    pcd_container_optimized_ = false;
-    pcd_container_optimized_mf_ = false;
-
-    pcd_container_ = new rgb_depth_sync::PCDContainer();
-
-    pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_, xyz_manager_, yuv_manager_);
-    std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
-    pcd_worker_thread.detach();
-    pcd_worker_->Start();
-
-    TangoCameraIntrinsics depth_camera_intrinsics;
-    TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
-    TangoCameraIntrinsics color_camera_intrinsics;
-    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
-
-    pose_data_ = PoseData::GetInstance();
-    pose_data_->SetColorCameraIntrinsics(color_camera_intrinsics);
-    pose_data_->SetDepthCameraIntrinsics(depth_camera_intrinsics);
+    pcd_worker_->SetManagers(xyz_manager_, yuv_manager_);
 
     return ret;
   }
@@ -279,12 +275,22 @@ namespace rgb_depth_sync {
     pose_data_->SetDeviceTDepthCamera(device_T_depth);
     pose_data_->SetColorCameraTDevice(color_T_device);
 
+    TangoCameraIntrinsics depth_camera_intrinsics;
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_DEPTH, &depth_camera_intrinsics);
+    TangoCameraIntrinsics color_camera_intrinsics;
+    TangoService_getCameraIntrinsics(TANGO_CAMERA_COLOR, &color_camera_intrinsics);
+
+    pose_data_->SetColorCameraIntrinsics(color_camera_intrinsics);
+    pose_data_->SetDepthCameraIntrinsics(depth_camera_intrinsics);
+
     return ret;
   }
 
   void SynchronizationApplication::TangoDisconnect() {
     TangoConfig_free(tango_config_);
     tango_config_ = nullptr;
+    xyz_manager_ = nullptr;
+    yuv_manager_ = nullptr;
     TangoService_disconnect();
   }
 
@@ -361,6 +367,10 @@ namespace rgb_depth_sync {
 
     std::clock_t start = std::clock();
     pcd_container_->OptimizeMesh();
+
+    pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
+    pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *pcd_container_->GetMFSMMeshPCDFile());
+
     int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
     show_msm_mesh_ = true;
 
@@ -391,6 +401,7 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::StartPCDWorker() {
+    optimize_ = false;
     pcd_worker_->Stop();
     LOGE("stop PCD worker");
     while(pcd_worker_->IsRunning()) {

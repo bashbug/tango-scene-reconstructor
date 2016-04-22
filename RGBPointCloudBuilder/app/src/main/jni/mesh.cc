@@ -115,6 +115,16 @@ namespace rgb_depth_sync {
     }
   }
 
+  void Mesh::FilterMesh(float radius) {
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+    sor.setInputCloud(pcd_mesh_);
+    sor.setMeanK(radius);
+    sor.setStddevMulThresh(1.0);
+    sor.filter(*cloud_filtered);
+    pcd_mesh_ = cloud_filtered;
+  }
+
   void Mesh::AddPointCloud(PCD* pcd) {
     {
       std::lock_guard <std::mutex> lock(mesh_mtx_);
@@ -135,5 +145,9 @@ namespace rgb_depth_sync {
 
       is_running_ = false;
     }
+  }
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr Mesh::GetPCDFile() {
+    return pcd_mesh_;
   }
 }

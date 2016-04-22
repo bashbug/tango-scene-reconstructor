@@ -7,8 +7,6 @@
 #include <sstream>
 
 #include "rgb-depth-sync/pcd_file_writer.h"
-#include "rgb-depth-sync/tcp_client.h"
-#include "rgb-depth-sync/util.h"
 
 namespace rgb_depth_sync {
 
@@ -90,50 +88,11 @@ namespace rgb_depth_sync {
     fclose(file);
   }
 
-  void PCDFileWriter::SaveToSocket(std::string addr, int port) {
-    if (pcd_.size() > 0) {
-      tcp_client *c = new rgb_depth_sync::tcp_client(addr, port);
-
-      char filename[1024];
-      sprintf(filename, "%05d", pcd_file_counter_);
-
-      //char* filename = "test.txt";
-      long long filenamesize = strlen(filename);
-
-      // send header + point cloud data
-      std::string header;
-      if(with_rgb_) {
-        header = GetRGBHeader();
-      } else {
-        header = GetHeader();
-      }
-      char *cstr = new char[header.length() + 1];
-      strcpy(cstr, header.c_str());
-
-      long long datasize = strlen(cstr) + (pcd_.size() * sizeof(float));
-
-      c->sendlong(filenamesize);
-      c->sendlong(datasize);
-      c->sendfilename(filename);
-      c->sendpcddata(cstr, pcd_);
-
-      pcd_file_counter_++;
-    }
-  }
-
   void PCDFileWriter::SetUnordered() {
     if (with_rgb_) {
       SetRGBHeader(pcd_.size() / 4, 1);
     } else {
       SetHeader(pcd_.size() / 3, 1);
-    }
-  }
-
-  void PCDFileWriter::SetOrdered(int width, int height) {
-    if (with_rgb_) {
-      SetRGBHeader(width, height);
-    } else {
-      SetHeader(width, height);
     }
   }
 

@@ -4,13 +4,9 @@ namespace rgb_depth_sync {
 
   PCDWorker::PCDWorker(std::shared_ptr<std::mutex> xyz_mtx,
                        std::shared_ptr<std::condition_variable> consume_xyz,
-                       PCDContainer* pcd_container,
-                       TangoSupportPointCloudManager* xyz_manager,
-                       TangoSupportImageBufferManager* yuv_manager) {
+                       PCDContainer* pcd_container) {
     xyz_mtx_ = xyz_mtx;
     consume_xyz_ = consume_xyz;
-    xyz_manager_ = xyz_manager;
-    yuv_manager_ = yuv_manager;
     write_pcd_data_ = false;
     yuv_frame_.create(720*3/2, 1280, CV_8UC1);
     rgb_frame_.create(720, 1280, CV_8UC3);
@@ -27,6 +23,12 @@ namespace rgb_depth_sync {
 
   PCDWorker::~PCDWorker() {
 
+  }
+
+  void PCDWorker::SetManagers(TangoSupportPointCloudManager* xyz_manager,
+                              TangoSupportImageBufferManager* yuv_manager) {
+    xyz_manager_ = xyz_manager;
+    yuv_manager_ = yuv_manager;
   }
 
   void PCDWorker::SetRangeValue(float range) {

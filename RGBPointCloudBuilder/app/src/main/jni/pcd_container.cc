@@ -4,11 +4,14 @@ namespace rgb_depth_sync {
 
   PCDContainer::PCDContainer() {
     mesh_ = new rgb_depth_sync::Mesh();
-    mesh_sm_ = new rgb_depth_sync::Mesh();
-    mesh_msm_ = new rgb_depth_sync::Mesh();
+    mesh_sm_filtered_ = new rgb_depth_sync::Mesh();
+    mesh_msm_filtered_ = new rgb_depth_sync::Mesh();
+    mesh_sm_downsampled_ = new rgb_depth_sync::Mesh();
+    mesh_msm_downsampled_ = new rgb_depth_sync::Mesh();
   }
 
   PCDContainer::~PCDContainer(){
+    mesh_ = nullptr;
   }
 
   void PCDContainer::AddPCD(PCD *pcd) {
@@ -38,31 +41,45 @@ namespace rgb_depth_sync {
 
   void PCDContainer::OptimizeMesh() {
     for (int i = 0; i < pcd_container_.size(); i++) {
-      mesh_sm_->AddPointCloudOptWithSM(pcd_container_[i]);
-      mesh_msm_->AddPointCloudOptWithMSM(pcd_container_[i]);
+      mesh_sm_downsampled_->AddPointCloudOptWithSM(pcd_container_[i]);
+      mesh_msm_downsampled_->AddPointCloudOptWithMSM(pcd_container_[i]);
+      mesh_sm_filtered_->AddPointCloudOptWithSM(pcd_container_[i]);
+      mesh_msm_filtered_->AddPointCloudOptWithMSM(pcd_container_[i]);
     }
-    mesh_sm_->DownsampleMesh();
-    mesh_msm_->DownsampleMesh();
+
+    mesh_sm_filtered_->FilterMesh();
+    mesh_msm_filtered_->FilterMesh();
+
+    mesh_sm_downsampled_->DownsampleMesh();
+    mesh_msm_downsampled_->DownsampleMesh();
   }
 
   std::vector<float> PCDContainer::GetXYZValuesOptWithSM(glm::mat4 curr_pose) {
-    return mesh_sm_->GetXYZValues(curr_pose);
+    return mesh_sm_downsampled_->GetXYZValues(curr_pose);
   }
 
   std::vector<uint8_t> PCDContainer::GetRGBOptWithSMValues() {
-    return mesh_sm_->GetRGBValues();
+    return mesh_sm_downsampled_->GetRGBValues();
   }
 
   std::vector<float> PCDContainer::GetXYZValuesOptWithMSM(glm::mat4 curr_pose) {
-    return mesh_msm_->GetXYZValues(curr_pose);
+    return mesh_msm_downsampled_->GetXYZValues(curr_pose);
   }
 
   std::vector<uint8_t> PCDContainer::GetRGBOptWithMSMValues() {
-    return mesh_msm_->GetRGBValues();
+    return mesh_msm_downsampled_->GetRGBValues();
+  }
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr PCDContainer::GetFTFSMMeshPCDFile() {
+    return mesh_sm_filtered_->GetPCDFile();
+  }
+
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr PCDContainer::GetMFSMMeshPCDFile() {
+    return mesh_msm_filtered_->GetPCDFile();
   }
 
   void PCDContainer::ResetPCD() {
-    while(!mesh_->Reset()) {
+    while(!mesh_->Reset() || !mesh_msm_downsampled_->Reset() || !mesh_msm_downsampled_->Reset()) {
       LOGE("mesh is still running");
     }
     pcd_container_.clear();

@@ -211,7 +211,6 @@ LOCAL_SRC_FILES += conversion.cc \
                    scan_matcher.cc \
                    shader.cc \
                    scene.cc \
-                   tcp_client.cc \
                    util.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/axis.cpp \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/bounding_box.cpp \

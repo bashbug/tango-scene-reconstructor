@@ -33,7 +33,6 @@ public class GLSurfaceRenderer implements GLSurfaceView.Renderer {
     private long timeDelta;
 
     public GLSurfaceRenderer(MainActivity mainActivity) {
-
         mMainActivity = mainActivity;
     }
 
@@ -56,6 +55,7 @@ public class GLSurfaceRenderer implements GLSurfaceView.Renderer {
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+        Log.e("GLSurfaceRenderer", "onSurfaceCreated");
         mMainActivity.surfaceCreated();
     }
 }

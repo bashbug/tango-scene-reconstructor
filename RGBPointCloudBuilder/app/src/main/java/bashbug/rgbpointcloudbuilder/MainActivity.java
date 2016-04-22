@@ -17,21 +17,16 @@
 package bashbug.rgbpointcloudbuilder;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ConfigurationInfo;
 import android.database.Cursor;
-import android.graphics.Color;
 import android.graphics.Point;
-import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -40,22 +35,15 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.SeekBar;
-import android.widget.Switch;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-import android.widget.CheckBox;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Activity that load up the main screen of the app, this is the launcher activity.
@@ -81,10 +69,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private GLSurfaceRenderer mRenderer;
     private GLSurfaceView mGLView;
 
+    private Boolean mTangoResumed = false;
+    private Boolean mTangoPaused = false;
+    private Boolean mTangoPausedResumedNewSurface = false;
+
+    private ZipFiles mZipFiles;
+
     private Point mScreenSize;
 
     File mFileDirectionPCD, mFileDirectionPPM, mFileDirectionPCD_opt, mFileDirectionPCD_opt_mf, mFileDirectionGraph;
-    String FolderName;
+    String mFolderName;
 
     private boolean mIsConnectedService = false;
 
@@ -154,7 +148,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         // OpenGL view where all of the graphics are drawn
         mGLView = (GLSurfaceView) findViewById(R.id.gl_surface_view);
-
+        // Save view before save pcd context change to show it after resume
+        mGLView.setPreserveEGLContextOnPause(true);
         // Configure OpenGL renderer
         mGLView.setEGLContextClientVersion(2);
         mRenderer = new GLSurfaceRenderer(this);
@@ -320,9 +315,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.ic_file_upload:
-                showSetServerSocketAddresssAndIPDialog();
+                ZipAndShare();
                 return true;
-
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -330,10 +324,33 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    private void ZipAndShare() {
+        final Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("*/*");
+        ZipFiles zipFiles = new ZipFiles();
+        String zipName = zipFiles.setFolder(mFolderName);
+        File f = new File(zipName);
+
+        Uri uri = Uri.fromFile(f);
+        if (uri != null) {
+            Log.e(TAG, "Attache file: " + uri.toString());
+            intent.putExtra(Intent.EXTRA_STREAM, uri);
+        } else {
+            Log.e(TAG, "No file " + uri.toString() + "found!");
+        }
+
+        startActivity(Intent.createChooser(intent, "Choose client"));
+    }
+
     public void onToggleClick(View v) {
         if (mStartAndStopButton.isChecked()) {
-            JNIInterface.startPCDWorker();
             Log.e(TAG, "is checked");
+            if (mTangoPausedResumedNewSurface) {
+                //JNIInterface.freeGLContent();
+                //JNIInterface.initializeGLContent();
+                mTangoPausedResumedNewSurface = false;
+            }
+            JNIInterface.startPCDWorker();
         } else {
             JNIInterface.stopPCDWorker();
             Log.e(TAG, "is NOT checked");
@@ -353,9 +370,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.optimize_pose_graph_button:
                 JNIInterface.setCamera(1);
                 String date = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
-                FolderName = Environment.getExternalStorageDirectory().toString() + "/Documents/RGBPointCloudBuilder/" + date + "/";
-                Log.e(TAG, FolderName);
-                JNIInterface.optimizeAndSaveToFolder(FolderName);
+                mFolderName = Environment.getExternalStorageDirectory().toString() + "/Documents/RGBPointCloudBuilder/" + date;
+                Log.e(TAG, mFolderName+"/");
+                JNIInterface.optimizeAndSaveToFolder(mFolderName+"/");
                 break;
             case R.id.save_pcd_button:
                 //JNIInterface.savePCD(true);
@@ -402,14 +419,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // We moved most of the onResume lifecycle calls to the surfaceCreated,
         // surfaceCreated will be called after the GLSurface is created.
         super.onResume();
+        mGLView.onResume();
 
         // Though we're going to use Tango's C interface so that we have more
         // low level control of our graphics, we can still use the Java API to
         // check that we have the correct permissions.
         if (!hasPermission(this, MOTION_TRACKING_PERMISSION)) {
+            Log.e(TAG, "LOST PERMISSION");
             getMotionTrackingPermission();
-        } else {
-            mGLView.onResume();
+        }
+        if (mTangoPaused) {
+            Log.e(TAG, "ONRESUME + ONPAUSE");
+            surfaceCreated();
+            mTangoPaused = false;
         }
     }
 
@@ -418,9 +440,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onPause();
         mGLView.onPause();
         if (mIsConnectedService) {
+            mTangoResumed = true;
+            mTangoPaused = true;
+            Log.e(TAG, "TANGO IS DISCONNECTED");
             JNIInterface.tangoDisconnect();
         }
-        JNIInterface.freeGLContent();
+        //JNIInterface.freeGLContent();
     }
 
     @Override
@@ -429,7 +454,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void surfaceCreated() {
-        JNIInterface.initializeGLContent();
+        Log.e(TAG, "SURFACE CREATED");
+
+        if (!mTangoResumed) {
+            JNIInterface.initializeGLContent();
+        } else {
+            Log.e(TAG, "WAS RESUMED");
+            mTangoResumed = false;
+            mTangoPausedResumedNewSurface = true;
+        }
 
         int ret = JNIInterface.tangoSetupConfig();
         if (ret != TANGO_SUCCESS) {
