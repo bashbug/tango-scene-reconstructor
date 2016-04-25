@@ -2,7 +2,7 @@
 
 This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-c
 
-It uses to different approaches a frame-to-frame (FTFSM) and a mutli-frame scan matching (MFSM) to optimize the RGB point cloud object model. Both methods use the Tango VIO poses as inital guess and g2o as a graph-based optimization system. An example model of an RGB point cloud alignment with Tango VIO poses
+It uses two different approaches, frame-to-frame (FTFSM) and mutli-frame scan matching (MFSM) to optimize the RGB point cloud object model. Both methods use the Tango VIO poses as inital guess and g2o as a graph-based optimization system. An example model of an RGB point cloud alignment with Tango VIO poses
 
 <img alt="TANGO VIO" src="https://github.com/bashbug/TangoProject/blob/master/img/tango_mesh_and_pose_graph_with_red_loops.png">
 
