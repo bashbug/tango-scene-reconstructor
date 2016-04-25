@@ -1,32 +1,42 @@
+/*
+ * Mesh class creates the RGB point cloud object model while scanning
+ * process with Tango VIO poses. It uses this poses to transform the
+ * RGB point clouds to the origin.
+ * A voxel grid is used to downsample the RGB point cloud object model
+ * and gets rid of duplicates.
+ * This class also creates the RGB point cloud object models for FTFSM
+ * and MFSM. After merging, these point clouds will be filtered to
+ * remove outliers.
+ */
+
 #ifndef RGBPOINTCLOUDBUILDER_MESH_H
 #define RGBPOINTCLOUDBUILDER_MESH_H
 
 #include <mutex>
 #include <condition_variable>
+#include <iostream>
 #include <boost/make_shared.hpp>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
-#include <pcl/filters/voxel_grid.h>
 #include <boost/thread.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/make_shared.hpp>
 #include <flann/flann.h>
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
-#include <iostream>
-#include <boost/filesystem.hpp>
 #include <pcl/common/common.h>
 #include <pcl/common/transforms.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/kdtree/impl/kdtree_flann.hpp>
 #include <pcl/search/kdtree.h>
-#include <boost/make_shared.hpp>
 #include <pcl/impl/instantiate.hpp>
 #include <pcl/ros/conversions.h>
 #include <pcl/search/organized.h>
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/impl/statistical_outlier_removal.hpp>
-
 #include <pcl/console/print.h>
 
 #include "rgb-depth-sync/util.h"

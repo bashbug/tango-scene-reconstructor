@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <tango-gl/conversions.h>
 #include "rgb-depth-sync/util.h"
 
 namespace rgb_depth_sync {

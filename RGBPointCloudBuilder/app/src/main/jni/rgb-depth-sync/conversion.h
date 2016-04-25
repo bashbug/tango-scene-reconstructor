@@ -1,3 +1,11 @@
+/**
+ * Singelton helper class which is created one time and is accessible globaly.
+ * It holds the depth and color camera intrinsics and the initial transformations
+ * like the IMU_T_depth, etc. matrices.
+ * It calculates often used conversion between the depth and color frame,
+ * or transforms a pose into the OpenGL world, etc..
+ */
+
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
 #include <tango-gl/conversions.h>

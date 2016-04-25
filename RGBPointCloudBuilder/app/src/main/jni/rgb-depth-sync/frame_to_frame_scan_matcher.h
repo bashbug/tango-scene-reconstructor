@@ -35,7 +35,7 @@
 #include <g2o/core/optimization_algorithm_factory.h>
 #include <projectiveScanMatcher3d/projectiveScanMatcher3d.h>
 #include <projectiveImage/sphericalProjectiveImage.h>
-#include <tango-gl/util.h>
+
 #include "rgb-depth-sync/util.h"
 #include "rgb-depth-sync/pcd_container.h"
 
@@ -58,6 +58,10 @@ namespace rgb_depth_sync {
       ~FrameToFrameScanMatcher();
       void Init(PCDContainer* pcd_container);
       void Optimize();
+      int GetNoOfLoopClosures();
+      int GetNoOfMatchedFrames();
+      int GetAverageComputationTime();
+      int GetComputationTime();
     private:
       Eigen::Isometry3f Match(float* overlap,
                             pcl::PointCloud<pcl::PointXYZRGB>::Ptr frame_prev,
@@ -79,8 +83,9 @@ namespace rgb_depth_sync {
       g2o::BlockSolverX::LinearSolverType* linear_solver_;
       g2o::BlockSolverX* solver_ptr_;
       Eigen::Matrix<double, 6, 6> information_;
-      int last_index_, id_, graph_counter_, loop_closures_count_;
+      int last_index_, id_, graph_counter_, loop_closures_count_, scan_match_count_;
       float distance_;
+      int average_computation_time_, computation_time_;
       glm::quat curr_rotation_;
       glm::quat prev_rotation_;
       Eigen::Isometry3d odometry_pose_;

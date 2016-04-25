@@ -18,7 +18,6 @@
 #define TANGO_POINT_CLOUD_SCENE_H_
 
 #include <memory>
-
 #include <tango_client_api.h>  // NOLINT
 #include <tango-gl/axis.h>
 #include <tango-gl/camera.h>
@@ -29,10 +28,10 @@
 #include <tango-gl/trace.h>
 #include <tango-gl/transform.h>
 #include <tango-gl/util.h>
-
 #include <tango-gl/cube.h>
+#include <tango-gl/conversions.h>
 
-#include <rgb-depth-sync/pcd_drawable.h>
+#include "rgb-depth-sync/pcd_drawable.h"
 
 namespace rgb_depth_sync {
 

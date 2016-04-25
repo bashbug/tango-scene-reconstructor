@@ -28,7 +28,9 @@ extern "C" {
 JNIEXPORT jint JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoInitialize(
     JNIEnv* env, jobject, jobject activity) {
-  return app.TangoInitialize(env, activity);
+  JavaVM* javaVM;
+  env->GetJavaVM(&javaVM);
+  return app.TangoInitialize(env, activity, javaVM);
 }
 
 JNIEXPORT jint JNICALL

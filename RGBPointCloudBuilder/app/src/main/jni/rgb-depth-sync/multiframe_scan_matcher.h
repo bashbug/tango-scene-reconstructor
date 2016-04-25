@@ -20,7 +20,8 @@
 #include <pcl/search/impl/organized.hpp>  // to get rid of undefined reference to pcl::getCameraMatrixFromProjectionMatrix
 #include <pcl/features/impl/normal_3d.hpp> // to get rid of undefined reference to pcl::search::OrganizedNeighbor<pcl::PointXYZI>::estimateProjectionMatrix()
 #include <pcl/features/normal_3d.h>
-#include <multiFrameIcp.h>
+
+#include "multiFrameIcp.h"
 #include "rgb-depth-sync/pcd_container.h"
 
 namespace rgb_depth_sync {
@@ -32,11 +33,14 @@ namespace rgb_depth_sync {
       ~MultiframeScanMatcher();
       void Init(PCDContainer* pcd_container);
       void Optimize();
+      int GetAverageComputationTime();
+      int GetComputationTime();
     private:
       std::vector< pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr > clouds_;
       PCDContainer* pcd_container_;
       int last_index_, threads_, g2oIterations_, iterations_;
       float maxCorrespondenceDistance_, maxRange_, maxAngle_;
+      int average_computation_time_, computation_time_;
       int width_, height_;
       float fx_, fy_, cx_, cy_;
   };

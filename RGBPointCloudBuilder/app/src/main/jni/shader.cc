@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include "tango-gl/util.h"
 #include "rgb-depth-sync/shader.h"
 
 namespace rgb_depth_sync {

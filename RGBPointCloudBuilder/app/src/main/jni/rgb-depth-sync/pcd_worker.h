@@ -1,3 +1,9 @@
+/*
+ * PCDWorker class has its own thread OnPCDAvailable to process
+ * the TangoXYZij and TangoImageBuffer callback buffers. It uses the
+ * TangoSupport library to process these buffers thread safely.
+ */
+
 #ifndef RGBPOINTCLOUDBUILDER_PCD_WORKER_H
 #define RGBPOINTCLOUDBUILDER_PCD_WORKER_H
 
@@ -7,16 +13,14 @@
 #include <condition_variable>
 #include <chrono>         // std::chrono::seconds
 #include <ctime>
-
-#include <tango_support_api.h>
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
-
 #include <pcl/point_types.h>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
-#include "rgb-depth-sync/pcd_outlier_removal.h"
+#include <tango_support_api.h>
 
+#include "rgb-depth-sync/pcd_outlier_removal.h"
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/pcd.h"
 

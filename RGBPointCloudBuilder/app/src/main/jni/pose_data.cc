@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-#include <sstream>
-#include <tango-gl/conversions.h>
-
 #include "rgb-depth-sync/pose_data.h"
 
 namespace {

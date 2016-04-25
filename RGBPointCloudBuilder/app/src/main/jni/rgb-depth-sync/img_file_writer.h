@@ -1,3 +1,7 @@
+/**
+ * Helper class to save opencv images to storage.
+ */
+
 #ifndef RGB_DEPTH_SYNC_IMG_FILE_WRITER_H_
 #define RGB_DEPTH_SYNC_IMG_FILE_WRITER_H_
 

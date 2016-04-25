@@ -19,8 +19,9 @@
 
 #include <jni.h>
 #include <mutex>
-
+#include <sstream>
 #include <tango_client_api.h>  // NOLINT
+#include <tango-gl/conversions.h>
 #include <tango-gl/util.h>
 
 namespace rgb_depth_sync {

@@ -18,19 +18,6 @@
 #define RGB_DEPTH_SYNC_APPLICATION_H_
 
 #include <tango_support_api.h>
-/*#include <pcl/point_types.h>
-#include <pcl/point_cloud.h>
-#include <pcl/io/pcd_io.h>
-#include <pcl/io/ply_io.h>
-#include <iostream>
-#include <boost/filesystem.hpp>
-#include <pcl/common/common.h>
-#include <pcl/common/transforms.h>
-#include <boost/make_shared.hpp>
-#include <pcl/impl/instantiate.hpp>
-#include <pcl/ros/conversions.h>
-#include <pcl/filters/voxel_grid.h>*/
-
 #include <mutex>
 #include <condition_variable>
 #include <thread>
@@ -62,30 +49,13 @@
 #include "rgb-depth-sync/scene.h"
 #include "rgb-depth-sync/conversion.h"
 
-namespace {
-// We want to represent the device properly with respect to the ground so we'll
-// add an offset in z to our origin. We'll set this offset to 1.3 meters based
-// on the average height of a human standing with a Tango device. This allows us
-// to place a grid roughly on the ground for most users.
-  const glm::vec3 kHeightOffset = glm::vec3(0.0f, 1.3f, 0.0f);
-
-// Color of the motion tracking trajectory.
-  const tango_gl::Color kTraceColor(0.22f, 0.28f, 0.67f);
-
-// Color of the ground grid.
-  const tango_gl::Color kGridColor(0.85f, 0.85f, 0.85f);
-
-// Frustum scale.
-  const glm::vec3 kFrustumScale = glm::vec3(0.4f, 0.3f, 0.5f);
-}  // namespace
-
 namespace rgb_depth_sync {
 
   class SynchronizationApplication {
     public:
       SynchronizationApplication();
       ~SynchronizationApplication();
-      int TangoInitialize(JNIEnv* env, jobject caller_activity);
+      int TangoInitialize(JNIEnv* env, jobject caller_activity, JavaVM* javaVM);
       // Setup the configuration file for the Tango Service. .
       int TangoSetupConfig();
       // Sets the callbacks for OnXYZijAvailable
@@ -188,6 +158,10 @@ namespace rgb_depth_sync {
       float range_;
       std::string folder_name_;
       bool optimize_;
+      JNIEnv* env_;
+      jobject caller_activity_;
+      JavaVM* javaVM_;
+      jclass activity_class_;
   };
 
 } // namespace rgb_depth_sync

@@ -1,6 +1,3 @@
-//
-// Created by anastasia on 15.02.16.
-//
 #include "rgb-depth-sync/pcd_outlier_removal.h"
 
 namespace rgb_depth_sync {
@@ -15,7 +12,8 @@ namespace rgb_depth_sync {
   PCDOutlierRemoval::~PCDOutlierRemoval() {
   }
 
-  std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> > PCDOutlierRemoval::Compute(const std::vector<float>& all_points, float min_range, float max_range, float radius) {
+  std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> >PCDOutlierRemoval::
+    Compute(const std::vector<float>& all_points, float min_range, float max_range, float radius) {
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);

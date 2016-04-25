@@ -112,44 +112,21 @@ namespace rgb_depth_sync {
 
       // transform depth point to color frame
       glm::vec3 color_point = glm::vec3(
-          color_T_depth * glm::vec4(depth_p.x, depth_p.y, depth_p.z, 1.0f));
+          color_T_depth * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
 
+      pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx + color_camera_intrinsics.cx);
+      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy + color_camera_intrinsics.cy);
 
-      // remove distrotion from color point
-      ru = sqrt((pow(color_point.x, 2) + pow(color_point.y, 2)) / pow(color_point.z, 2));
-      rd = ru + c_k1 * pow(ru, 3) + c_k2 * pow(ru, 5) + c_k3 * pow(ru, 7);
+      glm::vec3 ss_point = glm::vec3(pose_ * glm::vec4(color_point.x, color_point.y, color_point.z, 1.0f));
 
-      /*glm::vec3 color_point = glm::vec3(
-          color_T_depth * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));*/
-
-      pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx * rd / ru + color_camera_intrinsics.cx);
-      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy * rd / ru + color_camera_intrinsics.cy);
-
-      glm::vec3 ss_point = glm::vec3(
-          pose_ * glm::vec4(color_point.x, color_point.y, color_point.z, 1.0f));
-
-      /*pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx +
-                                 color_camera_intrinsics.cx);
-
-      pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy +
-                                 color_camera_intrinsics.cy);*/
-
-      /*pixel_x = static_cast<int>(xyz[i] / xyz[i+2] * color_camera_intrinsics.fx +
-                                 color_camera_intrinsics.cx);
-
-      pixel_y = static_cast<int>(xyz[i+1] / xyz[i+2] * color_camera_intrinsics.fy +
-                                 color_camera_intrinsics.cy);*/
-
-      if (pixel_x < 0 || pixel_x > color_camera_intrinsics.width || pixel_y < 0 ||
-                                                                    pixel_y > color_camera_intrinsics.height) {
+      if (pixel_x < 0 || pixel_x > color_camera_intrinsics.width ||
+          pixel_y < 0 || pixel_y > color_camera_intrinsics.height)
         continue;
-      }
-
 
       int index = pixel_x + pixel_y * color_camera_intrinsics.width;
 
       if (index * 3 + 2 >= rgb_size)
-            continue;
+        continue;
 
       p.x = color_point.x;
       p.y = color_point.y;

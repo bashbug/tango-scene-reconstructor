@@ -1,6 +1,8 @@
-/*
- * Class writes rgb point cloud either to an file or
- * sends it via TCP socket.
+/**
+ * PCD class calculates and holds the xyz and rgb values of a point cloud.
+ * The pose of tango vio and the FTFSM and MFSM optimization will be set
+ * and are accessible by mesh.h/.cc to create a merged mesh of all rgb
+ * point clouds.
  */
 
 #ifndef RGB_DEPTH_SYNC_POINT_CLOUD_DATA_H
@@ -10,7 +12,7 @@
 #include <tango-gl/util.h>
 #include <tango_client_api.h>
 #include <pcl/point_types.h>
-#include "pcl/point_cloud.h"
+#include <pcl/point_cloud.h>
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
 #include <opencv2/opencv.hpp>

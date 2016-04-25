@@ -17,9 +17,8 @@
 #ifndef TANGO_POINT_CLOUD_POINT_CLOUD_DRAWABLE_H_
 #define TANGO_POINT_CLOUD_POINT_CLOUD_DRAWABLE_H_
 
-#include <jni.h>
-
 #include <tango-gl/util.h>
+#include "jni.h"
 
 namespace rgb_depth_sync {
 

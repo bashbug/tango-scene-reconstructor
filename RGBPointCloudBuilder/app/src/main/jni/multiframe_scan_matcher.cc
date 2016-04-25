@@ -21,6 +21,8 @@ namespace rgb_depth_sync {
   MultiframeScanMatcher::~MultiframeScanMatcher() {}
 
   void MultiframeScanMatcher::Init(PCDContainer* pcd_container) {
+    average_computation_time_ = 0;
+    computation_time_ = 0;
     pcd_container_ = pcd_container;
     last_index_ = pcd_container_->GetPCDContainerLastIndex();
 
@@ -89,6 +91,7 @@ namespace rgb_depth_sync {
     LOGE("Multiframe ICP init graph stop...");
 
     int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+    computation_time_ = diff;
 
     LOGE("Multiframe ICP init stops after %i ms", diff);
 
@@ -97,12 +100,13 @@ namespace rgb_depth_sync {
 
     for (int iteration=0; iteration<iterations_; ++iteration)  {
       // Do outer loop iterations
-      LOGE("Multiframe ICP outer iteration %i start...", iteration);
       multiFrameIcp.optimize(clouds_);
-      LOGE("Multiframe ICP outer iteration %i stop...", iteration);
     }
 
     diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+    computation_time_ += diff;
+
+    average_computation_time_ = diff/iterations_;
 
     LOGE("Multiframe ICP optimize stops after %i ms", diff);
 
@@ -121,4 +125,11 @@ namespace rgb_depth_sync {
     }
   }
 
+  int MultiframeScanMatcher::GetAverageComputationTime() {
+    return average_computation_time_;
+  }
+
+  int MultiframeScanMatcher::GetComputationTime() {
+    return computation_time_;
+  }
 }

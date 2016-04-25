@@ -18,9 +18,9 @@
 #define RGB_DEPTH_SYNC_UTIL_H_
 
 #include <Eigen/Geometry>
-
-#include "tango_client_api.h"  // NOLINT
-#include "tango-gl/util.h"
+#include <tango_client_api.h>  // NOLINT
+#include <tango-gl/util.h>
+#include <tango-gl/conversions.h>
 
 namespace rgb_depth_sync {
   // Utility functioins for Synchronization application.

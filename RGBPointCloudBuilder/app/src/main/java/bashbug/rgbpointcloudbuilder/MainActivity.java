@@ -35,9 +35,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -82,12 +86,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     private boolean mIsConnectedService = false;
 
+    private Button mOptimizeButton;
     private ToggleButton mStartAndStopButton;
     private SeekBar mRangeSeekbar;
 
-    private CheckBox mSMMeshCheckbox;
-    private CheckBox mMSMMeshCheckbox;
-    private CheckBox mUnOPTMeshCheckbox;
+    private RadioButton mSMMeshRadioButton;
+    private RadioButton mMSMMeshRadioButton;
+    private RadioButton mUnOPTMeshRadioButton;
+
+    MenuItem mShareFiles;
+    MenuItem mAnalytics;
+    FrameLayout mAnalyticsFrameLayout;
+
+    private int mFTFSMAverageCPUTime = 0;
+    private int mFTFSMCPUTime = 0;
+    private int mMFSMAverageCPUTime = 0;
+    private int mMFSMCPUTime = 0;
+
+    private TextView mFTFSMAnalycticsTextView;
+    private TextView mMFSMAnalycticsTextView;
 
     private static final String TAG = "RGBDepthSync";
 
@@ -107,6 +124,54 @@ public class MainActivity extends Activity implements View.OnClickListener {
         public void onStopTrackingTouch(SeekBar seekBar) {}
     }
 
+    public void testMethod() {
+        Log.e(TAG, "CALL ME BABY!");
+    }
+
+    public void setComputationTimes(int avrgCPUTimeFTFSM, int CPUTimeFTFSM, int avrgCPUTimeMFSM, int CPUTimeMFSM) {
+        mFTFSMAverageCPUTime = avrgCPUTimeFTFSM;
+        mFTFSMCPUTime = CPUTimeFTFSM;
+        mMFSMAverageCPUTime = avrgCPUTimeMFSM;
+        mMFSMCPUTime = CPUTimeMFSM;
+        mFTFSMAnalycticsTextView.setText("Ø " + Integer.toString(mFTFSMAverageCPUTime) + " ms/frame " +
+                Integer.toString(mFTFSMCPUTime) + " ms cpu time");
+        mMFSMAnalycticsTextView.setText("Ø " + Integer.toString(mMFSMAverageCPUTime) + " ms/iter "
+                + Integer.toString(mMFSMCPUTime) + " ms cpu time");
+    }
+
+    public void setFTFInfo(int loop_closure, int sm_frames, int frames) {
+        TextView t = (TextView) findViewById(R.id.mfsm_analytics_2);
+        t.setText(Integer.toString(loop_closure) + " good/" + Integer.toString(sm_frames)
+                + " loops of " + Integer.toString(frames) + " frames");
+    }
+
+    public void setCheckBoxesVisibleAndEnableButtons() {
+        mUnOPTMeshRadioButton.setVisibility(View.VISIBLE);
+        mSMMeshRadioButton.setVisibility(View.VISIBLE);
+        mMSMMeshRadioButton.setVisibility(View.VISIBLE);
+        mShareFiles.setEnabled(true);
+        mShareFiles.getIcon().setAlpha(255);
+        mAnalytics.setEnabled(true);
+        mAnalytics.getIcon().setAlpha(255);
+    }
+
+    public void setCheckBoxesInVisibleAndDisableButtons() {
+        mUnOPTMeshRadioButton.setVisibility(View.GONE);
+        mSMMeshRadioButton.setVisibility(View.GONE);
+        mMSMMeshRadioButton.setVisibility(View.GONE);
+        mShareFiles.setEnabled(false);
+        mShareFiles.getIcon().setAlpha(130);
+        mAnalytics.setEnabled(false);
+        mAnalytics.getIcon().setAlpha(130);
+    }
+
+    public void toggleAnalytics() {
+        if (mAnalyticsFrameLayout.getVisibility() == View.GONE) {
+            mAnalyticsFrameLayout.setVisibility(View.VISIBLE);
+        } else {
+            mAnalyticsFrameLayout.setVisibility(View.GONE);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,11 +223,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // Buttons for selecting camera view and Set up button click listeners.
         findViewById(R.id.first_person_button).setOnClickListener(this);
         findViewById(R.id.third_person_button).setOnClickListener(this);
+        findViewById(R.id.third_person_button).setEnabled(false);
         //findViewById(R.id.top_down_button).setOnClickListener(this);
 
         mStartAndStopButton = (ToggleButton) findViewById(R.id.start_stop_button);
 
-        findViewById(R.id.save_pcd_button).setOnClickListener(this);
+        mFTFSMAnalycticsTextView = (TextView) findViewById(R.id.ftfsm_analytics);
+        mMFSMAnalycticsTextView = (TextView) findViewById(R.id.mfsm_analytics);
+
+        //findViewById(R.id.save_pcd_button).setOnClickListener(this);
 
         // start and stop recording point clouds
         //mStartStopButton = (RadioButton) findViewById(R.id.start_stop_button);
@@ -176,138 +245,58 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
         });*/
 
+        mAnalyticsFrameLayout = (FrameLayout) findViewById(R.id.analytics);
+        mAnalyticsFrameLayout.setVisibility(View.GONE);
+
         // Button to start the pose optimization thread
-        findViewById(R.id.optimize_pose_graph_button).setOnClickListener(this);
-
-        // Make sure that the directories exists before saving files. Otherwise it will
-        // throw an exception
-        /*mFileDirectionPCD = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD");
-
-        mFileDirectionPCD_opt = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD_opt");
-
-        mFileDirectionPCD_opt_mf = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PCD_opt_mf");
-
-        mFileDirectionPPM = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/PPM");
-
-        mFileDirectionGraph = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_DOCUMENTS), "./RGBPointCloudBuilder/Graph");
-
-        if (mFileDirectionPCD.isDirectory()) {
-            String deleteCmd = "rm -r " + mFileDirectionPCD;
-            Runtime runtime = Runtime.getRuntime();
-            try {
-                runtime.exec(deleteCmd);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (mFileDirectionPCD_opt.isDirectory()) {
-            String deleteCmd = "rm -r " + mFileDirectionPCD_opt;
-            Runtime runtime = Runtime.getRuntime();
-            try {
-                runtime.exec(deleteCmd);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (mFileDirectionPPM.isDirectory()) {
-            String deleteCmd = "rm -r " + mFileDirectionPPM;
-            Runtime runtime = Runtime.getRuntime();
-            try {
-                runtime.exec(deleteCmd);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(!mFileDirectionPCD.isDirectory()) {
-            mFileDirectionPCD.mkdirs();
-            Log.i(TAG, "RGBPointCloudBuilder/PCD Directory not exists");
-        }
-        if(!mFileDirectionPCD_opt.isDirectory()) {
-            mFileDirectionPCD_opt.mkdirs();
-            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt Directory not exists");
-        }
-        if(!mFileDirectionPCD_opt_mf.isDirectory()) {
-            mFileDirectionPCD_opt_mf.mkdirs();
-            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt_mf Directory not exists");
-        }
-        if(!mFileDirectionPPM.isDirectory()) {
-            mFileDirectionPPM.mkdirs();
-            Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not exists");
-        }
-        if(!mFileDirectionGraph.isDirectory()) {
-            mFileDirectionGraph.mkdirs();
-            Log.i(TAG, "RGBPointCloudBuilder/Graph Directory not exists");
-        }
-        if (!mFileDirectionPCD.isDirectory()) {
-            Log.i(TAG, "RGBPointCloudBuilder/PCD Directory not created");
-        }
-        if (!mFileDirectionPCD_opt.isDirectory()) {
-            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt Directory not created");
-        }
-        if (!mFileDirectionPCD_opt_mf.isDirectory()) {
-            Log.i(TAG, "RGBPointCloudBuilder/PCD_opt_mf Directory not created");
-        }
-        if (!mFileDirectionPPM.isDirectory()) {
-            Log.i(TAG, "RGBPointCloudBuilder/PPM Directory not created");
-        }
-        if (!mFileDirectionGraph.isDirectory()) {
-            Log.i(TAG, "RGBPointCloudBuilder/Graph Directory not created");
-        }*/
+        mOptimizeButton = (Button) findViewById(R.id.optimize_pose_graph_button);
+        mOptimizeButton.setEnabled(false);
+        mOptimizeButton.setOnClickListener(this);
 
         mRangeSeekbar = (SeekBar) findViewById(R.id.range_seekbar);
         mRangeSeekbar.setOnSeekBarChangeListener(new RangeSeekbarListener());
 
-        mSMMeshCheckbox = (CheckBox) findViewById(R.id.single_frame_opt_checkbox);
-        mSMMeshCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked) {
-                    mMSMMeshCheckbox.setChecked(false);
-                    mUnOPTMeshCheckbox.setChecked(false);
+        mSMMeshRadioButton = (RadioButton) findViewById(R.id.ftfsm_mesh_radio_button);
+        mSMMeshRadioButton.setVisibility(View.GONE);
+
+        mMSMMeshRadioButton = (RadioButton) findViewById(R.id.mfsm_mesh_radio_button);
+        mMSMMeshRadioButton.setVisibility(View.GONE);
+
+        mUnOPTMeshRadioButton = (RadioButton) findViewById(R.id.tango_mesh_radio_button);
+        mUnOPTMeshRadioButton.setVisibility(View.GONE);
+    }
+
+    public void onRadioButtonClicked(View view) {
+        // Is the button now checked?
+        boolean checked = ((RadioButton) view).isChecked();
+
+        switch(view.getId()) {
+            case R.id.ftfsm_mesh_radio_button:
+                if (checked)
                     JNIInterface.showSMMesh();
-                } else {
-                    mUnOPTMeshCheckbox.setChecked(true);
-                }
-            }
-        });
-
-        mMSMMeshCheckbox = (CheckBox) findViewById(R.id.multi_frame_opt_checkbox);
-        mMSMMeshCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked) {
-                    mSMMeshCheckbox.setChecked(false);
-                    mUnOPTMeshCheckbox.setChecked(false);
+                break;
+            case R.id.mfsm_mesh_radio_button:
+                if (checked)
                     JNIInterface.showMSMMesh();
-                } else {
-                    mUnOPTMeshCheckbox.setChecked(true);
-                }
-            }
-        });
-
-        mUnOPTMeshCheckbox = (CheckBox) findViewById(R.id.unopt_checkbox);
-        mUnOPTMeshCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton view, boolean isChecked) {
-                if (isChecked) {
-                    mSMMeshCheckbox.setChecked(false);
-                    mMSMMeshCheckbox.setChecked(false);
+                break;
+            case R.id.tango_mesh_radio_button:
+                if (checked)
                     JNIInterface.showUnOPTMesh();
-                }
-            }
-        });
-
+                break;
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main, menu);
+        mShareFiles = menu.findItem(R.id.ic_file_upload);
+        mShareFiles.setEnabled(false);
+        mShareFiles.getIcon().setAlpha(130);
+
+        mAnalytics = menu.findItem(R.id.ic_poll);
+        mAnalytics.setEnabled(false);
+        mAnalytics.getIcon().setAlpha(130);
         return true;
     }
 
@@ -316,6 +305,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         switch (item.getItemId()) {
             case R.id.ic_file_upload:
                 ZipAndShare();
+                Toast.makeText(this, "ZIP file is also saved to Documents/RGBPointCloudBuilder", Toast.LENGTH_LONG).show();
+                return true;
+            case R.id.ic_poll:
+                toggleAnalytics();
                 return true;
             default:
                 // If we got here, the user's action was not recognized.
@@ -344,6 +337,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void onToggleClick(View v) {
         if (mStartAndStopButton.isChecked()) {
+            mStartAndStopButton.setAlpha(1.0f);
+            mOptimizeButton.setEnabled(false);
+            JNIInterface.setCamera(0);
+            findViewById(R.id.third_person_button).setEnabled(false);
+            setCheckBoxesInVisibleAndDisableButtons();
             Log.e(TAG, "is checked");
             if (mTangoPausedResumedNewSurface) {
                 //JNIInterface.freeGLContent();
@@ -352,6 +350,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
             JNIInterface.startPCDWorker();
         } else {
+            mStartAndStopButton.setAlpha(0.8f);
+            mOptimizeButton.setEnabled(true);
+            findViewById(R.id.third_person_button).setEnabled(true);
             JNIInterface.stopPCDWorker();
             Log.e(TAG, "is NOT checked");
         }
@@ -372,10 +373,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 String date = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
                 mFolderName = Environment.getExternalStorageDirectory().toString() + "/Documents/RGBPointCloudBuilder/" + date;
                 Log.e(TAG, mFolderName+"/");
-                JNIInterface.optimizeAndSaveToFolder(mFolderName+"/");
-                break;
-            case R.id.save_pcd_button:
-                //JNIInterface.savePCD(true);
+                JNIInterface.optimizeAndSaveToFolder(mFolderName + "/");
+                setCheckBoxesVisibleAndEnableButtons();
+                Toast.makeText(this, "PCD files are saved to Documents/RGBPointCloudBuilder", Toast.LENGTH_LONG).show();
                 break;
             default:
                 Log.w(TAG, "Unrecognized button click.");

@@ -1,5 +1,6 @@
 /*
- * Container of all registered rgb point clouds.
+ * PCDContainer class holds all registered rgb point clouds while a scanning process.
+ * It will be reset if the scanning process (re)starts.
  */
 
 #ifndef RGB_DEPTH_SYNC_POINT_CLOUD_CONTAINER_H
@@ -11,6 +12,7 @@
 #include <vector>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
+
 #include "rgb-depth-sync/pcd.h"
 #include "rgb-depth-sync/mesh.h"
 

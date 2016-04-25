@@ -1,14 +1,22 @@
-//
-// Reads a *.PCD file from a given path
-// make sure that the file exists before reading from it
-// fileformat has to be binary with x,y,z,rgb float values
-//
+/**
+ * Helper class reads a *.PCD file from a given path
+ * make sure that the file exists before reading from it
+ * fileformat has to be binary with x,y,z,rgb float values
+ */
 
 #ifndef RGBPOINTCLOUDBUILDER_PCD_FILE_READER_H
 #define RGBPOINTCLOUDBUILDER_PCD_FILE_READER_H
 
 #include <string>
 #include <vector>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <sys/mman.h>
+#include <fcntl.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace rgb_depth_sync {
 

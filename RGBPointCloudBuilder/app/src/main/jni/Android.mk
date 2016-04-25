@@ -208,7 +208,6 @@ LOCAL_SRC_FILES += conversion.cc \
                    pcd_worker.cc \
                    pose_data.cc \
                    rgb_depth_sync_application.cc \
-                   scan_matcher.cc \
                    shader.cc \
                    scene.cc \
                    util.cc \

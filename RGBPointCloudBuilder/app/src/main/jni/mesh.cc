@@ -138,7 +138,7 @@ namespace rgb_depth_sync {
       // Create the filtering object
       pcl::VoxelGrid<pcl::PointXYZRGB> vg;
       vg.setInputCloud (pcd_mesh_);
-      vg.setLeafSize (0.004f, 0.004f, 0.004f);
+      vg.setLeafSize (0.008f, 0.008f, 0.008f);
       vg.filter (cloud_downsampled);
 
       *pcd_mesh_ = cloud_downsampled;

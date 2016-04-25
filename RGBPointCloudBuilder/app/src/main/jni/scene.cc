@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include <tango-gl/conversions.h>
-
 #include "rgb-depth-sync/scene.h"
 #include "rgb-depth-sync/pcd_drawable.h"
 #include "rgb-depth-sync/shader.h"

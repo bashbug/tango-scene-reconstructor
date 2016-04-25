@@ -9,6 +9,9 @@ namespace rgb_depth_sync {
 
   void FrameToFrameScanMatcher::Init(PCDContainer* pcd_container) {
     loop_closures_count_ = 0;
+    scan_match_count_ = -1;
+    average_computation_time_ = 0;
+    computation_time_ = 0;
     pcd_container_ = pcd_container;
     // allocating optimizer
     optimizer_ = new g2o::SparseOptimizer();
@@ -46,7 +49,9 @@ namespace rgb_depth_sync {
   }
 
   void FrameToFrameScanMatcher::Optimize() {
+    std::clock_t start = std::clock();
     DetectLoopClosures();
+    computation_time_ = (std::clock() - start) / (double) (CLOCKS_PER_SEC / 1000);
     OptimizeGraph();
   }
 
@@ -84,6 +89,7 @@ namespace rgb_depth_sync {
                                                       pcd_container_->pcd_container_[current]->GetPointCloud(),
                                                       pcd_container_->pcd_container_[orderedNeighbors[j].id]->GetPose(),
                                                       pcd_container_->pcd_container_[current]->GetPose());
+        scan_match_count_++;
 
         if(isnan(overlap))
           continue;
@@ -357,5 +363,30 @@ namespace rgb_depth_sync {
     sprintf(filename, "/storage/emulated/10/Documents/RGBPointCloudBuilder/Graph/graph_%05d.g2o", graph_counter_);
     optimizer_->save(filename, 0);
     graph_counter_++;
+  }
+
+  int FrameToFrameScanMatcher::GetNoOfLoopClosures() {
+    return loop_closures_count_;
+  }
+
+  int FrameToFrameScanMatcher::GetNoOfMatchedFrames() {
+    return scan_match_count_;
+  }
+
+  int FrameToFrameScanMatcher::GetAverageComputationTime() {
+    if (computation_time_ == 0 && scan_match_count_ == -1) {
+      return 0;
+    } else {
+      return computation_time_ / scan_match_count_+1;
+    }
+  }
+
+  int FrameToFrameScanMatcher::GetComputationTime() {
+    if (computation_time_ == std::numeric_limits<jint>::min()) {
+      LOGE("DivisionOverflow SIGFPE");
+      return 0;
+    } else {
+      return computation_time_;
+    }
   }
 }

@@ -1,13 +1,3 @@
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <string>
-
-#include <sys/mman.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "rgb-depth-sync/pcd_file_reader.h"
 #include "rgb-depth-sync/util.h"
 

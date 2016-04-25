@@ -1,5 +1,6 @@
-/*
- * Writes a *.PCD file to /storage/emulated/0/Documents/RGBPointCloudBuilder/PCDxyz/
+/**
+ * Helper class writes a *.PCD file to
+ * Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/PCD
  * make sure that this folder exists before writing to it
  * The fileformat is binary with x,y,z,rgb float values
  */
@@ -9,8 +10,8 @@
 
 #include <string>
 #include <vector>
+#include <tango-gl/util.h>
 
-#include "tango-gl/util.h"
 #include "rgb-depth-sync/util.h"
 
 namespace rgb_depth_sync {
