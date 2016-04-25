@@ -6,7 +6,7 @@ It uses to different approaches a frame-to-frame and a mutli-frame scan matching
 
 ![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/tango_mesh_and_pose_graph_with_red_loops.png)
 
-and its given Pose graph generated with g2o. The red lines are detected loop closures by the FTFMS method. The result of the FTFMS optimized graph and model shows an more accurate alginment.
+and its given Pose graph generated with g2o. The red lines are detected loop closures by the FTFMS method. The result of the FTFMS optimized graph and model shows a more accurate alginment.
 
 ![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/ftfsm_mesh_and_pose_graph_with_red_loops.png)
 
