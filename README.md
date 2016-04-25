@@ -6,7 +6,7 @@ It uses two different approaches, frame-to-frame (FTFSM) and mutli-frame scan ma
 
 <img alt="TANGO VIO" src="https://github.com/bashbug/TangoProject/blob/master/img/tango_mesh_and_pose_graph_with_red_loops.png">
 
-and its given pose graph generated with g2o. The red lines are detected loop closures by the FTFSM method. The result of the FTFSM optimized graph and model shows a more accurate alginment.
+and its given pose graph generated with g2o. The red lines are detected loop closures by the FTFSM method. The result of the FTFSM optimized graph and model shows a more accurate alignment.
 
 <img alt="FTFSM" src="https://github.com/bashbug/TangoProject/blob/master/img/ftfsm_mesh_and_pose_graph_with_red_loops.png">
 
@@ -38,7 +38,7 @@ Also the MFSM aligns the RGB point clouds more accurately.
 
 **RGBD visualization**
 - Merged RGB point clouds in real time and visualize with OpenGL.
-- Using voxel grid for downsampling and removing of douplicates
+- Using voxel grid for downsampling and removing of duplicates
 
 **Frame-to-Frame Scan Matching (FTFSM)**
 
