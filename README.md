@@ -2,6 +2,18 @@
 
 This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-c
 
+It uses to different approaches a frame-to-frame and a mutli-frame scan matching to optimize the RGB point cloud object model. Both methods use the Tango VIO poses as inital guess. An example model of an RGB point cloud alignment with Tango VIO poses
+
+![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/tango_mesh_and_pose_graph_with_red_loops.png)
+
+and its given Pose graph generated with g2o. The red lines are detected loop closures by the FTFMS method. The result of the FTFMS optimized graph and model shows an more accurate alginment.
+
+![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/ftfsm_mesh_and_pose_graph_with_red_loops.png)
+
+Also the MFSM aligns the RGB point clouds more accurately.
+
+![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/mfsm_mesh.png)
+
 ### Requirements
 - Android NDK r10e http://developer.android.com/ndk/downloads/index.html
 - PCL 1.8 https://github.com/PointCloudLibrary/pcl
