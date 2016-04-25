@@ -47,8 +47,10 @@ This project is based on the samples from the Google Tango API. You can find it 
 - Optimize graph with g2o (CSparse linear solver with Levenberg-Marquardt method) by minimizing the distances between the spatial constraints.
 
 **Store Point Clouds**
-- Store RGB point cloud as *.PCD binary file in ../Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/PCD
-- Store EGB point cloud object models as FTFSM.PCD and MFSM.PCD binary file in ../Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/Mesh/
+- Store RGB point cloud as *.PCD binary file in 
+  _/Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/PCD
+- Store EGB point cloud object models as FTFSM.PCD and MFSM.PCD binary file in 
+  _/Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/Mesh/
 
 **Zip&Share current scan**
 - Current stored RGB point clouds and object models are zipped and sharable to google drive or via other installed apps.
