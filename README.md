@@ -21,26 +21,38 @@ This project is based on the samples from the Google Tango API. You can find it 
 - Using pose of image and point cloud timestamp.
 
 **RGBD visualization**
-- Merged rgb point clouds in real time and visualize with OpenGL.
+- Merged RGB point clouds in real time and visualize with OpenGL.
 - Using voxel grid for downsampling and removing of douplicates
 
 **Frame-to-Frame Scan Matching (FTFSM)**
+
 ***Loop Closure Detection***
 - Heuristik: Frames with a certain distance will matched. 
+
 ***Pose estmation***
 - The matching process (point-to-plane ICP) returns a relative transformation (used ICP is not open source).
+
 ***Pose optimization***
 - Create a pose graph with tango and loop closure poses.
 - Optimize graph with g2o (CSparse linear solver with Levenberg-Marquardt method) by minimizing the distance between the loop closure and Tango VIO poses.
 
 **Multi-Frame Scan Matching (MFSM)**
+
 ***Surface correspondence estmation***
 - Normal estimation with pcl::NormalEstimationOMP.
 - For a given point of a point cloud all corresponding points are estimated by searching each kdTree its nearest neighbor.
+
 ***Pose optimization***
 - Create a pose graph with tango and loop closure poses. Each pose has surface correspondences as spatial constraints.
 - Optimize graph with g2o (CSparse linear solver with Levenberg-Marquardt method) by minimizing the distances between the spatial constraints.
 
 **Store Point Clouds**
-- Store rgb point cloud as *.PCD binary file in ../Documents/RGBPointCloudBuilder/PCD/
+- Store RGB point cloud as *.PCD binary file in 
+  _/Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/PCD
+- Store EGB point cloud object models as FTFSM.PCD and MFSM.PCD binary file in 
+  _/Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/Mesh/
+
+**Zip&Share current scan**
+- Current stored RGB point clouds and object models are zipped and sharable to google drive or via other installed apps.
+
 
