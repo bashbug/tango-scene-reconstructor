@@ -2,11 +2,11 @@
 
 This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-c
 
-It uses to different approaches a frame-to-frame and a mutli-frame scan matching to optimize the RGB point cloud object model. Both methods use the Tango VIO poses as inital guess. An example model of an RGB point cloud alignment with Tango VIO poses
+It uses to different approaches a frame-to-frame (FTFSM) and a mutli-frame scan matching (MFSM) to optimize the RGB point cloud object model. Both methods use the Tango VIO poses as inital guess and g2o as a graph-based optimization system. An example model of an RGB point cloud alignment with Tango VIO poses
 
 ![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/tango_mesh_and_pose_graph_with_red_loops.png)
 
-and its given Pose graph generated with g2o. The red lines are detected loop closures by the FTFMS method. The result of the FTFMS optimized graph and model shows a more accurate alginment.
+and its given pose graph generated with g2o. The red lines are detected loop closures by the FTFMS method. The result of the FTFMS optimized graph and model shows a more accurate alginment.
 
 ![alt tag](https://github.com/bashbug/TangoProject/blob/master/img/ftfsm_mesh_and_pose_graph_with_red_loops.png)
 
@@ -39,7 +39,7 @@ Also the MFSM aligns the RGB point clouds more accurately.
 **Frame-to-Frame Scan Matching (FTFSM)**
 
 ***Loop Closure Detection***
-- Heuristik: Frames with a certain distance will matched. 
+- Heuristik: Frames with a certain distance will be matched. 
 
 ***Pose estmation***
 - The matching process (point-to-plane ICP) returns a relative transformation (used ICP is not open source).
@@ -55,7 +55,7 @@ Also the MFSM aligns the RGB point clouds more accurately.
 - For a given point of a point cloud all corresponding points are estimated by searching each kdTree its nearest neighbor.
 
 ***Pose optimization***
-- Create a pose graph with tango and loop closure poses. Each pose has surface correspondences as spatial constraints.
+- Create a pose graph with Tango VIO and loop closure poses. Each pose has surface correspondences as spatial constraints.
 - Optimize graph with g2o (CSparse linear solver with Levenberg-Marquardt method) by minimizing the distances between the spatial constraints.
 
 **Store Point Clouds**
