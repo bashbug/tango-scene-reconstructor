@@ -24,8 +24,8 @@ namespace {
 // add an offset in z to our origin. We'll set this offset to 1.3 meters based
 // on the average height of a human standing with a Tango device. This allows us
 // to place a grid roughly on the ground for most users.
-  const glm::vec3 kHeightOffset = glm::vec3(0.0f, 1.3f, 0.0f);
-
+  glm::vec3 kHeightOffset = glm::vec3(0.0f, 1.3f, 0.0f);
+  //glm::vec3 kHeightOffset_neg = glm::vec3(0.0f, 0.0f, 0.0f);
 // Color of the motion tracking trajectory.
   const tango_gl::Color kTraceColor(0.22f, 0.28f, 0.67f);
 
@@ -122,17 +122,18 @@ namespace rgb_depth_sync {
     } else {
       // In third person or top down more, we follow the camera movement.
       gesture_camera_->SetAnchorPosition(position);
+      //grid_->SetPosition(kHeightOffset_neg);
 
       /*frustum_->SetTransformationMatrix(tango_pose);
       // Set the frustum scale to 4:3, this doesn't necessarily match the physical
       // camera's aspect ratio, this is just for visualization purposes.
       frustum_->SetScale(kFrustumScale);
       frustum_->Render(gesture_camera_->GetProjectionMatrix(),
-                       gesture_camera_->GetViewMatrix());
+                       gesture_camera_->GetViewMatrix());*/
 
       axis_->SetTransformationMatrix(tango_pose);
       axis_->Render(gesture_camera_->GetProjectionMatrix(),
-                    gesture_camera_->GetViewMatrix());*/
+                    gesture_camera_->GetViewMatrix());
     }
 
     //trace_->UpdateVertexArray(position);

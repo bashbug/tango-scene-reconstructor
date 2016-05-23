@@ -32,6 +32,7 @@ namespace rgb_depth_sync {
       std::vector<uint8_t> GetRGBOptWithMSMValues();
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetFTFSMMeshPCDFile();
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetMFSMMeshPCDFile();
+      glm::mat4 GetCentroidMatrix();
       void OptimizeMesh();
       void ResetPCD();
       std::vector<PCD*> pcd_container_;

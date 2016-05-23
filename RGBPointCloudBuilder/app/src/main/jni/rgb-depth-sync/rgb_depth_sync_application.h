@@ -162,6 +162,8 @@ namespace rgb_depth_sync {
       jobject caller_activity_;
       JavaVM* javaVM_;
       jclass activity_class_;
+      int pose_optimization_id_;
+      glm::mat4 centroid_matrix_;
   };
 
 } // namespace rgb_depth_sync

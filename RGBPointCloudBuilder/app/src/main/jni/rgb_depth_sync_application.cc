@@ -107,6 +107,8 @@ namespace rgb_depth_sync {
     show_msm_mesh_ = false;
     show_unopt_mesh_ = false;
 
+    pose_optimization_id_ = -1;
+
     pcd_mtx_ = std::make_shared<std::mutex>();
     consume_pcd_ = std::make_shared<std::condition_variable>();
     xyz_mtx_ = std::make_shared<std::mutex>();
@@ -318,37 +320,39 @@ namespace rgb_depth_sync {
       xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_));
       rgb_buffer_.clear();
       rgb_buffer_ = pcd_container_->GetRGBValues();
-      curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
-      scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
+      centroid_matrix_ = pcd_container_->GetCentroidMatrix();
+      scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
     } else {
-      //LOGE("Render : size %i", xyz.size());
-      if (show_msm_mesh_) {
-        xyz_buffer_.clear();
-        xyz_buffer_ = pcd_container_->GetXYZValuesOptWithMSM(glm::inverse(curr_pose_));
-        rgb_buffer_.clear();
-        rgb_buffer_ = pcd_container_->GetRGBOptWithMSMValues();
-        curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
-        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
-        show_msm_mesh_ = false;
-      } else if (show_sm_mesh_) {
-        xyz_buffer_.clear();
-        xyz_buffer_ = pcd_container_->GetXYZValuesOptWithSM(glm::inverse(curr_pose_));
-        rgb_buffer_.clear();
-        rgb_buffer_ = pcd_container_->GetRGBOptWithSMValues();
-        curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
-        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
-        show_sm_mesh_ = false;
-      } else if (show_unopt_mesh_) {
-        xyz_buffer_.clear();
-        xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_));
-        rgb_buffer_.clear();
-        rgb_buffer_ = pcd_container_->GetRGBValues();
-        curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
-        //LOGE("Render : size %i", xyz.size());
-        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
-        show_unopt_mesh_ = false;
-      } else {
-        scene_->Render(curr_pose_, curr_pose_, xyz_buffer_, rgb_buffer_);
+      switch(pose_optimization_id_) {
+        case 2:
+          xyz_buffer_.clear();
+          xyz_buffer_ = pcd_container_->GetXYZValuesOptWithMSM(glm::inverse(curr_pose_*centroid_matrix_));
+          rgb_buffer_.clear();
+          rgb_buffer_ = pcd_container_->GetRGBOptWithMSMValues();
+          scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
+          break;
+        case 1:
+          xyz_buffer_.clear();
+          xyz_buffer_ = pcd_container_->GetXYZValuesOptWithSM(glm::inverse(curr_pose_*centroid_matrix_));
+          rgb_buffer_.clear();
+          rgb_buffer_ = pcd_container_->GetRGBOptWithSMValues();
+          //curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
+          //curr_pose_T_centroid = curr_pose_ * curr_pose_T_centroid;
+          scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
+          break;
+        case 0:
+          xyz_buffer_.clear();
+          xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_*centroid_matrix_)
+          );
+          rgb_buffer_.clear();
+          rgb_buffer_ = pcd_container_->GetRGBValues();
+          //curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
+          //curr_pose_T_centroid = curr_pose_ * curr_pose_T_centroid;
+          //LOGE("Render : size %i", xyz.size());
+          scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
+          break;
+        default:
+          scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
       }
     }
   }
@@ -481,24 +485,18 @@ namespace rgb_depth_sync {
     LOGE("RANGE VALUE: %f", range_);
   }
 
+  void SynchronizationApplication::ShowUnOPTMesh() {
+    pose_optimization_id_ = 0;
+    LOGE("Show Unoptimized Mesh");
+  }
+
   void SynchronizationApplication::ShowSMMesh() {
-    show_sm_mesh_ = true;
-    show_msm_mesh_ = false;
-    show_unopt_mesh_ = false;
+    pose_optimization_id_ = 1;
     LOGE("Show SM Mesh");
   }
 
   void SynchronizationApplication::ShowMSMMesh() {
-    show_msm_mesh_ = true;
-    show_sm_mesh_ = false;
-    show_unopt_mesh_ = false;
+    pose_optimization_id_ = 2;
     LOGE("Show MSM Mesh");
-  }
-
-  void SynchronizationApplication::ShowUnOPTMesh() {
-    show_unopt_mesh_ = true;
-    show_msm_mesh_ = false;
-    show_sm_mesh_ = false;
-    LOGE("Show Unoptimized Mesh");
   }
 }  // namespace rgb_depth_sync

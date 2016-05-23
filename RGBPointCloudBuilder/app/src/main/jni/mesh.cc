@@ -43,20 +43,38 @@ namespace rgb_depth_sync {
     {
       std::lock_guard<std::mutex> lock(mesh_mtx_);
       is_running_ = true;
+      centroid_ = glm::vec4();
       for (int i = 0; i < pcd_mesh_->points.size(); i++) {
         glm::vec3 device_point = glm::vec3(curr_pose * glm::vec4 (pcd_mesh_->points[i].x, pcd_mesh_->points[i].y, pcd_mesh_->points[i].z, 1.0f));
         xyz_values_transformed.push_back(device_point.x);
         xyz_values_transformed.push_back(device_point.y);
         xyz_values_transformed.push_back(device_point.z);
+        centroid_[0] += device_point.x;
+        centroid_[1] += device_point.y;
+        centroid_[2] += device_point.z;
         rgb_values_.push_back(pcd_mesh_->points[i].r);
         rgb_values_.push_back(pcd_mesh_->points[i].g);
         rgb_values_.push_back(pcd_mesh_->points[i].b);
       }
 
+      centroid_[0] /= pcd_mesh_->points.size();
+      centroid_[1] /= pcd_mesh_->points.size();
+      centroid_[2] /= pcd_mesh_->points.size();
+      centroid_[3] = 1.0f;
+
       is_running_ = false;
     }
 
     return xyz_values_transformed;
+  }
+
+  glm::mat4 Mesh::GetCentroidMatrix() {
+    glm::mat4 mat = glm::mat4();
+    //LOGE("CENTROID %f %f %f", centroid_[0], centroid_[1], centroid_[2]);
+    mat[3][0] = centroid_[0];
+    mat[3][1] = centroid_[1];
+    mat[3][2] = centroid_[2];
+    return mat;
   }
 
   std::vector<uint8_t> Mesh::GetRGBValues() {

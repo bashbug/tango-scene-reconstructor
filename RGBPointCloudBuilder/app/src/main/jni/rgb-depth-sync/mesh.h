@@ -71,6 +71,7 @@ namespace rgb_depth_sync {
       void FilterMesh(float radius=10);
       bool Reset();
       bool IsRunning();
+      glm::mat4 GetCentroidMatrix();
     private:
       int Hesh(float x_f, float y_f, float z_f);
       std::vector<float> xyz_values_;
@@ -85,6 +86,7 @@ namespace rgb_depth_sync {
       int resolution_;
       std::mutex mesh_mtx_;
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_mesh_;
+      glm::vec4 centroid_;
   };
 }
 

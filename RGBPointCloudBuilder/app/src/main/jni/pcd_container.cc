@@ -39,6 +39,10 @@ namespace rgb_depth_sync {
     return mesh_->GetRGBValues();
   }
 
+  glm::mat4 PCDContainer::GetCentroidMatrix() {
+    return mesh_->GetCentroidMatrix();
+  }
+
   void PCDContainer::OptimizeMesh() {
     for (int i = 0; i < pcd_container_.size(); i++) {
       mesh_sm_downsampled_->AddPointCloudOptWithSM(pcd_container_[i]);
