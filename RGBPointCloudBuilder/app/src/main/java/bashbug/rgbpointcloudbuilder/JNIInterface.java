@@ -17,14 +17,25 @@
 package bashbug.rgbpointcloudbuilder;
 
 import android.app.Activity;
+import android.util.Log;
+import android.os.IBinder;
 
 /**
  * Interfaces between C and Java.
  */
 public class JNIInterface {
+
     static {
-      System.loadLibrary("rgb_point_cloud_builder");
+        // This project depends on tango_client_api, so we need to make sure we load
+        // the correct library first.
+        if (TangoInitializationHelper.loadTangoSharedLibrary() ==
+                TangoInitializationHelper.ARCH_ERROR) {
+            Log.e("TangoJNINative", "ERROR! Unable to load libtango_client_api.so!");
+        }
+        System.loadLibrary("rgb_point_cloud_builder");
     }
+
+    public static native void onTangoServiceConnected(IBinder binder);
 
     public static native int tangoInitialize(Activity activity);
 

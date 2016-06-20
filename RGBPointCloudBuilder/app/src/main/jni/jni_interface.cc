@@ -33,6 +33,12 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_tangoInitialize(
   return app.TangoInitialize(env, activity, javaVM);
 }
 
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_onTangoServiceConnected(
+   JNIEnv* env, jobject, jobject binder) {
+ return app.OnTangoServiceConnected(env, binder);
+}
+
 JNIEXPORT jint JNICALL
 Java_bashbug_rgbpointcloudbuilder_JNIInterface_startPCDWorker(
     JNIEnv*, jobject) {

@@ -18,14 +18,17 @@ package bashbug.rgbpointcloudbuilder;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.IBinder;
 import android.os.StrictMode;
 import android.util.Log;
 import android.view.Display;
@@ -124,9 +127,44 @@ public class MainActivity extends Activity implements View.OnClickListener {
         public void onStopTrackingTouch(SeekBar seekBar) {}
     }
 
-    public void testMethod() {
-        Log.e(TAG, "CALL ME BABY!");
-    }
+    // Tango Service connection.
+    ServiceConnection mTangoServiceConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            JNIInterface.onTangoServiceConnected(service);
+
+            int ret = JNIInterface.tangoSetupConfig();
+            if (ret != TANGO_SUCCESS) {
+                Log.e(TAG, "Failed to set config.");
+                finish();
+            }
+
+            ret = JNIInterface.tangoConnectCallbacks();
+            if (ret != TANGO_SUCCESS) {
+                Log.e(TAG, "Failed to set connect callbacks.");
+                finish();
+            }
+
+            ret = JNIInterface.tangoConnect();
+            if (ret != TANGO_SUCCESS) {
+                Log.e(TAG, "Failed to set connect service.");
+                finish();
+            }
+
+            ret = JNIInterface.tangoSetIntrinsicsAndExtrinsics();
+            Log.e(TAG, "JNIInterface.tangoSetIntrinsicsAndExtrinsics()");
+            if (ret != TANGO_SUCCESS) {
+                Log.e(TAG, "Failed to set extrinsics and intrinsics.");
+                finish();
+            }
+
+            mIsConnectedService = true;
+        }
+
+        public void onServiceDisconnected(ComponentName name) {
+            // Handle this if you need to gracefully shutdown/retry
+            // in the event that Tango itself crashes/gets upgraded while running.
+        }
+    };
 
     public void setComputationTimes(int avrgCPUTimeFTFSM, int CPUTimeFTFSM, int avrgCPUTimeMFSM, int CPUTimeMFSM) {
         mFTFSMAverageCPUTime = avrgCPUTimeFTFSM;
@@ -421,13 +459,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onResume();
         mGLView.onResume();
 
-        // Though we're going to use Tango's C interface so that we have more
+        TangoInitializationHelper.bindTangoService(this, mTangoServiceConnection);
+
+        /*// Though we're going to use Tango's C interface so that we have more
         // low level control of our graphics, we can still use the Java API to
         // check that we have the correct permissions.
         if (!hasPermission(this, MOTION_TRACKING_PERMISSION)) {
             Log.e(TAG, "LOST PERMISSION");
             getMotionTrackingPermission();
-        }
+        }*/
         if (mTangoPaused) {
             Log.e(TAG, "ONRESUME + ONPAUSE");
             surfaceCreated();
@@ -444,8 +484,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mTangoPaused = true;
             Log.e(TAG, "TANGO IS DISCONNECTED");
             JNIInterface.tangoDisconnect();
+            unbindService(mTangoServiceConnection);
         }
-        //JNIInterface.freeGLContent();
     }
 
     @Override
@@ -464,7 +504,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mTangoPausedResumedNewSurface = true;
         }
 
-        int ret = JNIInterface.tangoSetupConfig();
+        /*int ret = JNIInterface.tangoSetupConfig();
         if (ret != TANGO_SUCCESS) {
             Log.e(TAG, "Failed to set config with code: "  + ret);
             finish();
@@ -490,7 +530,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         //JNIInterface.setRangeValue(0.000001f);
 
-        mIsConnectedService = true;
+        mIsConnectedService = true;*/
     }
 
     @Override

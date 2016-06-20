@@ -92,9 +92,19 @@ namespace rgb_depth_sync {
     LOGE("Destroy SynchronizationApplication");
   }
 
+    void SynchronizationApplication::OnTangoServiceConnected(JNIEnv* env, jobject binder) {
+      TangoErrorType ret = TangoService_setBinder(env, binder);
+      if (ret != TANGO_SUCCESS) {
+        LOGE(
+            "SynchronizationApplication: Failed to set Tango service binder with"
+            "error code: %d",
+            ret);
+      }
+    }
+
   int SynchronizationApplication::TangoInitialize(JNIEnv* env, jobject caller_activity, JavaVM* javaVM) {
 
-    int ret = TangoService_initialize(env, caller_activity);
+    //int ret = TangoService_initialize(env, caller_activity);
 
     env_ = env;
     caller_activity_ = reinterpret_cast<jobject>(env->NewGlobalRef(caller_activity));
@@ -134,7 +144,7 @@ namespace rgb_depth_sync {
 
     pose_data_ = PoseData::GetInstance();
 
-    return ret;
+    return 1;
   }
 
   int SynchronizationApplication::TangoSetupConfig() {
@@ -253,6 +263,7 @@ namespace rgb_depth_sync {
               "and device frames");
       return ret;
     }
+
     pose_data_->SetImuTDepthCamera(pose_data_->GetMatrixFromPose(pose_data));
 
     TangoPoseData pose_imu_T_device;

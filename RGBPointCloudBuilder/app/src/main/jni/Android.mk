@@ -172,7 +172,7 @@ LOCAL_STATIC_LIBRARIES += libpcl_filters-static
 LOCAL_STATIC_LIBRARIES += libpcl_registration-static
 LOCAL_STATIC_LIBRARIES += libpcl_features-static
 
-LOCAL_SHARED_LIBRARIES += tango_client_api tango_support_api
+LOCAL_SHARED_LIBRARIES += tango_client_api tango_support_api tango_3d_reconstruction
 
 LOCAL_SHARED_LIBRARIES += libg2o_core-prebuilt
 LOCAL_SHARED_LIBRARIES += libg2o_stuff-prebuilt
@@ -238,3 +238,4 @@ include $(BUILD_SHARED_LIBRARY)
 $(call import-add-path, $(PROJECT_ROOT))
 $(call import-module, tango_client_api)
 $(call import-module, tango_support_api)
+$(call import-module, tango_3d_reconstruction)

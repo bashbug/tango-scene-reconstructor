@@ -55,6 +55,7 @@ namespace rgb_depth_sync {
     public:
       SynchronizationApplication();
       ~SynchronizationApplication();
+      void OnTangoServiceConnected(JNIEnv* env, jobject binder);
       int TangoInitialize(JNIEnv* env, jobject caller_activity, JavaVM* javaVM);
       // Setup the configuration file for the Tango Service. .
       int TangoSetupConfig();
