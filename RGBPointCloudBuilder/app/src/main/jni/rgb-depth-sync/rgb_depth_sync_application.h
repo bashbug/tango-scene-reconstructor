@@ -75,6 +75,8 @@ namespace rgb_depth_sync {
       //
       // @param: camera_type, camera type includes first person, third person and
       //         top down
+      void SetBackgroundColorBlack(bool on);
+      void SetGridOn(bool on);
       void SetCameraType(tango_gl::GestureCamera::CameraType camera_type);
       void StartPCDWorker();
       void StopPCDWorker();
@@ -165,6 +167,7 @@ namespace rgb_depth_sync {
       jclass activity_class_;
       int pose_optimization_id_;
       glm::mat4 centroid_matrix_;
+      bool backgroundColorBlack_;
   };
 
 } // namespace rgb_depth_sync

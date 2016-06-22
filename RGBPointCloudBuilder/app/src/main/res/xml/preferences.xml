@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="10dp">
+
+    <PreferenceCategory
+        android:title="Optimizing Method"
+        android:key="opt_method">
+    <CheckBoxPreference
+        android:key="mfsm"
+        android:title="MFSM on"
+        android:summary="Multiframe optimization method"
+        android:defaultValue="true" />
+    <CheckBoxPreference
+        android:key="ftfsm"
+        android:title="FTFSM on"
+        android:summary="Frame to frame optimization method"
+        android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="General Settings"
+        android:key="general_pref">
+        <CheckBoxPreference
+            android:key="pcd_files"
+            android:title="PCD files on"
+            android:summary="Store for each point cloud a single PCD file"
+            android:defaultValue="false" />
+        <CheckBoxPreference
+            android:key="grid"
+            android:title="Grid on"
+            android:summary="Set the grid on or off"
+            android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="background_color"
+            android:title="Background color black"
+            android:summary="Set the Background color black or white"
+            android:defaultValue="true" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

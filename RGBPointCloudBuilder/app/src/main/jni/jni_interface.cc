@@ -160,6 +160,18 @@ std::string folder_name_s = ConvertJString(env, folder_name);
 app.OptimizeAndSaveToFolder(folder_name_s);
 }
 
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setBackgroundColorBlack(
+    JNIEnv* env, jobject, jboolean on) {
+app.SetBackgroundColorBlack(on);
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setGridOn(
+    JNIEnv* env, jobject, jboolean on) {
+app.SetGridOn(on);
+}
+
 #ifdef __cplusplus
 }
 #endif

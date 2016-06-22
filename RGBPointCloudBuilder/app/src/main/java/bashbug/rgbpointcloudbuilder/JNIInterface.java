@@ -78,4 +78,9 @@ public class JNIInterface {
 
     public static native void optimizeAndSaveToFolder(String folder_name);
 
+    public static native void setBackgroundColorBlack(boolean on);
+
+    public static native void setGridOn(boolean on);
+
+
 }

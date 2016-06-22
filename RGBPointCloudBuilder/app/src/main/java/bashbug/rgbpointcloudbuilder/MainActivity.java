@@ -22,6 +22,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
@@ -30,6 +31,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.StrictMode;
+import android.preference.Preference;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
 import android.view.Menu;
@@ -79,6 +82,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private Boolean mTangoResumed = false;
     private Boolean mTangoPaused = false;
     private Boolean mTangoPausedResumedNewSurface = false;
+    private Boolean mShowOptions = false;
 
     private ZipFiles mZipFiles;
 
@@ -97,6 +101,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private RadioButton mMSMMeshRadioButton;
     private RadioButton mUnOPTMeshRadioButton;
 
+    MenuItem mOptions;
+    SettingsFragment mSettingFragment;
     MenuItem mShareFiles;
     MenuItem mAnalytics;
     FrameLayout mAnalyticsFrameLayout;
@@ -269,6 +275,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mFTFSMAnalycticsTextView = (TextView) findViewById(R.id.ftfsm_analytics);
         mMFSMAnalycticsTextView = (TextView) findViewById(R.id.mfsm_analytics);
 
+        mSettingFragment = new SettingsFragment();
+
         //findViewById(R.id.save_pcd_button).setOnClickListener(this);
 
         // start and stop recording point clouds
@@ -335,6 +343,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mAnalytics = menu.findItem(R.id.ic_poll);
         mAnalytics.setEnabled(false);
         mAnalytics.getIcon().setAlpha(130);
+
+        mOptions = menu.findItem(R.id.ic_options);
         return true;
     }
 
@@ -348,6 +358,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
             case R.id.ic_poll:
                 toggleAnalytics();
                 return true;
+            case R.id.ic_options:
+                if (mShowOptions) {
+                    // Display the fragment as the main content.
+                    getFragmentManager().beginTransaction()
+                            .remove(mSettingFragment)
+                            .commit();
+                    mShowOptions = false;
+                } else {
+                    // Display the fragment as the main content.
+                    getFragmentManager().beginTransaction()
+                            .replace(android.R.id.content, mSettingFragment)
+                            .commit();
+                    mShowOptions = true;
+                }
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -498,6 +522,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         if (!mTangoResumed) {
             JNIInterface.initializeGLContent();
+            setPreferences();
         } else {
             Log.e(TAG, "WAS RESUMED");
             mTangoResumed = false;
@@ -565,6 +590,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
         // After the permission activity is dismissed, we will receive a callback
         // function onActivityResult() with user's result.
         startActivityForResult(intent, 0);
+    }
+
+    private void setPreferences() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean value = sharedPref.getBoolean("background_color", true);
+        JNIInterface.setBackgroundColorBlack(value);
+        value = sharedPref.getBoolean("grid", true);
+        JNIInterface.setGridOn(value);
     }
 
     private void showSetServerSocketAddresssAndIPDialog() {

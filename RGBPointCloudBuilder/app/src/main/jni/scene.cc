@@ -70,6 +70,8 @@ namespace rgb_depth_sync {
     frustum_->SetColor(kGridColor);
     grid_->SetPosition(-kHeightOffset);
     gesture_camera_->SetCameraType(tango_gl::GestureCamera::CameraType::kFirstPerson);
+    backgroundColorBlack_ = true;
+    draw_grid_ = true;
   }
 
   Scene::~Scene() {}
@@ -108,7 +110,11 @@ namespace rgb_depth_sync {
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
 
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    if (backgroundColorBlack_) {
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    } else {
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    }
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     glm::vec3 position =
@@ -122,7 +128,9 @@ namespace rgb_depth_sync {
     } else {
       // In third person or top down more, we follow the camera movement.
       gesture_camera_->SetAnchorPosition(position);
-      //grid_->SetPosition(kHeightOffset_neg);
+      if (draw_grid_) {
+        grid_->SetPosition(kHeightOffset);
+      }
 
       /*frustum_->SetTransformationMatrix(tango_pose);
       // Set the frustum scale to 4:3, this doesn't necessarily match the physical
@@ -141,7 +149,10 @@ namespace rgb_depth_sync {
 
     //trace_icp_->UpdateVertexArray(position_icp);
     trace_icp_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
-    grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());*/
+    */
+    if (draw_grid_) {
+      grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
+    }
 
     if (point_cloud_data.size() > 0 && rgb_data.size() > 0) {
       pcd_drawable_->Render(gesture_camera_->GetProjectionMatrix(),
@@ -183,6 +194,14 @@ namespace rgb_depth_sync {
                            tango_gl::GestureCamera::TouchEvent event, float x0,
                            float y0, float x1, float y1) {
     gesture_camera_->OnTouchEvent(touch_count, event, x0, y0, x1, y1);
+  }
+
+  void Scene::SetBackgroundColor(bool on) {
+    backgroundColorBlack_ = on;
+  }
+
+  void Scene::SetGridOn(bool on) {
+    draw_grid_ = on;
   }
 
 }  // namespace rgb_depth_sync

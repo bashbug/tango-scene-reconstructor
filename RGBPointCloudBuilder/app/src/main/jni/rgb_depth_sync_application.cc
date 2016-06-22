@@ -510,4 +510,13 @@ namespace rgb_depth_sync {
     pose_optimization_id_ = 2;
     LOGE("Show MSM Mesh");
   }
+
+  void SynchronizationApplication::SetBackgroundColorBlack(bool on) {
+    scene_->SetBackgroundColor(on);
+  }
+
+  void SynchronizationApplication::SetGridOn(bool on) {
+    scene_->SetGridOn(on);
+  }
+
 }  // namespace rgb_depth_sync

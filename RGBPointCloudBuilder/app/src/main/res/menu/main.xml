@@ -9,4 +9,9 @@
         android:icon="@drawable/ic_file_upload"
         android:title="upload files"
         android:showAsAction="always" />
+
+    <item android:id="@+id/ic_options"
+        android:icon="@drawable/ic_more_vert_white_48dp"
+        android:title="upload files"
+        android:showAsAction="always" />
 </menu>

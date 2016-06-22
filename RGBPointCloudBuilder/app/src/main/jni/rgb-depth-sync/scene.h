@@ -81,6 +81,8 @@ namespace rgb_depth_sync {
 
     void SetTrace(std::vector<glm::vec3> positions);
     void SetICPTrace(std::vector<glm::vec3> positions);
+    void SetBackgroundColor(bool on);
+    void SetGridOn(bool on);
 
   private:
     GLint viewport_x_;
@@ -112,6 +114,8 @@ namespace rgb_depth_sync {
 
     bool first_;
     tango_gl::Cube* cube_;
+    bool backgroundColorBlack_;
+    bool draw_grid_;
   };
 }  // namespace tango_point_cloud
 
