@@ -115,6 +115,8 @@ namespace rgb_depth_sync {
 
       void OnPoseAvailable(const TangoPoseData* pose);
 
+      void UpdatePCDs();
+
     private:
       void SavePCD(std::string folder_name, std::string subfolder_name);
       int screen_width_, screen_height_;

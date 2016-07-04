@@ -119,9 +119,9 @@ namespace rgb_depth_sync {
                                         pose.translation().z());
       glm::quat rotation = glm::quat(eigen_rot.w(), eigen_rot.x(), eigen_rot.y(),
                                      eigen_rot.z());
-      pcd_container_->pcd_container_[i]->SetMSMPose(pose);
-      pcd_container_->pcd_container_[i]->SetTranslationMSM(translation);
-      pcd_container_->pcd_container_[i]->SetRotationMSM(rotation);
+      pcd_container_->pcd_container_[i]->SetMFSMPose(pose);
+      pcd_container_->pcd_container_[i]->SetTranslationMFSM(translation);
+      pcd_container_->pcd_container_[i]->SetRotationMFSM(rotation);
     }
   }
 

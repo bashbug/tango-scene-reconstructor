@@ -129,9 +129,9 @@ namespace rgb_depth_sync {
       glm::mat4 icppose_glm = util::ConvertEigenToGLMPose(all_poses[i]);
       glm::vec3 icp_translation = util::GetTranslationFromMatrix(icppose_glm);
       glm::quat icp_rotation = util::GetRotationFromMatrix(icppose_glm);
-      pcd_container_->pcd_container_[i]->SetSMPose(all_poses[i]);
-      pcd_container_->pcd_container_[i]->SetTranslationSM(icp_translation);
-      pcd_container_->pcd_container_[i]->SetRotationSM(icp_rotation);
+      pcd_container_->pcd_container_[i]->SetFTFSMPose(all_poses[i]);
+      pcd_container_->pcd_container_[i]->SetTranslationFTFSM(icp_translation);
+      pcd_container_->pcd_container_[i]->SetRotationFTFSM(icp_rotation);
     }
 
     SaveGraph();
