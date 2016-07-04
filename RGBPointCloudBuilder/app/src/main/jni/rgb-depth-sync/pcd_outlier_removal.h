@@ -26,11 +26,8 @@ namespace rgb_depth_sync {
   class PCDOutlierRemoval {
 
     public:
-      PCDOutlierRemoval();
+      PCDOutlierRemoval(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, float radius);
       ~PCDOutlierRemoval();
-      std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> >
-          Compute(const std::vector<float>& all_points, float min_range,
-                  float max_range, float radius);
   };
 
 }

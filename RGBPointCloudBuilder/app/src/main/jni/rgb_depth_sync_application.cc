@@ -376,6 +376,8 @@ namespace rgb_depth_sync {
     CreateSubFolders(folder_name);
 
     SavePCD(folder_name, "PCD/RAW/");
+    UpdatePCDs();
+    SavePCD(folder_name, "PCD/RAW2/");
 
     FrameToFrameScanMatcher ftfsm;
     ftfsm.Init(pcd_container_);
@@ -422,9 +424,21 @@ namespace rgb_depth_sync {
     dir_name = folder_name + "PCD/RAW";
     dir = dir_name.c_str();
     boost::filesystem::create_directories(dir);
+    dir_name = folder_name + "PCD/RAW2";
+    dir = dir_name.c_str();
+    boost::filesystem::create_directories(dir);
     dir_name = folder_name + "Mesh";
     dir = dir_name.c_str();
     boost::filesystem::create_directories(dir);
+  }
+
+  void SynchronizationApplication::UpdatePCDs() {
+
+    int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+    for (int i = 0; i <= lastIndex; i++) {
+      pcd_container_->pcd_container_[i]->Update();
+    }
+
   }
 
   void SynchronizationApplication::StopPCDWorker() {
@@ -452,28 +466,35 @@ namespace rgb_depth_sync {
     int lastIndex = pcd_container_->GetPCDContainerLastIndex();
 
     for (int i = 0; i <= lastIndex; i++) {
+
       if (subfolder_name == "PCD/RAW/") {
-        pcd_file_writer.SetPCDRGBData(
-            pcd_container_->pcd_container_[i]->GetPCD(),
-            pcd_container_->pcd_container_[i]->GetTranslation(),
-            pcd_container_->pcd_container_[i]->GetRotation());
-      }
-      if (subfolder_name == "PCD/FTFSM/") {
-        pcd_file_writer.SetPCDRGBData(
-            pcd_container_->pcd_container_[i]->GetPCD(),
-            pcd_container_->pcd_container_[i]->GetTranslationSM(),
-            pcd_container_->pcd_container_[i]->GetRotationSM());
-      }
-      if (subfolder_name == "PCD/MFSM/") {
-        pcd_file_writer.SetPCDRGBData(
-            pcd_container_->pcd_container_[i]->GetPCD(),
-            pcd_container_->pcd_container_[i]->GetTranslationMSM(),
-            pcd_container_->pcd_container_[i]->GetRotationMSM());
+        std::string dir_path = folder_name + subfolder_name;
+        char filename[1024];
+        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
+        pcd_container_->pcd_container_[i]->SaveAsPCD(filename);
       }
 
-      std::string dir_path = folder_name + subfolder_name;
-      pcd_file_writer.SetUnordered();
-      pcd_file_writer.SaveToFile(dir_path.c_str(), i);
+      if (subfolder_name == "PCD/RAW2/") {
+        std::string dir_path = folder_name + subfolder_name;
+        char filename[1024];
+        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
+        pcd_container_->pcd_container_[i]->SaveAsPCD(filename);
+      }
+
+      if (subfolder_name == "PCD/FTFSM/") {
+        std::string dir_path = folder_name + subfolder_name;
+        char filename[1024];
+        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
+        pcd_container_->pcd_container_[i]->SaveAsPCDWithFTFSMPose(filename);
+      }
+      if (subfolder_name == "PCD/MFSM/") {
+        std::string dir_path = folder_name + subfolder_name;
+        char filename[1024];
+        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
+        pcd_container_->pcd_container_[i]->SaveAsPCDWithMFSMPose(filename);
+      }
+
+
     }
   }
 

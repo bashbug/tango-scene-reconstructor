@@ -6,71 +6,49 @@ namespace rgb_depth_sync {
     cloud_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     cloud_transformed_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     pose_data_ = PoseData::GetInstance();
+
+    yuv_frame_.create(720*3/2, 1280, CV_8UC1);
+    rgb_frame_.create(720, 1280, CV_8UC3);
+    yuv_size_ = 720*3/2*1280;
+    rgb_size_ = 720*1280*3;
+
+    // default frustum clipping
+    near_clipping_ = 0.25;
+    far_clipping_ = 2.0;
   }
 
-  PCD::~PCD() {
-    LOGE("PointCloudData is destroyed...");
+  PCD::~PCD() { }
+
+  void PCD::SetXYZ(TangoXYZij* XYZij) {
+    TangoSupport_createXYZij(XYZij->xyz_count, &XYZij_);
+    TangoSupport_copyXYZij(XYZij, &XYZij_);
   }
 
-  void PCD::SetTranslation(const glm::vec3& translation) {
-    translation_ = translation;
+  void PCD::SetYUV(TangoImageBuffer* YUV) {
+    YUV_.data = YUV->data;
+    YUV_.width = YUV->width;
+    YUV_.height = YUV->height;
+    YUV_.stride = YUV->stride;
+    YUV_.format = YUV->format;
+    YUV_.frame_number = YUV->frame_number;
+    YUV_.timestamp = YUV->timestamp;
+    LOGE("YUV timestamp %f", YUV_.timestamp);
+    SetRGB();
   }
 
-  void PCD::SetRotation(const glm::quat& rotation) {
-    rotation_ = rotation;
+  void PCD::SetRGB() {
+    memcpy(yuv_frame_.data, YUV_.data, yuv_size_);
+    cv::cvtColor(yuv_frame_, rgb_frame_, CV_YUV2RGB_NV21);
   }
 
-  void PCD::SetTranslationSM(const glm::vec3& translation) {
-    translation_sm_ = translation;
-  }
+  void PCD::Update() {
 
-  void PCD::SetRotationMSM(const glm::quat& rotation) {
-    rotation_msm_ = rotation;
-  }
-
-  void PCD::SetTranslationMSM(const glm::vec3& translation) {
-    translation_msm_ = translation;
-  }
-
-  void PCD::SetRotationSM(const glm::quat& rotation) {
-    rotation_sm_ = rotation;
-  }
-
-  void PCD::SetKeyPointsAndDescriptors(const std::vector<cv::KeyPoint>& frame_key_points, cv::Mat frame_descriptors) {
-    frame_key_points_ = frame_key_points;
-    frame_descriptors_ = frame_descriptors;
-  }
-
-  void PCD::SetFrame(const cv::Mat& frame) {
-    frame_ = frame;
-  }
-
-  void PCD::SetRGBImage(const cv::Mat& rgb_image) {
-    rgb_image_ = rgb_image;
-  }
-
-  void PCD::SetSMPose(Eigen::Isometry3f sm_pose) {
-    sm_pose_ = sm_pose;
-  }
-
-  void PCD::SetMSMPose(Eigen::Isometry3f msm_pose) {
-    msm_pose_ = msm_pose;
-  }
-
-  void PCD::MapXYZWithRGB(const std::vector<pcl::PointXYZ, Eigen::aligned_allocator<pcl::PointXYZ> >& xyz,
-                          const std::vector<uint8_t>& rgb,
-                          double xyz_timestamp,
-                          double rgb_timestamp) {
-
-    xyz_timestamp_ = xyz_timestamp;
-    rgb_timestamp_ = rgb_timestamp;
-
-    pose_ = pose_data_->GetSSTColorCamera(xyz_timestamp);  // ss_T_color
+    pose_ = pose_data_->GetSSTColorCamera(XYZij_.timestamp);  // ss_T_color
     TangoCameraIntrinsics color_camera_intrinsics = pose_data_->GetColorCameraIntrinsics();
     TangoCameraIntrinsics depth_camera_intrinsics = pose_data_->GetDepthCameraIntrinsics();
 
     // transform the depth points into the color frame with relative pose
-    glm::mat4 color_T_depth = pose_data_->GetColorCameraTDepthCamera(rgb_timestamp, xyz_timestamp);
+    glm::mat4 color_T_depth = pose_data_->GetColorCameraTDepthCamera(YUV_.timestamp, XYZij_.timestamp);
 
     translation_ = util::GetTranslationFromMatrix(pose_);
     rotation_ = util::GetRotationFromMatrix(pose_);
@@ -78,41 +56,20 @@ namespace rgb_depth_sync {
     cloud_->sensor_origin_[0] = translation_[0];
     cloud_->sensor_origin_[1] = translation_[1];
     cloud_->sensor_origin_[2] = translation_[2];
-
-    // Eigen::Quaternionf(w, x, y, z);
     cloud_->sensor_orientation_ = Eigen::Quaternionf(rotation_.w, rotation_.x, rotation_.y, rotation_.z);
 
-    float k1 = static_cast<float>(depth_camera_intrinsics.distortion[0]);
-    float k2 = static_cast<float>(depth_camera_intrinsics.distortion[1]);
-    float k3 = static_cast<float>(depth_camera_intrinsics.distortion[2]);
+    int rgb_size = 1280*720*3;
 
-    float c_k1 = static_cast<float>(color_camera_intrinsics.distortion[0]);
-    float c_k2 = static_cast<float>(color_camera_intrinsics.distortion[1]);
-    float c_k3 = static_cast<float>(color_camera_intrinsics.distortion[2]);
+    for (int i = 0; i < XYZij_.xyz_count; i++) {
 
-    int xyz_size = xyz.size();
-    int rgb_size = rgb.size();
+      if (XYZij_.xyz[i][2] < near_clipping_ || XYZij_.xyz[i][2] > far_clipping_)
+        continue;
 
-    for (int i = 0; i < xyz_size; i++) {
       int pixel_x, pixel_y;
       pcl::PointXYZRGB p;
-      pcl::PointXYZ depth_p;
-
-      // remove distortion from xyz[i] values
-
-      float ru = sqrt((pow(xyz[i].x, 2) + pow(xyz[i].y, 2)) / pow(xyz[i].z, 2));
-      float rd = ru + k1 * pow(ru, 3) + k2 * pow(ru, 5) + k3 * pow(ru, 7);
-
-      int x = static_cast<int>(xyz[i].x / xyz[i].z * depth_camera_intrinsics.fx * rd / ru + depth_camera_intrinsics.cx);
-      int y = static_cast<int>(xyz[i].y / xyz[i].z * depth_camera_intrinsics.fy * rd / ru + depth_camera_intrinsics.cy);
-
-      depth_p.x = (xyz[i].z*(x-depth_camera_intrinsics.cx)) / depth_camera_intrinsics.fx;
-      depth_p.y = (xyz[i].z*(y-depth_camera_intrinsics.cy)) / depth_camera_intrinsics.fy;
-      depth_p.z = xyz[i].z;
 
       // transform depth point to color frame
-      glm::vec3 color_point = glm::vec3(
-          color_T_depth * glm::vec4(xyz[i].x, xyz[i].y, xyz[i].z, 1.0f));
+      glm::vec3 color_point = glm::vec3(color_T_depth * glm::vec4(XYZij_.xyz[i][0], XYZij_.xyz[i][1], XYZij_.xyz[i][2], 1.0f));
 
       pixel_x = static_cast<int>(color_point.x / color_point.z * color_camera_intrinsics.fx + color_camera_intrinsics.cx);
       pixel_y = static_cast<int>(color_point.y / color_point.z * color_camera_intrinsics.fy + color_camera_intrinsics.cy);
@@ -131,40 +88,28 @@ namespace rgb_depth_sync {
       p.x = color_point.x;
       p.y = color_point.y;
       p.z = color_point.z;
-      p.r = rgb[index * 3];
-      p.g = rgb[index * 3 + 1];
-      p.b = rgb[index * 3 + 2];
+      p.r = rgb_frame_.data[index * 3];
+      p.g = rgb_frame_.data[index * 3 + 1];
+      p.b = rgb_frame_.data[index * 3 + 2];
       cloud_->points.push_back(p);
 
       p.x = ss_point.x;
       p.y = ss_point.y;
       p.z = ss_point.z;
-      p.r = rgb[index * 3];
-      p.g = rgb[index * 3 + 1];
-      p.b = rgb[index * 3 + 2];
       cloud_transformed_->points.push_back(p);
 
       xyz_values_color_camera_.push_back(color_point.x);
       xyz_values_color_camera_.push_back(color_point.y);
       xyz_values_color_camera_.push_back(color_point.z);
 
-      pcd_.push_back(color_point.x);
-      pcd_.push_back(color_point.y);
-      pcd_.push_back(color_point.z);
-
       xyz_values_ss_.push_back(ss_point.x);
       xyz_values_ss_.push_back(ss_point.y);
       xyz_values_ss_.push_back(ss_point.z);
 
-      rgb_values_.push_back(rgb[index * 3]);
-      rgb_values_.push_back(rgb[index * 3 + 1]);
-      rgb_values_.push_back(rgb[index * 3 + 2]);
+      rgb_values_.push_back(rgb_frame_.data[index * 3]);
+      rgb_values_.push_back(rgb_frame_.data[index * 3 + 1]);
+      rgb_values_.push_back(rgb_frame_.data[index * 3 + 2]);
 
-      uint32_t tmp =
-          ((uint32_t)(rgb[index * 3])) << 16 | ((uint32_t)(rgb[index * 3 + 1])) << 8 |
-          ((uint32_t)(rgb[index * 3 + 2]));
-
-      pcd_.push_back(*reinterpret_cast<float *>(&tmp));
     }
 
     cloud_->height = 1;
@@ -173,6 +118,69 @@ namespace rgb_depth_sync {
     cloud_transformed_->width = cloud_->points.size();
     cloud_transformed_->sensor_origin_.setZero();
     cloud_transformed_->sensor_orientation_ = Eigen::Quaternionf::Identity();
+  }
+
+  void PCD::SetTranslation(const glm::vec3& translation) {
+    translation_ = translation;
+  }
+
+  void PCD::SetRotation(const glm::quat& rotation) {
+    rotation_ = rotation;
+  }
+
+  void PCD::SetTranslationFTFSM(const glm::vec3& translation) {
+    translation_ftfsm_ = translation;
+  }
+
+  void PCD::SetRotationMFSM(const glm::quat& rotation) {
+    rotation_mfsm_ = rotation;
+  }
+
+  void PCD::SetTranslationMFSM(const glm::vec3& translation) {
+    translation_mfsm_ = translation;
+  }
+
+  void PCD::SetRotationFTFSM(const glm::quat& rotation) {
+    rotation_ftfsm_ = rotation;
+  }
+
+  void PCD::SaveAsPCD(const char* filename) {
+    pcl::io::savePCDFile(filename, *cloud_);
+  }
+
+  void PCD::SaveAsPCDWithMFSMPose(const char* filename) {
+    pcl::PointCloud<pcl::PointXYZRGB> out;
+    out = *cloud_;
+    out.sensor_origin_ = Eigen::Vector4f (translation_mfsm_.x, translation_mfsm_.y, translation_mfsm_.z, 1.0f);
+    out.sensor_orientation_ = Eigen::Quaternionf(rotation_mfsm_.w, rotation_mfsm_.x, rotation_mfsm_.y, rotation_mfsm_.z);
+    pcl::io::savePCDFile(filename, out);
+  }
+
+  void PCD::SaveAsPCDWithFTFSMPose(const char* filename) {
+    pcl::PointCloud<pcl::PointXYZRGB> out;
+    out = *cloud_;
+    out.sensor_origin_ = Eigen::Vector4f (translation_ftfsm_.x, translation_ftfsm_.y, translation_ftfsm_.z, 1.0f);
+    out.sensor_orientation_ = Eigen::Quaternionf(rotation_ftfsm_.w, rotation_ftfsm_.x, rotation_ftfsm_.y, rotation_ftfsm_.z);
+    pcl::io::savePCDFile(filename, out);  }
+
+  void PCD::SetFTFSMPose(Eigen::Isometry3f ftfsm_pose) {
+    ftfsm_pose_ = ftfsm_pose;
+  }
+
+  void PCD::SetMFSMPose(Eigen::Isometry3f mfsm_pose) {
+    mfsm_pose_ = mfsm_pose;
+  }
+
+  void PCD::SetNearClipping(float near_clipping) {
+    near_clipping_ = near_clipping;
+  }
+
+  void PCD::SetFarClipping(float far_clipping) {
+    far_clipping_ = far_clipping;
+  }
+
+  void PCD::RemoveOutliers(float radius) {
+    PCDOutlierRemoval pcd_ro(cloud_, radius);
   }
 
   std::vector<float> PCD::GetXYZValues() {
@@ -187,12 +195,12 @@ namespace rgb_depth_sync {
     return pose_;
   }
 
-  Eigen::Isometry3f PCD::GetSMPose() {
-    return sm_pose_;
+  Eigen::Isometry3f PCD::GetFTFSMPose() {
+    return ftfsm_pose_;
   }
 
-  Eigen::Isometry3f PCD::GetMSMPose() {
-    return msm_pose_;
+  Eigen::Isometry3f PCD::GetMFSMPose() {
+    return mfsm_pose_;
   }
 
   glm::vec3 PCD::GetTranslation() {
@@ -203,28 +211,24 @@ namespace rgb_depth_sync {
     return rotation_;
   }
 
-  glm::vec3 PCD::GetTranslationSM() {
-    return translation_sm_;
+  glm::vec3 PCD::GetTranslationFTFSM() {
+    return translation_ftfsm_;
   }
 
-  glm::quat PCD::GetRotationSM() {
-    return rotation_sm_;
+  glm::quat PCD::GetRotationFTFSM() {
+    return rotation_ftfsm_;
   }
 
-  glm::vec3 PCD::GetTranslationMSM() {
-    return translation_msm_;
+  glm::vec3 PCD::GetTranslationMFSM() {
+    return translation_mfsm_;
   }
 
-  glm::quat PCD::GetRotationMSM() {
-    return rotation_msm_;
+  glm::quat PCD::GetRotationMFSM() {
+    return rotation_mfsm_;
   }
 
   std::vector<float> PCD::GetXYZValuesTSS() {
     return xyz_values_ss_;
-  }
-
-  std::vector<float> PCD::GetPCD() {
-    return pcd_;
   }
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr PCD::GetPointCloudTransformed() {
@@ -235,23 +239,4 @@ namespace rgb_depth_sync {
     return cloud_;
   }
 
-  std::vector<cv::KeyPoint> PCD::GetFrameKeyPoints() {
-    return frame_key_points_;
-  }
-
-  cv::Mat PCD::GetFrameDescriptors() {
-    return frame_descriptors_;
-  }
-
-  cv::Mat PCD::GetFrame() {
-    return frame_;
-  }
-
-  void PCD::SaveRGBImage(const char* path, int id) {
-    char filename[1024];
-    sprintf(filename, "%s/%05d.jpg", path, id);
-    cv::Mat tmp;
-    cv::cvtColor(rgb_image_, tmp, CV_RGB2BGR);
-    cv::imwrite(filename, tmp);
-  }
 } // namespace rgb_depth_sync

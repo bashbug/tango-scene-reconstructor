@@ -87,7 +87,7 @@ namespace rgb_depth_sync {
       is_running_ = true;
 
       // transfrom pcd with sm pose
-      Eigen::Matrix4f transform = pcd->GetSMPose().matrix();
+      Eigen::Matrix4f transform = pcd->GetFTFSMPose().matrix();
       // add new point cloud to mesh
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
       pcl::transformPointCloud (*(pcd->GetPointCloud()), *transformed_cloud, transform);
@@ -104,7 +104,7 @@ namespace rgb_depth_sync {
       is_running_ = true;
 
       // transfrom pcd with sm pose
-      Eigen::Matrix4f transform = pcd->GetMSMPose().matrix();
+      Eigen::Matrix4f transform = pcd->GetMFSMPose().matrix();
       // add new point cloud to mesh
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr transformed_cloud (new pcl::PointCloud<pcl::PointXYZRGB> ());
       pcl::transformPointCloud (*(pcd->GetPointCloud()), *transformed_cloud, transform);
