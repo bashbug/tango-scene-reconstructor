@@ -144,6 +144,8 @@ namespace rgb_depth_sync {
 
     pose_data_ = PoseData::GetInstance();
 
+    optimizationMethods_ = -1;
+
     return 1;
   }
 
@@ -375,30 +377,57 @@ namespace rgb_depth_sync {
     folder_name_ = folder_name;
     CreateSubFolders(folder_name);
 
-    SavePCD(folder_name, "PCD/RAW/");
-    UpdatePCDs();
-    SavePCD(folder_name, "PCD/RAW2/");
-
     FrameToFrameScanMatcher ftfsm;
-    ftfsm.Init(pcd_container_);
-    ftfsm.Optimize();
-    SavePCD(folder_name, "PCD/FTFSM/");
-
     MultiframeScanMatcher mfsm;
-    mfsm.Init(pcd_container_);
-    mfsm.Optimize();
-    SavePCD(folder_name, "PCD/MFSM/");
+    LOGE("optimizationMethods_ case %i", optimizationMethods_);
+    switch (optimizationMethods_) {
+      case 0:
+        LOGE("CASE 0");
+        SavePCD(folder_name, "PCD/RAW/");
+        ftfsm.Init(pcd_container_);
+        ftfsm.Optimize();
+        SavePCD(folder_name, "PCD/FTFSM/");
+        break;
+      case 1:
+        LOGE("CASE 1");
+        SavePCD(folder_name, "PCD/RAW/");
+        mfsm.Init(pcd_container_);
+        mfsm.Optimize();
+        SavePCD(folder_name, "PCD/MFSM/");
+        break;
+      case 2:
+        LOGE("CASE 2");
+        SavePCD(folder_name, "PCD/RAW/");
+        ftfsm.Init(pcd_container_);
+        ftfsm.Optimize();
+        SavePCD(folder_name, "PCD/FTFSM/");
+        mfsm.Init(pcd_container_);
+        mfsm.Optimize();
+        SavePCD(folder_name, "PCD/MFSM/");
+        break;
+      default:
+        break;
+    }
 
-    std::clock_t start = std::clock();
-    pcd_container_->OptimizeMesh();
 
-    pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
+    /*SavePCD(folder_name, "PCD/RAW/");
+    UpdatePCDs();
+    SavePCD(folder_name, "PCD/RAW2/");*/
+
+
+
+
+
+    //std::clock_t start = std::clock();
+    //pcd_container_->OptimizeMesh();
+
+    /*pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
     pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *pcd_container_->GetMFSMMeshPCDFile());
 
     int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
-    show_msm_mesh_ = true;
+    show_msm_mesh_ = true;*/
 
-    jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
+    /*jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
     env_->CallVoidMethod(caller_activity_, method,
                          reinterpret_cast<jint>(ftfsm.GetAverageComputationTime()),
                          reinterpret_cast<jint>(ftfsm.GetComputationTime()),
@@ -409,9 +438,9 @@ namespace rgb_depth_sync {
     env_->CallVoidMethod(caller_activity_, method,
                          reinterpret_cast<jint>(ftfsm.GetNoOfLoopClosures()),
                          reinterpret_cast<jint>(ftfsm.GetNoOfMatchedFrames()),
-                         reinterpret_cast<jint>((int)pcd_container_->pcd_container_.size()));
+                         reinterpret_cast<jint>((int)pcd_container_->pcd_container_.size()));*/
 
-    LOGE("Build sm and msm mesh stops after %i ms", diff);
+    //LOGE("Build sm and msm mesh stops after %i ms", diff);
   }
 
   void SynchronizationApplication::CreateSubFolders(std::string folder_name) {
@@ -538,6 +567,10 @@ namespace rgb_depth_sync {
 
   void SynchronizationApplication::SetGridOn(bool on) {
     scene_->SetGridOn(on);
+  }
+
+  void SynchronizationApplication::SetOptimizationMethods(int opt) {
+    optimizationMethods_ = opt;
   }
 
 }  // namespace rgb_depth_sync

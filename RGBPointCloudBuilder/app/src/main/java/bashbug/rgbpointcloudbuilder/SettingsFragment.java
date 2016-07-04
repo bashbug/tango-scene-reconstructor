@@ -49,6 +49,19 @@ public class SettingsFragment extends PreferenceFragment implements SharedPrefer
             boolean value = sharedPreferences.getBoolean(key, true);
             JNIInterface.setGridOn(value);
         }
+        if (key.equals("ftfsm") || key.equals("mfsm")) {
+
+            boolean value =  sharedPreferences.getBoolean("ftfsm", true);
+            boolean value2 = sharedPreferences.getBoolean("mfsm", true);
+
+            if (value && !value2) {
+                JNIInterface.setOptimizationMethods(0);
+            } else if (!value && value2) {
+                JNIInterface.setOptimizationMethods(1);
+            } else {
+                JNIInterface.setOptimizationMethods(2);
+            }
+        }
     }
 
     @Override

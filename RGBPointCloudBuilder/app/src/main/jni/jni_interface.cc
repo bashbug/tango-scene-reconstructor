@@ -172,6 +172,11 @@ Java_bashbug_rgbpointcloudbuilder_JNIInterface_setGridOn(
 app.SetGridOn(on);
 }
 
+JNIEXPORT void JNICALL
+Java_bashbug_rgbpointcloudbuilder_JNIInterface_setOptimizationMethods (JNIEnv* env, jobject, int opt) {
+app.SetOptimizationMethods(opt);
+}
+
 #ifdef __cplusplus
 }
 #endif

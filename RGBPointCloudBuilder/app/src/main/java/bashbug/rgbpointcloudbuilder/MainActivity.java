@@ -598,6 +598,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
         JNIInterface.setBackgroundColorBlack(value);
         value = sharedPref.getBoolean("grid", true);
         JNIInterface.setGridOn(value);
+        value =  sharedPref.getBoolean("ftfsm", true);
+        boolean value2 = sharedPref.getBoolean("mfsm", true);
+
+        if (value && !value2) {
+            JNIInterface.setOptimizationMethods(0);
+        } else if (!value && value2) {
+            JNIInterface.setOptimizationMethods(1);
+        } else {
+            JNIInterface.setOptimizationMethods(2);
+        }
+
     }
 
     private void showSetServerSocketAddresssAndIPDialog() {

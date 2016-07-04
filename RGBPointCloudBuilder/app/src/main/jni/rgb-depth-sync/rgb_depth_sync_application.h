@@ -77,6 +77,7 @@ namespace rgb_depth_sync {
       //         top down
       void SetBackgroundColorBlack(bool on);
       void SetGridOn(bool on);
+      void SetOptimizationMethods(int opt);
       void SetCameraType(tango_gl::GestureCamera::CameraType camera_type);
       void StartPCDWorker();
       void StopPCDWorker();
@@ -170,6 +171,7 @@ namespace rgb_depth_sync {
       int pose_optimization_id_;
       glm::mat4 centroid_matrix_;
       bool backgroundColorBlack_;
+      int optimizationMethods_;
   };
 
 } // namespace rgb_depth_sync

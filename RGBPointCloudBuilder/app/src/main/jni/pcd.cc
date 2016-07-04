@@ -32,7 +32,6 @@ namespace rgb_depth_sync {
     YUV_.format = YUV->format;
     YUV_.frame_number = YUV->frame_number;
     YUV_.timestamp = YUV->timestamp;
-    LOGE("YUV timestamp %f", YUV_.timestamp);
     SetRGB();
   }
 

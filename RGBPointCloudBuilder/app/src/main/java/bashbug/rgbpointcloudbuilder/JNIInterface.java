@@ -82,5 +82,7 @@ public class JNIInterface {
 
     public static native void setGridOn(boolean on);
 
+    public static native void setOptimizationMethods(int opt);
+
 
 }
