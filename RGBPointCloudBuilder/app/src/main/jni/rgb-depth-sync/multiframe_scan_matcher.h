@@ -38,7 +38,7 @@ namespace rgb_depth_sync {
     private:
       std::vector< pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr > clouds_;
       PCDContainer* pcd_container_;
-      int last_index_, threads_, g2oIterations_, iterations_;
+      int threads_, g2oIterations_, iterations_;
       float maxCorrespondenceDistance_, maxRange_, maxAngle_;
       int average_computation_time_, computation_time_;
       int width_, height_;

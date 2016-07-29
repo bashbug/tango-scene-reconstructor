@@ -119,55 +119,33 @@ namespace rgb_depth_sync {
 
     private:
       void SavePCD(std::string folder_name, std::string subfolder_name);
-      int screen_width_, screen_height_;
-      int pcd_count_;
-      int img_count_;
-      TangoConfig tango_config_;
-      bool pcd_container_optimized_;
-      bool pcd_container_optimized_mf_;
-      bool save_pcd_;
-      bool start_pcd_;
-      //std::shared_ptr<std::atomic<bool>> optimize_poses_process_started_;
-      std::shared_ptr<std::mutex> pcd_mtx_;
-      std::shared_ptr<std::condition_variable> consume_pcd_;
-      std::string socket_addr_;
-      int socket_port_;
-      PCDWorker* pcd_worker_;
-      PCD* pcd_;
-      glm::mat4 icp_;
-      PCDContainer* pcd_container_;
-      Scene* scene_;
-      TangoSupportPointCloudManager* xyz_manager_;
-      TangoSupportImageBufferManager* yuv_manager_;
-      Conversion* conversion_;
-      TangoXYZij* xyz_;
-      TangoImageBuffer* yuv_;
-      std::mutex pose_mutex_;
-      std::mutex optimize_mutex_;
-      PoseData* pose_data_;
-      bool new_xyz_data;
-      bool new_yuv_data;
-      std::vector<float> xyz_buffer_;
-      std::vector<uint8_t> rgb_buffer_;
-      glm::mat4 curr_pose_;
-      glm::mat4 pose_;
-      int curr_index_;
-      int prev_index_;
-      bool first_index_;
-      int point_cloud_count_;
-      std::shared_ptr<std::mutex> xyz_mtx_;
-      std::shared_ptr<std::condition_variable> consume_xyz_;
-      bool show_sm_mesh_, show_msm_mesh_, show_unopt_mesh_;
-      float range_;
-      std::string folder_name_;
-      bool optimize_;
+
       JNIEnv* env_;
       jobject caller_activity_;
       JavaVM* javaVM_;
       jclass activity_class_;
-      int pose_optimization_id_;
+
+      PCDWorker* pcd_worker_;
+      PCDContainer* pcd_container_;
+      PoseData* pose_data_;
+      Scene* scene_;
+      TangoSupportPointCloudManager* xyz_manager_;
+      TangoSupportImageBufferManager* yuv_manager_;
+
+      TangoConfig tango_config_;
+
+      std::mutex pose_mutex_;
+      std::shared_ptr<std::mutex> xyz_mtx_;
+      std::shared_ptr<std::condition_variable> consume_xyz_;
+
+      std::vector<float> xyz_buffer_;
+      std::vector<uint8_t> rgb_buffer_;
+
+      glm::mat4 curr_pose_;
+
+      bool optimize_;
       glm::mat4 centroid_matrix_;
-      bool backgroundColorBlack_;
+      int pose_optimization_id_;
       int optimizationMethods_;
   };
 

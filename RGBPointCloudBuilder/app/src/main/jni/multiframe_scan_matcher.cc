@@ -24,13 +24,12 @@ namespace rgb_depth_sync {
     average_computation_time_ = 0;
     computation_time_ = 0;
     pcd_container_ = pcd_container;
-    last_index_ = pcd_container_->GetPCDContainerLastIndex();
 
     // compute normales for each cloud
     LOGE("Compute Normales start...");
     std::clock_t start = std::clock();
 
-    for (int i = 0; i <= last_index_; i++ ) {
+    for (int i = 0; i <= pcd_container_->GetPCDContainerLastIndex(); i++ ) {
       pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals(
           new pcl::PointCloud <pcl::PointXYZRGBNormal>);
       pcl::copyPointCloud(*pcd_container_->pcd_container_[i]->GetPointCloud(), *cloud_with_normals);

@@ -201,11 +201,9 @@ LOCAL_SRC_FILES += conversion.cc \
                    pcd.cc \
                    pcd_container.cc \
                    pcd_drawable.cc \
-                   pcd_outlier_removal.cc \
                    pcd_worker.cc \
                    pose_data.cc \
                    rgb_depth_sync_application.cc \
-                   shader.cc \
                    scene.cc \
                    util.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/axis.cpp \

@@ -40,7 +40,6 @@ namespace rgb_depth_sync {
         } else {
           if(ss_T_device_rgb_timestamp.status_code == TANGO_POSE_VALID) {
             TangoSupport_updateImageBuffer(yuv_manager_, buffer);
-            img_count_++;
           } else {
             LOGE("ss_T_device_rgb_timestamp pose not valid");
           }
@@ -64,10 +63,8 @@ namespace rgb_depth_sync {
                xyz_ij->timestamp);
         } else {
           if (ss_T_device_xyz_timestamp.status_code == TANGO_POSE_VALID) {
-            //std::unique_lock<std::mutex> lock(*xyz_mtx_);
             TangoSupport_updatePointCloud(xyz_manager_, xyz_ij);
             consume_xyz_->notify_one();
-            pcd_count_++;
           } else {
             LOGE("ss_T_device_xyz_timestamp pose not valid");
           }
@@ -110,27 +107,11 @@ namespace rgb_depth_sync {
     jclass cls = env_->GetObjectClass(caller_activity_);
     activity_class_ = (jclass) env_->NewGlobalRef(cls);
 
-    show_sm_mesh_ = false;
-    show_msm_mesh_ = false;
-    show_unopt_mesh_ = false;
-
     pose_optimization_id_ = -1;
+    optimizationMethods_ = -1;
 
-    pcd_mtx_ = std::make_shared<std::mutex>();
-    consume_pcd_ = std::make_shared<std::condition_variable>();
     xyz_mtx_ = std::make_shared<std::mutex>();
     consume_xyz_ = std::make_shared<std::condition_variable>();
-
-    curr_index_ = -1;
-    prev_index_ = -1;
-    first_index_ = true;
-
-    save_pcd_ = false;
-    start_pcd_ = false;
-    pcd_count_ = 0;
-    img_count_ = 0;
-    pcd_container_optimized_ = false;
-    pcd_container_optimized_mf_ = false;
 
     pcd_container_ = new rgb_depth_sync::PCDContainer();
 
@@ -140,8 +121,6 @@ namespace rgb_depth_sync {
     pcd_worker_->Start();
 
     pose_data_ = PoseData::GetInstance();
-
-    optimizationMethods_ = -1;
 
     return 1;
   }
@@ -314,8 +293,6 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::SetViewPort(int width, int height) {
-    screen_width_ = static_cast<float>(width);
-    screen_height_ = static_cast<float>(height);
     scene_->SetViewPort(width, height);
   }
 
@@ -346,8 +323,6 @@ namespace rgb_depth_sync {
           xyz_buffer_ = pcd_container_->GetXYZValuesOptWithSM(glm::inverse(curr_pose_*centroid_matrix_));
           rgb_buffer_.clear();
           rgb_buffer_ = pcd_container_->GetRGBOptWithSMValues();
-          //curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
-          //curr_pose_T_centroid = curr_pose_ * curr_pose_T_centroid;
           scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
           break;
         case 0:
@@ -355,9 +330,6 @@ namespace rgb_depth_sync {
           xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_*centroid_matrix_));
           rgb_buffer_.clear();
           rgb_buffer_ = pcd_container_->GetRGBValues();
-          //curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
-          //curr_pose_T_centroid = curr_pose_ * curr_pose_T_centroid;
-          //LOGE("Render : size %i", xyz.size());
           scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
           break;
         default:
@@ -370,7 +342,6 @@ namespace rgb_depth_sync {
     StopPCDWorker();
 
     optimize_ = true;
-    folder_name_ = folder_name;
     CreateSubFolders(folder_name);
 
     FrameToFrameScanMatcher ftfsm;
@@ -405,23 +376,10 @@ namespace rgb_depth_sync {
         break;
     }
 
-
-    /*SavePCD(folder_name, "PCD/RAW/");
-    UpdatePCDs();
-    SavePCD(folder_name, "PCD/RAW2/");*/
-
-
-
-
-
-    //std::clock_t start = std::clock();
     pcd_container_->OptimizeMesh();
 
     pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
     pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *pcd_container_->GetMFSMMeshPCDFile());
-
-    //int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
-    show_msm_mesh_ = true;
 
     jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
     env_->CallVoidMethod(caller_activity_, method,
@@ -436,7 +394,6 @@ namespace rgb_depth_sync {
                          reinterpret_cast<jint>(ftfsm.GetNoOfMatchedFrames()),
                          reinterpret_cast<jint>((int)pcd_container_->pcd_container_.size()));
 
-    //LOGE("Build sm and msm mesh stops after %i ms", diff);
   }
 
   void SynchronizationApplication::CreateSubFolders(std::string folder_name) {
@@ -447,9 +404,6 @@ namespace rgb_depth_sync {
     dir = dir_name.c_str();
     boost::filesystem::create_directories(dir);
     dir_name = folder_name + "PCD/RAW";
-    dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
-    dir_name = folder_name + "PCD/RAW2";
     dir = dir_name.c_str();
     boost::filesystem::create_directories(dir);
     dir_name = folder_name + "Mesh";
@@ -498,13 +452,6 @@ namespace rgb_depth_sync {
         pcd_container_->pcd_container_[i]->SaveAsPCD(filename);
       }
 
-      if (subfolder_name == "PCD/RAW2/") {
-        std::string dir_path = folder_name + subfolder_name;
-        char filename[1024];
-        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
-        pcd_container_->pcd_container_[i]->SaveAsPCD(filename);
-      }
-
       if (subfolder_name == "PCD/FTFSM/") {
         std::string dir_path = folder_name + subfolder_name;
         char filename[1024];
@@ -517,8 +464,6 @@ namespace rgb_depth_sync {
         sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
         pcd_container_->pcd_container_[i]->SaveAsPCDWithMFSMPose(filename);
       }
-
-
     }
   }
 
@@ -536,9 +481,8 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::SetRangeValue(float range) {
-    range_ = range;
     pcd_worker_->SetRangeValue(range);
-    LOGE("RANGE VALUE: %f", range_);
+    LOGE("RANGE VALUE: %f", range);
   }
 
   void SynchronizationApplication::ShowUnOPTMesh() {

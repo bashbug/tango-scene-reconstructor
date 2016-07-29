@@ -243,16 +243,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
           }
         }
 
-        // Check if the system supports OpenGL ES 2.0.
-        /*final ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        final ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-        final boolean supportsEs2 = configurationInfo.reqGlEsVersion >= 0x20000;
-
-        if (supportsEs2){
-            Log.e(TAG, "SUPPORT OpenGL ES 2.0");
-        }
-        Log.e(TAG, "Version " + configurationInfo.getGlEsVersion() );*/
-
         setContentView(R.layout.activity_main);
 
         // OpenGL view where all of the graphics are drawn
@@ -268,7 +258,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         findViewById(R.id.first_person_button).setOnClickListener(this);
         findViewById(R.id.third_person_button).setOnClickListener(this);
         findViewById(R.id.third_person_button).setEnabled(false);
-        //findViewById(R.id.top_down_button).setOnClickListener(this);
 
         mStartAndStopButton = (ToggleButton) findViewById(R.id.start_stop_button);
 
@@ -276,20 +265,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mMFSMAnalycticsTextView = (TextView) findViewById(R.id.mfsm_analytics);
 
         mSettingFragment = new SettingsFragment();
-
-        //findViewById(R.id.save_pcd_button).setOnClickListener(this);
-
-        // start and stop recording point clouds
-        //mStartStopButton = (RadioButton) findViewById(R.id.start_stop_button);
-        /*mStartStopButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                if (mStartStopButton.isChecked()) {
-                    JNIInterface.startPCD(true);
-                } else {
-                    JNIInterface.stopPCD(true);
-                }
-            }
-        });*/
 
         mAnalyticsFrameLayout = (FrameLayout) findViewById(R.id.analytics);
         mAnalyticsFrameLayout.setVisibility(View.GONE);
@@ -610,14 +585,4 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
     }
-
-    private void showSetServerSocketAddresssAndIPDialog() {
-        FragmentManager manager = getFragmentManager();
-        SetServerSocketAddressAndIPDialog setServerSocketAddressAndIPDialog = new SetServerSocketAddressAndIPDialog();
-        setServerSocketAddressAndIPDialog.show(manager, "SocketAddIPDialog");
-    }
-
-    /*public void setmSendPCDSwitch(boolean on) {
-        mSendPCDSwitch.setEnabled(on);
-    }*/
 }

@@ -28,26 +28,13 @@ import javax.microedition.khronos.opengles.GL10;
 public class GLSurfaceRenderer implements GLSurfaceView.Renderer {
 
     private MainActivity mMainActivity;
-    private long timeStart;
-    private long timeEnd;
-    private long timeDelta;
 
     public GLSurfaceRenderer(MainActivity mainActivity) {
         mMainActivity = mainActivity;
     }
 
     public void onDrawFrame(GL10 glUnused) {
-        timeStart = System.currentTimeMillis();
         JNIInterface.render();
-        /*timeEnd = System.currentTimeMillis();
-        timeDelta = timeEnd - timeStart;
-        if (timeDelta < 20) {
-            try {
-                Thread.sleep(20 - timeDelta);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }*/
     }
 
     public void onSurfaceChanged(GL10 glUnused, int width, int height) {
@@ -55,7 +42,6 @@ public class GLSurfaceRenderer implements GLSurfaceView.Renderer {
     }
 
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-        Log.e("GLSurfaceRenderer", "onSurfaceCreated");
         mMainActivity.surfaceCreated();
     }
 }

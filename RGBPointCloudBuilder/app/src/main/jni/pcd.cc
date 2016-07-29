@@ -179,7 +179,13 @@ namespace rgb_depth_sync {
   }
 
   void PCD::RemoveOutliers(float radius) {
-    PCDOutlierRemoval pcd_ro(cloud_, radius);
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
+    pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
+    sor.setInputCloud(cloud_);
+    sor.setMeanK(radius);
+    sor.setStddevMulThresh(1.0);
+    sor.filter(*cloud_filtered);
+    cloud_ = cloud_filtered;
   }
 
   std::vector<float> PCD::GetXYZValues() {

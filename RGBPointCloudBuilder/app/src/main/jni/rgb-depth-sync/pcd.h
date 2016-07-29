@@ -26,7 +26,6 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include "rgb-depth-sync/pcd_outlier_removal.h"
 #include "rgb-depth-sync/pose_data.h"
 #include "rgb-depth-sync/util.h"
 

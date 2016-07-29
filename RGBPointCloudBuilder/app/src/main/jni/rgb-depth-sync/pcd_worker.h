@@ -20,7 +20,6 @@
 #include <Eigen/StdVector>
 #include <tango_support_api.h>
 
-#include "rgb-depth-sync/pcd_outlier_removal.h"
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/pcd.h"
 
@@ -56,7 +55,6 @@ namespace rgb_depth_sync {
       cv::Mat gray_frame_;
       cv::Mat gray_frame_320x180_;
       PCDContainer* pcd_container_;
-      PCDOutlierRemoval* pcd_remove_outlier_;
       TangoXYZij* xyz_buffer_;
       TangoImageBuffer* yuv_buffer_;
       bool new_xyz_data;

@@ -15,60 +15,19 @@
  */
 
 #include "rgb-depth-sync/scene.h"
-#include "rgb-depth-sync/pcd_drawable.h"
-#include "rgb-depth-sync/shader.h"
-
-
-namespace {
-// We want to represent the device properly with respect to the ground so we'll
-// add an offset in z to our origin. We'll set this offset to 1.3 meters based
-// on the average height of a human standing with a Tango device. This allows us
-// to place a grid roughly on the ground for most users.
-  glm::vec3 kHeightOffset = glm::vec3(0.0f, 1.3f, 0.0f);
-  //glm::vec3 kHeightOffset_neg = glm::vec3(0.0f, 0.0f, 0.0f);
-// Color of the motion tracking trajectory.
-  const tango_gl::Color kTraceColor(0.22f, 0.28f, 0.67f);
-
-  const tango_gl::Color kTraceColorICP(0.0f, 1.0f, 0.0f);
-
-// Color of the ground grid.
-  const tango_gl::Color kGridColor(0.2f, 0.2f, 0.2f);
-
-// Frustum scale.
-  const glm::vec3 kFrustumScale = 2.0f*glm::vec3(0.4f, 0.3f, 0.5f);
-
-  const float kCubeScale = 1.5f;
-
-  static const glm::mat4 kDepth_T_OpenGL =
-      glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
-                0.0f, 1.0f, 0.0f, 0.0f,
-                0.0f, 0.0f, 1.0f, 0.0f,
-                0.0f, 0.0f, 0.0f, -1.0f);
-}  // namespace
 
 namespace rgb_depth_sync {
 
   Scene::Scene() {
+    kHeightOffset_ = glm::vec3(0.0f, 1.3f, 0.0f);
+    const tango_gl::Color kGridColor_(0.2f, 0.2f, 0.2f);
     gesture_camera_ = new tango_gl::GestureCamera();
     axis_ = new tango_gl::Axis();
-    frustum_ = new tango_gl::Frustum();
-    trace_ = new tango_gl::Trace();
-    trace_icp_ = new tango_gl::Trace();
     grid_ = new tango_gl::Grid();
-    //cube_ = new tango_gl::Cube();
-    //cube_->render_mode_ = GL_LINES;
-    //cube_->SetColor(0.7f, 0.7f, 0.7f);
-    /*texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
-                                                   shader::kPointCloudFragment);*/
     pcd_drawable_ = new rgb_depth_sync::PCDDrawable();
 
-    first_ = true;
-
-    trace_->SetColor(kTraceColor);
-    trace_icp_->SetColor(kTraceColorICP);
-    grid_->SetColor(kGridColor);
-    frustum_->SetColor(kGridColor);
-    grid_->SetPosition(-kHeightOffset);
+    grid_->SetColor(kGridColor_);
+    grid_->SetPosition(-kHeightOffset_);
     gesture_camera_->SetCameraType(tango_gl::GestureCamera::CameraType::kFirstPerson);
     backgroundColorBlack_ = true;
     draw_grid_ = true;
@@ -79,9 +38,6 @@ namespace rgb_depth_sync {
   void Scene::FreeGLContent() {
     delete gesture_camera_;
     delete axis_;
-    delete frustum_;
-    delete trace_;
-    delete trace_icp_;
     delete grid_;
     delete pcd_drawable_;
   }
@@ -129,27 +85,13 @@ namespace rgb_depth_sync {
       // In third person or top down more, we follow the camera movement.
       gesture_camera_->SetAnchorPosition(position);
       if (draw_grid_) {
-        grid_->SetPosition(kHeightOffset);
+        grid_->SetPosition(kHeightOffset_);
       }
-
-      /*frustum_->SetTransformationMatrix(tango_pose);
-      // Set the frustum scale to 4:3, this doesn't necessarily match the physical
-      // camera's aspect ratio, this is just for visualization purposes.
-      frustum_->SetScale(kFrustumScale);
-      frustum_->Render(gesture_camera_->GetProjectionMatrix(),
-                       gesture_camera_->GetViewMatrix());*/
-
       axis_->SetTransformationMatrix(tango_pose);
       axis_->Render(gesture_camera_->GetProjectionMatrix(),
                     gesture_camera_->GetViewMatrix());
     }
 
-    //trace_->UpdateVertexArray(position);
-    /*trace_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
-
-    //trace_icp_->UpdateVertexArray(position_icp);
-    trace_icp_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
-    */
     if (draw_grid_) {
       grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
     }
@@ -160,29 +102,6 @@ namespace rgb_depth_sync {
                             point_cloud_transformation,
                             point_cloud_data,
                             rgb_data);
-    }
-    /*if (first_) {
-      glm::mat4 mvp_mat = tango_pose;
-      //cube_->SetInitPosition(glm::inverse(tango_pose));
-      cube_->SetTransformationMatrix(glm::translate(glm::mat4(1.0f), glm::vec3(0.0, -0.3, -0.6f)));
-      first_ = false;
-    }
-
-    cube_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());*/
-
-    //glDisable(GL_DEPTH_TEST);
-  }
-
-  void Scene::SetTrace(std::vector<glm::vec3> positions) {
-
-    for (int i=0; i<positions.size(); i++) {
-      trace_->UpdateVertexArray(positions[i]);
-    }
-  }
-
-  void Scene::SetICPTrace(std::vector<glm::vec3> positions) {
-    for (int i=0; i<positions.size(); i++) {
-      trace_icp_->UpdateVertexArray(positions[i]);
     }
   }
 
