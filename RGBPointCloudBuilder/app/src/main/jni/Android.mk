@@ -195,15 +195,12 @@ LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-gl/include \
 
 LOCAL_SRC_FILES += conversion.cc \
                    frame_to_frame_scan_matcher.cc \
-                   img_file_writer.cc \
                    jni_interface.cc \
                    mesh.cc \
                    multiframe_scan_matcher.cc \
                    pcd.cc \
                    pcd_container.cc \
                    pcd_drawable.cc \
-                   pcd_file_reader.cc \
-                   pcd_file_writer.cc \
                    pcd_outlier_removal.cc \
                    pcd_worker.cc \
                    pose_data.cc \

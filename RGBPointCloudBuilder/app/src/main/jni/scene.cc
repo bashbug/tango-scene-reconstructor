@@ -55,9 +55,9 @@ namespace rgb_depth_sync {
     trace_ = new tango_gl::Trace();
     trace_icp_ = new tango_gl::Trace();
     grid_ = new tango_gl::Grid();
-    cube_ = new tango_gl::Cube();
-    cube_->render_mode_ = GL_LINES;
-    cube_->SetColor(0.7f, 0.7f, 0.7f);
+    //cube_ = new tango_gl::Cube();
+    //cube_->render_mode_ = GL_LINES;
+    //cube_->SetColor(0.7f, 0.7f, 0.7f);
     /*texture_ = new rgb_depth_sync::TextureDrawable(shader::kPointCloudVertex,
                                                    shader::kPointCloudFragment);*/
     pcd_drawable_ = new rgb_depth_sync::PCDDrawable();

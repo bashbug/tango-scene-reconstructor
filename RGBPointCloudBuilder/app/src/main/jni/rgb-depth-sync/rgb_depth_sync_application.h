@@ -37,13 +37,10 @@
 #include <tango-gl/transform.h>
 #include "jni.h"
 #include "rgb-depth-sync/util.h"
-#include "rgb-depth-sync/img_file_writer.h"
 #include "rgb-depth-sync/pcd.h"
 #include "rgb-depth-sync/pose_data.h"
 #include "rgb-depth-sync/pcd_container.h"
 #include "rgb-depth-sync/pcd_worker.h"
-#include "rgb-depth-sync/pcd_file_reader.h"
-#include "rgb-depth-sync/pcd_file_writer.h"
 #include "rgb-depth-sync/frame_to_frame_scan_matcher.h"
 #include "rgb-depth-sync/multiframe_scan_matcher.h"
 #include "rgb-depth-sync/scene.h"

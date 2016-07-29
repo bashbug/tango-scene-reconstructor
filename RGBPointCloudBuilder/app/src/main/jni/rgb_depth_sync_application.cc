@@ -104,12 +104,9 @@ namespace rgb_depth_sync {
 
   int SynchronizationApplication::TangoInitialize(JNIEnv* env, jobject caller_activity, JavaVM* javaVM) {
 
-    //int ret = TangoService_initialize(env, caller_activity);
-
     env_ = env;
     caller_activity_ = reinterpret_cast<jobject>(env->NewGlobalRef(caller_activity));
     javaVM_ = javaVM;
-    //javaVM_->AttachCurrentThread(&env_, nullptr);
     jclass cls = env_->GetObjectClass(caller_activity_);
     activity_class_ = (jclass) env_->NewGlobalRef(cls);
 
@@ -355,8 +352,7 @@ namespace rgb_depth_sync {
           break;
         case 0:
           xyz_buffer_.clear();
-          xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_*centroid_matrix_)
-          );
+          xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_*centroid_matrix_));
           rgb_buffer_.clear();
           rgb_buffer_ = pcd_container_->GetRGBValues();
           //curr_pose_ = pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_);
@@ -419,15 +415,15 @@ namespace rgb_depth_sync {
 
 
     //std::clock_t start = std::clock();
-    //pcd_container_->OptimizeMesh();
+    pcd_container_->OptimizeMesh();
 
-    /*pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
+    pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
     pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *pcd_container_->GetMFSMMeshPCDFile());
 
-    int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
-    show_msm_mesh_ = true;*/
+    //int diff = (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000);
+    show_msm_mesh_ = true;
 
-    /*jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
+    jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
     env_->CallVoidMethod(caller_activity_, method,
                          reinterpret_cast<jint>(ftfsm.GetAverageComputationTime()),
                          reinterpret_cast<jint>(ftfsm.GetComputationTime()),
@@ -438,7 +434,7 @@ namespace rgb_depth_sync {
     env_->CallVoidMethod(caller_activity_, method,
                          reinterpret_cast<jint>(ftfsm.GetNoOfLoopClosures()),
                          reinterpret_cast<jint>(ftfsm.GetNoOfMatchedFrames()),
-                         reinterpret_cast<jint>((int)pcd_container_->pcd_container_.size()));*/
+                         reinterpret_cast<jint>((int)pcd_container_->pcd_container_.size()));
 
     //LOGE("Build sm and msm mesh stops after %i ms", diff);
   }
@@ -490,7 +486,6 @@ namespace rgb_depth_sync {
   }
 
   void SynchronizationApplication::SavePCD(std::string folder_name, std::string subfolder_name) {
-    PCDFileWriter pcd_file_writer;
 
     int lastIndex = pcd_container_->GetPCDContainerLastIndex();
 
