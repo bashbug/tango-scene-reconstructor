@@ -1,18 +1,18 @@
-#include "rgb-depth-sync/frame_to_frame_scan_matcher.h"
+#include "tango-scene-reconstructor/scan_matcher/frame_to_frame_scan_matcher.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   FrameToFrameScanMatcher::FrameToFrameScanMatcher() {
   }
 
   FrameToFrameScanMatcher::~FrameToFrameScanMatcher(){}
 
-  void FrameToFrameScanMatcher::Init(PCDContainer* pcd_container) {
+  void FrameToFrameScanMatcher::Init(PointCloudManager* point_cloud_manager) {
     loop_closures_count_ = 0;
     scan_match_count_ = -1;
     average_computation_time_ = 0;
     computation_time_ = 0;
-    pcd_container_ = pcd_container;
+    point_cloud_manager_ = point_cloud_manager;
     // allocating optimizer
     optimizer_ = new g2o::SparseOptimizer();
     optimizer_->setVerbose(false);
@@ -35,10 +35,10 @@ namespace rgb_depth_sync {
   }
 
   void FrameToFrameScanMatcher::InitGraph() {
-    last_index_ = pcd_container_->GetPCDContainerLastIndex();
+    last_index_ = point_cloud_manager_->GetPCDContainerLastIndex();
     Eigen::Isometry3d odometry_pose;
     for (int i = 0; i <= last_index_; i++) {
-      Eigen::Isometry3d odometry_pose = util::CastGLMToEigenPosed(pcd_container_->pcd_container_[i]->GetPose());
+      Eigen::Isometry3d odometry_pose = util::CastGLMToEigenPosed(point_cloud_manager_->point_cloud_container_[i]->GetPose());
       // add node to the pose graph
       id_ = AddNode(odometry_pose);
       if(id_ > 0) {
@@ -61,15 +61,15 @@ namespace rgb_depth_sync {
 
     for (int current = 0; current <= last_index_; current++) {
 
-      curr_rotation_ = glm::quat_cast(pcd_container_->pcd_container_[current]->GetPose());
+      curr_rotation_ = glm::quat_cast(point_cloud_manager_->point_cloud_container_[current]->GetPose());
 
       orderedNeighbors.clear();
 
       for (int previous = 0; previous < current - 5; previous++) {
 
         float translation_distance = 100 * GetDistance(
-            pcd_container_->pcd_container_[current]->GetTranslation(),
-            pcd_container_->pcd_container_[previous]->GetTranslation());
+            point_cloud_manager_->point_cloud_container_[current]->GetTranslation(),
+            point_cloud_manager_->point_cloud_container_[previous]->GetTranslation());
 
         if (translation_distance <= 10) {
           NeighborWithDistance neighbor;
@@ -85,10 +85,10 @@ namespace rgb_depth_sync {
       for (int j = 0; j < orderedNeighbors.size(); j++) {
 
         std::clock_t start = std::clock();
-        Eigen::Isometry3f loop_pose = Match(&overlap, pcd_container_->pcd_container_[orderedNeighbors[j].id]->GetPointCloud(),
-                                                      pcd_container_->pcd_container_[current]->GetPointCloud(),
-                                                      pcd_container_->pcd_container_[orderedNeighbors[j].id]->GetPose(),
-                                                      pcd_container_->pcd_container_[current]->GetPose());
+        Eigen::Isometry3f loop_pose = Match(&overlap, point_cloud_manager_->point_cloud_container_[orderedNeighbors[j].id]->GetPointCloud(),
+                                                      point_cloud_manager_->point_cloud_container_[current]->GetPointCloud(),
+                                                      point_cloud_manager_->point_cloud_container_[orderedNeighbors[j].id]->GetPose(),
+                                                      point_cloud_manager_->point_cloud_container_[current]->GetPose());
         scan_match_count_++;
 
         if(isnan(overlap))
@@ -129,9 +129,9 @@ namespace rgb_depth_sync {
       glm::mat4 icppose_glm = util::ConvertEigenToGLMPose(all_poses[i]);
       glm::vec3 icp_translation = util::GetTranslationFromMatrix(icppose_glm);
       glm::quat icp_rotation = util::GetRotationFromMatrix(icppose_glm);
-      pcd_container_->pcd_container_[i]->SetFTFSMPose(all_poses[i]);
-      pcd_container_->pcd_container_[i]->SetTranslationFTFSM(icp_translation);
-      pcd_container_->pcd_container_[i]->SetRotationFTFSM(icp_rotation);
+      point_cloud_manager_->point_cloud_container_[i]->SetFTFSMPose(all_poses[i]);
+      point_cloud_manager_->point_cloud_container_[i]->SetTranslationFTFSM(icp_translation);
+      point_cloud_manager_->point_cloud_container_[i]->SetRotationFTFSM(icp_rotation);
     }
 
     SaveGraph();

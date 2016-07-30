@@ -24,7 +24,7 @@
 #include <tango-gl/conversions.h>
 #include <tango-gl/util.h>
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   class PoseData {
     public:

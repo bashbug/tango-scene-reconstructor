@@ -1,25 +1,25 @@
 //
 // Created by anastasia on 04.03.16.
 //
-#include "rgb-depth-sync/mesh.h"
+#include "tango-scene-reconstructor/point_cloud_reconstructor.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
-  Mesh::Mesh() {
+  PointCloudReconstructor::PointCloudReconstructor() {
     first_ = true;
     is_running_ = false;
     pcd_mesh_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
   }
 
-  Mesh::~Mesh() {
+  PointCloudReconstructor::~PointCloudReconstructor() {
 
   }
 
-  bool Mesh::IsRunning() {
+  bool PointCloudReconstructor::IsRunning() {
     return is_running_;
   }
 
-  bool Mesh::Reset() {
+  bool PointCloudReconstructor::Reset() {
     bool r = false;
 
     {
@@ -36,7 +36,7 @@ namespace rgb_depth_sync {
     return r;
   }
 
-  std::vector<float> Mesh::GetXYZValues(glm::mat4 curr_pose) {
+  std::vector<float> PointCloudReconstructor::GetXYZValues(glm::mat4 curr_pose) {
     std::vector<float> xyz_values_transformed;
     rgb_values_.clear();
 
@@ -68,7 +68,7 @@ namespace rgb_depth_sync {
     return xyz_values_transformed;
   }
 
-  glm::mat4 Mesh::GetCentroidMatrix() {
+  glm::mat4 PointCloudReconstructor::GetCentroidMatrix() {
     glm::mat4 mat = glm::mat4();
     //LOGE("CENTROID %f %f %f", centroid_[0], centroid_[1], centroid_[2]);
     mat[3][0] = centroid_[0];
@@ -77,11 +77,11 @@ namespace rgb_depth_sync {
     return mat;
   }
 
-  std::vector<uint8_t> Mesh::GetRGBValues() {
+  std::vector<uint8_t> PointCloudReconstructor::GetRGBValues() {
     return rgb_values_;
   }
 
-  void Mesh::AddPointCloudOptWithSM(PCD* pcd) {
+  void PointCloudReconstructor::AddPointCloudOptWithSM(PointCloud* pcd) {
     {
       std::lock_guard <std::mutex> lock(mesh_mtx_);
       is_running_ = true;
@@ -98,7 +98,7 @@ namespace rgb_depth_sync {
     }
   }
 
-  void Mesh::AddPointCloudOptWithMSM(PCD* pcd) {
+  void PointCloudReconstructor::AddPointCloudOptWithMSM(PointCloud* pcd) {
     {
       std::lock_guard <std::mutex> lock(mesh_mtx_);
       is_running_ = true;
@@ -115,7 +115,7 @@ namespace rgb_depth_sync {
     }
   }
 
-  void Mesh::DownsampleMesh() {
+  void PointCloudReconstructor::DownsampleMesh() {
     {
       std::lock_guard <std::mutex> lock(mesh_mtx_);
       is_running_ = true;
@@ -133,7 +133,7 @@ namespace rgb_depth_sync {
     }
   }
 
-  void Mesh::FilterMesh(float radius) {
+  void PointCloudReconstructor::FilterMesh(float radius) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
     sor.setInputCloud(pcd_mesh_);
@@ -143,7 +143,7 @@ namespace rgb_depth_sync {
     pcd_mesh_ = cloud_filtered;
   }
 
-  void Mesh::AddPointCloud(PCD* pcd) {
+  void PointCloudReconstructor::AddPointCloud(PointCloud* pcd) {
     {
       std::lock_guard <std::mutex> lock(mesh_mtx_);
       is_running_ = true;
@@ -165,7 +165,7 @@ namespace rgb_depth_sync {
     }
   }
 
-  pcl::PointCloud<pcl::PointXYZRGB>::Ptr Mesh::GetPCDFile() {
+  pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudReconstructor::GetPCDFile() {
     return pcd_mesh_;
   }
 }

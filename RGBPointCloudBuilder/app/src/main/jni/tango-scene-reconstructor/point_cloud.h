@@ -26,17 +26,17 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/features2d/features2d.hpp>
 
-#include "rgb-depth-sync/pose_data.h"
-#include "rgb-depth-sync/util.h"
+#include "tango-scene-reconstructor/pose_data.h"
+#include "tango-scene-reconstructor/util.h"
 
 #include <tango_support_api.h>
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
-  class PCD {
+  class PointCloud {
   public:
-    PCD();
-    ~PCD();
+    PointCloud();
+    ~PointCloud();
     void SetXYZ(TangoXYZij* XYZij);
     void SetYUV(TangoImageBuffer* YUV);
     void SetNearClipping(float near_clipping);

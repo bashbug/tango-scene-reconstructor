@@ -24,9 +24,9 @@
 #include <tango-gl/gesture_camera.h>
 #include <tango-gl/grid.h>
 
-#include "rgb-depth-sync/pcd_drawable.h"
+#include "tango-scene-reconstructor/pcd_drawable.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   class Scene {
     public:

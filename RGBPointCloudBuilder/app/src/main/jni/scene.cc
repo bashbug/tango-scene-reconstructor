@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "rgb-depth-sync/scene.h"
+#include "tango-scene-reconstructor/scene.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   Scene::Scene() {
     kHeightOffset_ = glm::vec3(0.0f, 1.3f, 0.0f);
@@ -24,7 +24,7 @@ namespace rgb_depth_sync {
     gesture_camera_ = new tango_gl::GestureCamera();
     axis_ = new tango_gl::Axis();
     grid_ = new tango_gl::Grid();
-    pcd_drawable_ = new rgb_depth_sync::PCDDrawable();
+    pcd_drawable_ = new tango_scene_reconstructor::PCDDrawable();
 
     grid_->SetColor(kGridColor_);
     grid_->SetPosition(-kHeightOffset_);

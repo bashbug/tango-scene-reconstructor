@@ -1,6 +1,6 @@
-#include "rgb-depth-sync/multiframe_scan_matcher.h"
+#include "tango-scene-reconstructor/scan_matcher/multiframe_scan_matcher.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   MultiframeScanMatcher::MultiframeScanMatcher() {
     maxCorrespondenceDistance_ = 0.05;
@@ -20,24 +20,24 @@ namespace rgb_depth_sync {
 
   MultiframeScanMatcher::~MultiframeScanMatcher() {}
 
-  void MultiframeScanMatcher::Init(PCDContainer* pcd_container) {
+  void MultiframeScanMatcher::Init(PointCloudManager* point_cloud_manager) {
     average_computation_time_ = 0;
     computation_time_ = 0;
-    pcd_container_ = pcd_container;
+    point_cloud_manager_ = point_cloud_manager;
 
     // compute normales for each cloud
     LOGE("Compute Normales start...");
     std::clock_t start = std::clock();
 
-    for (int i = 0; i <= pcd_container_->GetPCDContainerLastIndex(); i++ ) {
+    for (int i = 0; i <= point_cloud_manager->GetPCDContainerLastIndex(); i++ ) {
       pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals(
           new pcl::PointCloud <pcl::PointXYZRGBNormal>);
-      pcl::copyPointCloud(*pcd_container_->pcd_container_[i]->GetPointCloud(), *cloud_with_normals);
+      pcl::copyPointCloud(*point_cloud_manager_->point_cloud_container_[i]->GetPointCloud(), *cloud_with_normals);
 
       pcl::NormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> ne;
-      pcd_container_->pcd_container_[i]->GetPointCloud()->sensor_origin_.setZero();
-      pcd_container_->pcd_container_[i]->GetPointCloud()->sensor_orientation_ = Eigen::Quaternionf::Identity();
-      ne.setInputCloud (pcd_container_->pcd_container_[i]->GetPointCloud());
+      point_cloud_manager_->point_cloud_container_[i]->GetPointCloud()->sensor_origin_.setZero();
+      point_cloud_manager_->point_cloud_container_[i]->GetPointCloud()->sensor_orientation_ = Eigen::Quaternionf::Identity();
+      ne.setInputCloud (point_cloud_manager_->point_cloud_container_[i]->GetPointCloud());
       ne.setKSearch (100);
       ne.compute (*cloud_with_normals);
 
@@ -118,9 +118,9 @@ namespace rgb_depth_sync {
                                         pose.translation().z());
       glm::quat rotation = glm::quat(eigen_rot.w(), eigen_rot.x(), eigen_rot.y(),
                                      eigen_rot.z());
-      pcd_container_->pcd_container_[i]->SetMFSMPose(pose);
-      pcd_container_->pcd_container_[i]->SetTranslationMFSM(translation);
-      pcd_container_->pcd_container_[i]->SetRotationMFSM(rotation);
+      point_cloud_manager_->point_cloud_container_[i]->SetMFSMPose(pose);
+      point_cloud_manager_->point_cloud_container_[i]->SetTranslationMFSM(translation);
+      point_cloud_manager_->point_cloud_container_[i]->SetRotationMFSM(rotation);
     }
   }
 

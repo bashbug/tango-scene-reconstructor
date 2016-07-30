@@ -39,10 +39,10 @@
 #include <pcl/filters/impl/statistical_outlier_removal.hpp>
 #include <pcl/console/print.h>
 
-#include "rgb-depth-sync/util.h"
-#include "rgb-depth-sync/pcd.h"
+#include "tango-scene-reconstructor/util.h"
+#include "tango-scene-reconstructor/point_cloud.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   struct Voxel {
     float x, y, z;
@@ -57,16 +57,16 @@ namespace rgb_depth_sync {
   typedef y_coord::iterator y_coord_iter;
   typedef x_coord::iterator x_coord_iter;
 
-  class Mesh {
+  class PointCloudReconstructor {
     public:
-      Mesh();
-      ~Mesh();
+      PointCloudReconstructor();
+      ~PointCloudReconstructor();
       std::vector<float> GetXYZValues(glm::mat4 curr_pose);
       std::vector<uint8_t> GetRGBValues();
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetPCDFile();
-      void AddPointCloud(PCD* pcd);
-      void AddPointCloudOptWithSM(PCD* pcd);
-      void AddPointCloudOptWithMSM(PCD* pcd);
+      void AddPointCloud(PointCloud* pcd);
+      void AddPointCloudOptWithSM(PointCloud* pcd);
+      void AddPointCloudOptWithMSM(PointCloud* pcd);
       void DownsampleMesh();
       void FilterMesh(float radius=10);
       bool Reset();

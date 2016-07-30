@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include "rgb-depth-sync/rgb_depth_sync_application.h"
+#include "tango-scene-reconstructor/tango_scene_reconstructor_application.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   void OnFrameAvailableRouter(void* context, TangoCameraId, const TangoImageBuffer* buffer) {
-    SynchronizationApplication* app = static_cast<SynchronizationApplication*>(context);
+    TangoSceneReconstructorApplication* app = static_cast<TangoSceneReconstructorApplication*>(context);
     app->OnFrameAvailable(buffer);
   }
 
-  void SynchronizationApplication::OnFrameAvailable(const TangoImageBuffer* buffer) {
+  void TangoSceneReconstructorApplication::OnFrameAvailable(const TangoImageBuffer* buffer) {
       if (!optimize_) {
         TangoPoseData ss_T_device_rgb_timestamp;
         TangoCoordinateFramePair color_frame_pair;
@@ -48,11 +48,11 @@ namespace rgb_depth_sync {
   }
 
   void OnXYZijAvailableRouter(void* context, const TangoXYZij* xyz_ij) {
-    SynchronizationApplication* app = static_cast<SynchronizationApplication*>(context);
+    TangoSceneReconstructorApplication* app = static_cast<TangoSceneReconstructorApplication*>(context);
     app->OnXYZijAvailable(xyz_ij);
   }
 
-  void SynchronizationApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
+  void TangoSceneReconstructorApplication::OnXYZijAvailable(const TangoXYZij* xyz_ij) {
       if (!optimize_) {
         TangoPoseData ss_T_device_xyz_timestamp;
         TangoCoordinateFramePair depth_frame_pair;
@@ -73,33 +73,33 @@ namespace rgb_depth_sync {
   }
 
   void OnPoseAvailableRouter(void* context, const TangoPoseData* pose) {
-    SynchronizationApplication* app = static_cast<SynchronizationApplication*>(context);
+    TangoSceneReconstructorApplication* app = static_cast<TangoSceneReconstructorApplication*>(context);
     app->OnPoseAvailable(pose);
   }
 
-  void SynchronizationApplication::OnPoseAvailable(const TangoPoseData* pose) {
+  void TangoSceneReconstructorApplication::OnPoseAvailable(const TangoPoseData* pose) {
     std::lock_guard<std::mutex> lock(pose_mutex_);
     pose_data_->UpdatePose(pose);
   }
 
-  SynchronizationApplication::SynchronizationApplication() {
+  TangoSceneReconstructorApplication::TangoSceneReconstructorApplication() {
   }
 
-  SynchronizationApplication::~SynchronizationApplication() {
+  TangoSceneReconstructorApplication::~TangoSceneReconstructorApplication() {
     LOGE("Destroy SynchronizationApplication");
   }
 
-    void SynchronizationApplication::OnTangoServiceConnected(JNIEnv* env, jobject binder) {
-      TangoErrorType ret = TangoService_setBinder(env, binder);
-      if (ret != TANGO_SUCCESS) {
-        LOGE(
-            "SynchronizationApplication: Failed to set Tango service binder with"
-            "error code: %d",
-            ret);
-      }
+  void TangoSceneReconstructorApplication::OnTangoServiceConnected(JNIEnv* env, jobject binder) {
+    TangoErrorType ret = TangoService_setBinder(env, binder);
+    if (ret != TANGO_SUCCESS) {
+      LOGE(
+          "SynchronizationApplication: Failed to set Tango service binder with"
+          "error code: %d",
+          ret);
     }
+  }
 
-  int SynchronizationApplication::TangoInitialize(JNIEnv* env, jobject caller_activity, JavaVM* javaVM) {
+  int TangoSceneReconstructorApplication::TangoInitialize(JNIEnv* env, jobject caller_activity, JavaVM* javaVM) {
 
     env_ = env;
     caller_activity_ = reinterpret_cast<jobject>(env->NewGlobalRef(caller_activity));
@@ -113,19 +113,16 @@ namespace rgb_depth_sync {
     xyz_mtx_ = std::make_shared<std::mutex>();
     consume_xyz_ = std::make_shared<std::condition_variable>();
 
-    pcd_container_ = new rgb_depth_sync::PCDContainer();
-
-    pcd_worker_ = new rgb_depth_sync::PCDWorker(xyz_mtx_, consume_xyz_, pcd_container_);
-    std::thread pcd_worker_thread(&rgb_depth_sync::PCDWorker::OnPCDAvailable, pcd_worker_);
-    pcd_worker_thread.detach();
-    pcd_worker_->Start();
-
+    point_cloud_manager_ = new tango_scene_reconstructor::PointCloudManager(xyz_mtx_, consume_xyz_);
+    std::thread point_cloud_manager_thread(&tango_scene_reconstructor::PointCloudManager::OnPCDAvailable, point_cloud_manager_);
+    point_cloud_manager_thread.detach();
+    point_cloud_manager_->Start();
     pose_data_ = PoseData::GetInstance();
 
     return 1;
   }
 
-  int SynchronizationApplication::TangoSetupConfig() {
+  int TangoSceneReconstructorApplication::TangoSetupConfig() {
     // Default configuration enables basic motion tracking capabilities.
     tango_config_ = TangoService_getConfig(TANGO_CONFIG_DEFAULT);
     if (tango_config_ == nullptr) {
@@ -168,12 +165,12 @@ namespace rgb_depth_sync {
     TangoSupport_createPointCloudManager(max_point_cloud_elements, &xyz_manager_);
     TangoSupport_createImageBufferManager(TANGO_HAL_PIXEL_FORMAT_YCrCb_420_SP, 1280, 720, &yuv_manager_);
 
-    pcd_worker_->SetManagers(xyz_manager_, yuv_manager_);
+    point_cloud_manager_->SetManagers(xyz_manager_, yuv_manager_);
 
     return ret;
   }
 
-  int SynchronizationApplication::TangoConnectCallbacks() {
+  int TangoSceneReconstructorApplication::TangoConnectCallbacks() {
 
     // Attach OnXYZijAvailable callback.
     int ret = TangoService_connectOnXYZijAvailable(OnXYZijAvailableRouter);
@@ -205,7 +202,7 @@ namespace rgb_depth_sync {
     }
   }
 
-  int SynchronizationApplication::TangoConnect() {
+  int TangoSceneReconstructorApplication::TangoConnect() {
     TangoErrorType ret = TangoService_connect(this, tango_config_);
     if (ret != TANGO_SUCCESS) {
       LOGE("SynchronizationApplication: Failed to connect to the Tango service.");
@@ -213,7 +210,7 @@ namespace rgb_depth_sync {
     return ret;
   }
 
-  int SynchronizationApplication::TangoSetIntrinsicsAndExtrinsics() {
+  int TangoSceneReconstructorApplication::TangoSetIntrinsicsAndExtrinsics() {
 
     TangoErrorType ret;
     TangoPoseData pose_data;
@@ -284,7 +281,7 @@ namespace rgb_depth_sync {
     return ret;
   }
 
-  void SynchronizationApplication::TangoDisconnect() {
+  void TangoSceneReconstructorApplication::TangoDisconnect() {
     TangoConfig_free(tango_config_);
     tango_config_ = nullptr;
     xyz_manager_ = nullptr;
@@ -292,44 +289,44 @@ namespace rgb_depth_sync {
     TangoService_disconnect();
   }
 
-  void SynchronizationApplication::SetViewPort(int width, int height) {
+  void TangoSceneReconstructorApplication::SetViewPort(int width, int height) {
     scene_->SetViewPort(width, height);
   }
 
-  void SynchronizationApplication::InitializeGLContent() {
-    scene_ = new rgb_depth_sync::Scene();
+  void TangoSceneReconstructorApplication::InitializeGLContent() {
+    scene_ = new tango_scene_reconstructor::Scene();
   }
 
-  void SynchronizationApplication::Render() {
+  void TangoSceneReconstructorApplication::Render() {
     if (!optimize_) {
       curr_pose_ = pose_data_->GetLatestPoseMatrix();
       xyz_buffer_.clear();
-      xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_));
+      xyz_buffer_ = point_cloud_manager_->GetXYZValues(glm::inverse(curr_pose_));
       rgb_buffer_.clear();
-      rgb_buffer_ = pcd_container_->GetRGBValues();
-      centroid_matrix_ = pcd_container_->GetCentroidMatrix();
+      rgb_buffer_ = point_cloud_manager_->GetRGBValues();
+      centroid_matrix_ = point_cloud_manager_->GetCentroidMatrix();
       scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
     } else {
       switch(pose_optimization_id_) {
         case 2:
           xyz_buffer_.clear();
-          xyz_buffer_ = pcd_container_->GetXYZValuesOptWithMSM(glm::inverse(curr_pose_*centroid_matrix_));
+          xyz_buffer_ = point_cloud_manager_->GetXYZValuesOptWithMSM(glm::inverse(curr_pose_*centroid_matrix_));
           rgb_buffer_.clear();
-          rgb_buffer_ = pcd_container_->GetRGBOptWithMSMValues();
+          rgb_buffer_ = point_cloud_manager_->GetRGBOptWithMSMValues();
           scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
           break;
         case 1:
           xyz_buffer_.clear();
-          xyz_buffer_ = pcd_container_->GetXYZValuesOptWithSM(glm::inverse(curr_pose_*centroid_matrix_));
+          xyz_buffer_ = point_cloud_manager_->GetXYZValuesOptWithSM(glm::inverse(curr_pose_*centroid_matrix_));
           rgb_buffer_.clear();
-          rgb_buffer_ = pcd_container_->GetRGBOptWithSMValues();
+          rgb_buffer_ = point_cloud_manager_->GetRGBOptWithSMValues();
           scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
           break;
         case 0:
           xyz_buffer_.clear();
-          xyz_buffer_ = pcd_container_->GetXYZValues(glm::inverse(curr_pose_*centroid_matrix_));
+          xyz_buffer_ = point_cloud_manager_->GetXYZValues(glm::inverse(curr_pose_*centroid_matrix_));
           rgb_buffer_.clear();
-          rgb_buffer_ = pcd_container_->GetRGBValues();
+          rgb_buffer_ = point_cloud_manager_->GetRGBValues();
           scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
           break;
         default:
@@ -338,48 +335,41 @@ namespace rgb_depth_sync {
     }
   }
 
-  void SynchronizationApplication::OptimizeAndSaveToFolder(std::string folder_name) {
+  void TangoSceneReconstructorApplication::OptimizeAndSaveToFolder(std::string folder_name) {
     StopPCDWorker();
 
     optimize_ = true;
-    CreateSubFolders(folder_name);
 
     FrameToFrameScanMatcher ftfsm;
     MultiframeScanMatcher mfsm;
-    LOGE("optimizationMethods_ case %i", optimizationMethods_);
+
     switch (optimizationMethods_) {
       case 0:
-        LOGE("CASE 0");
-        SavePCD(folder_name, "PCD/RAW/");
-        ftfsm.Init(pcd_container_);
+        ftfsm.Init(point_cloud_manager_);
         ftfsm.Optimize();
-        SavePCD(folder_name, "PCD/FTFSM/");
         break;
       case 1:
-        LOGE("CASE 1");
-        SavePCD(folder_name, "PCD/RAW/");
-        mfsm.Init(pcd_container_);
+        mfsm.Init(point_cloud_manager_);
         mfsm.Optimize();
-        SavePCD(folder_name, "PCD/MFSM/");
         break;
       case 2:
-        LOGE("CASE 2");
-        SavePCD(folder_name, "PCD/RAW/");
-        ftfsm.Init(pcd_container_);
+        ftfsm.Init(point_cloud_manager_);
         ftfsm.Optimize();
-        SavePCD(folder_name, "PCD/FTFSM/");
-        mfsm.Init(pcd_container_);
+        mfsm.Init(point_cloud_manager_);
         mfsm.Optimize();
-        SavePCD(folder_name, "PCD/MFSM/");
         break;
       default:
         break;
     }
 
-    pcd_container_->OptimizeMesh();
+    PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+    PCD->SavePointCloudContainer(point_cloud_manager_, folder_name);
 
-    pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *pcd_container_->GetFTFSMMeshPCDFile());
-    pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *pcd_container_->GetMFSMMeshPCDFile());
+
+    point_cloud_manager_->OptimizeMesh();
+
+    /*pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *point_cloud_manager_->GetFTFSMMeshPCDFile());
+    pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *point_cloud_manager_->GetMFSMMeshPCDFile());*/
 
     jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
     env_->CallVoidMethod(caller_activity_, method,
@@ -392,123 +382,74 @@ namespace rgb_depth_sync {
     env_->CallVoidMethod(caller_activity_, method,
                          reinterpret_cast<jint>(ftfsm.GetNoOfLoopClosures()),
                          reinterpret_cast<jint>(ftfsm.GetNoOfMatchedFrames()),
-                         reinterpret_cast<jint>((int)pcd_container_->pcd_container_.size()));
+                         reinterpret_cast<jint>((int)point_cloud_manager_->point_cloud_container_.size()));
 
   }
 
-  void SynchronizationApplication::CreateSubFolders(std::string folder_name) {
-    std::string dir_name = folder_name + "PCD/FTFSM";
-    boost::filesystem::path dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
-    dir_name = folder_name + "PCD/MFSM";
-    dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
-    dir_name = folder_name + "PCD/RAW";
-    dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
-    dir_name = folder_name + "Mesh";
-    dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
-  }
+  void TangoSceneReconstructorApplication::UpdatePCDs() {
 
-  void SynchronizationApplication::UpdatePCDs() {
-
-    int lastIndex = pcd_container_->GetPCDContainerLastIndex();
+    int lastIndex = point_cloud_manager_->GetPCDContainerLastIndex();
     for (int i = 0; i <= lastIndex; i++) {
-      pcd_container_->pcd_container_[i]->Update();
+      point_cloud_manager_->point_cloud_container_[i]->Update();
     }
 
   }
 
-  void SynchronizationApplication::StopPCDWorker() {
-    pcd_worker_->Stop();
-    LOGE("stop PCD worker");
-    while(pcd_worker_->IsRunning()) {
+  void TangoSceneReconstructorApplication::StopPCDWorker() {
+    point_cloud_manager_->Stop();
+    while(point_cloud_manager_->IsRunning()) {
       // wait until all processes finished
     }
   }
 
-  void SynchronizationApplication::StartPCDWorker() {
+  void TangoSceneReconstructorApplication::StartPCDWorker() {
     optimize_ = false;
-    pcd_worker_->Stop();
-    LOGE("stop PCD worker");
-    while(pcd_worker_->IsRunning()) {
+    point_cloud_manager_->Stop();
+    while(point_cloud_manager_->IsRunning()) {
       // wait until all processes finished
     }
-    pcd_container_->ResetPCD();
-    pcd_worker_->Start();
+    point_cloud_manager_->ResetPCD();
+    point_cloud_manager_->Start();
   }
 
-  void SynchronizationApplication::SavePCD(std::string folder_name, std::string subfolder_name) {
-
-    int lastIndex = pcd_container_->GetPCDContainerLastIndex();
-
-    for (int i = 0; i <= lastIndex; i++) {
-
-      if (subfolder_name == "PCD/RAW/") {
-        std::string dir_path = folder_name + subfolder_name;
-        char filename[1024];
-        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
-        pcd_container_->pcd_container_[i]->SaveAsPCD(filename);
-      }
-
-      if (subfolder_name == "PCD/FTFSM/") {
-        std::string dir_path = folder_name + subfolder_name;
-        char filename[1024];
-        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
-        pcd_container_->pcd_container_[i]->SaveAsPCDWithFTFSMPose(filename);
-      }
-      if (subfolder_name == "PCD/MFSM/") {
-        std::string dir_path = folder_name + subfolder_name;
-        char filename[1024];
-        sprintf(filename, "%s/%05d.pcd", dir_path.c_str(), i);
-        pcd_container_->pcd_container_[i]->SaveAsPCDWithMFSMPose(filename);
-      }
-    }
-  }
-
-  void SynchronizationApplication::OnTouchEvent(int touch_count,
+  void TangoSceneReconstructorApplication::OnTouchEvent(int touch_count,
                                                 tango_gl::GestureCamera::TouchEvent event,
                                                 float x0, float y0, float x1, float y1) {
     scene_->OnTouchEvent(touch_count, event, x0, y0, x1, y1);
   }
 
-  void SynchronizationApplication::SetCameraType(tango_gl::GestureCamera::CameraType camera_type) {
+  void TangoSceneReconstructorApplication::SetCameraType(tango_gl::GestureCamera::CameraType camera_type) {
     scene_->SetCameraType(camera_type);
   }
 
-  void SynchronizationApplication::FreeGLContent() {
+  void TangoSceneReconstructorApplication::FreeGLContent() {
   }
 
-  void SynchronizationApplication::SetRangeValue(float range) {
-    pcd_worker_->SetRangeValue(range);
-    LOGE("RANGE VALUE: %f", range);
+  void TangoSceneReconstructorApplication::SetRangeValue(float range) {
+    point_cloud_manager_->SetRangeValue(range);
   }
 
-  void SynchronizationApplication::ShowUnOPTMesh() {
+  void TangoSceneReconstructorApplication::ShowUnOPTMesh() {
     pose_optimization_id_ = 0;
-    LOGE("Show Unoptimized Mesh");
   }
 
-  void SynchronizationApplication::ShowSMMesh() {
+  void TangoSceneReconstructorApplication::ShowSMMesh() {
     pose_optimization_id_ = 1;
-    LOGE("Show SM Mesh");
   }
 
-  void SynchronizationApplication::ShowMSMMesh() {
+  void TangoSceneReconstructorApplication::ShowMSMMesh() {
     pose_optimization_id_ = 2;
-    LOGE("Show MSM Mesh");
   }
 
-  void SynchronizationApplication::SetBackgroundColorBlack(bool on) {
+  void TangoSceneReconstructorApplication::SetBackgroundColorBlack(bool on) {
     scene_->SetBackgroundColor(on);
   }
 
-  void SynchronizationApplication::SetGridOn(bool on) {
+  void TangoSceneReconstructorApplication::SetGridOn(bool on) {
     scene_->SetGridOn(on);
   }
 
-  void SynchronizationApplication::SetOptimizationMethods(int opt) {
+  void TangoSceneReconstructorApplication::SetOptimizationMethods(int opt) {
     optimizationMethods_ = opt;
   }
 

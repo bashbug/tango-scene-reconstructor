@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-#include "rgb-depth-sync/util.h"
+#include "tango-scene-reconstructor/util.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
 glm::mat4 util::GetMatrixFromPose(const TangoPoseData* pose_data) {
   glm::vec3 translation =

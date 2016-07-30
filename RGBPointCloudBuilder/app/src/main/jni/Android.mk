@@ -194,16 +194,16 @@ LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-gl/include \
                     $(PROJECT_ROOT_FROM_JNI)/third-party/multiframe-scan-matcher-3d/
 
 LOCAL_SRC_FILES += conversion.cc \
-                   frame_to_frame_scan_matcher.cc \
+                   io/PCD.cc \
                    jni_interface.cc \
-                   mesh.cc \
-                   multiframe_scan_matcher.cc \
-                   pcd.cc \
-                   pcd_container.cc \
+                   point_cloud_manager.cc \
+                   point_cloud_reconstructor.cc \
+                   point_cloud.cc \
                    pcd_drawable.cc \
-                   pcd_worker.cc \
                    pose_data.cc \
-                   rgb_depth_sync_application.cc \
+                   tango_scene_reconstructor_application.cc \
+                   scan_matcher/frame_to_frame_scan_matcher.cc \
+                   scan_matcher/multiframe_scan_matcher.cc \
                    scene.cc \
                    util.cc \
                    $(PROJECT_ROOT_FROM_JNI)/tango-gl/axis.cpp \

@@ -22,22 +22,22 @@
 #include <pcl/features/normal_3d.h>
 
 #include "multiFrameIcp.h"
-#include "rgb-depth-sync/pcd_container.h"
+#include "tango-scene-reconstructor/point_cloud_manager.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   class MultiframeScanMatcher {
 
     public:
       MultiframeScanMatcher();
       ~MultiframeScanMatcher();
-      void Init(PCDContainer* pcd_container);
+      void Init(PointCloudManager* point_cloud_manager);
       void Optimize();
       int GetAverageComputationTime();
       int GetComputationTime();
     private:
       std::vector< pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr > clouds_;
-      PCDContainer* pcd_container_;
+      PointCloudManager* point_cloud_manager_;
       int threads_, g2oIterations_, iterations_;
       float maxCorrespondenceDistance_, maxRange_, maxAngle_;
       int average_computation_time_, computation_time_;

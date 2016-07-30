@@ -10,12 +10,12 @@
 #include <tango-gl/util.h>
 #include <tango-gl/conversions.h>
 
-#include "rgb-depth-sync/util.h"
+#include "tango-scene-reconstructor/util.h"
 
 #ifndef RGBPOINTCLOUDBUILDER_CONVERSION_H
 #define RGBPOINTCLOUDBUILDER_CONVERSION_H
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   class Conversion {
     public:

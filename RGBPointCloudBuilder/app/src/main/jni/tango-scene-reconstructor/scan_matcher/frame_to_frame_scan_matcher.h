@@ -36,10 +36,10 @@
 #include <projectiveScanMatcher3d/projectiveScanMatcher3d.h>
 #include <projectiveImage/sphericalProjectiveImage.h>
 
-#include "rgb-depth-sync/util.h"
-#include "rgb-depth-sync/pcd_container.h"
+#include "tango-scene-reconstructor/util.h"
+#include "tango-scene-reconstructor/point_cloud_manager.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   typedef g2o::BlockSolver< g2o::BlockSolverTraits<6, 3> >  SlamBlockSolver;
   typedef g2o::LinearSolverCSparse<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
@@ -56,7 +56,7 @@ namespace rgb_depth_sync {
     public:
       FrameToFrameScanMatcher();
       ~FrameToFrameScanMatcher();
-      void Init(PCDContainer* pcd_container);
+      void Init(PointCloudManager* point_cloud_manager);
       void Optimize();
       int GetNoOfLoopClosures();
       int GetNoOfMatchedFrames();
@@ -89,7 +89,7 @@ namespace rgb_depth_sync {
       glm::quat curr_rotation_;
       glm::quat prev_rotation_;
       Eigen::Isometry3d odometry_pose_;
-      PCDContainer* pcd_container_;
+      PointCloudManager* point_cloud_manager_;
       bool is_running_, first_pose_;
   };
 }

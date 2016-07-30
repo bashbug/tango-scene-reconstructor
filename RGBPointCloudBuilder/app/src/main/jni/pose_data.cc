@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-#include "rgb-depth-sync/pose_data.h"
+#include "tango-scene-reconstructor/pose_data.h"
 
 namespace {
   const float kMeterToMillimeter = 1000.0f;
 }  // namespace
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   PoseData* PoseData::GetInstance() {
-    static PoseData* instance = new rgb_depth_sync::PoseData();
+    static PoseData* instance = new tango_scene_reconstructor::PoseData();
     return instance;
   }
 

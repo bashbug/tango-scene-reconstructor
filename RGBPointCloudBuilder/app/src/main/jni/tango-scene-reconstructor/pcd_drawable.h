@@ -20,7 +20,7 @@
 #include <tango-gl/util.h>
 #include "jni.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
 // PointCloudDrawable is responsible for the point cloud rendering.
   class PCDDrawable {

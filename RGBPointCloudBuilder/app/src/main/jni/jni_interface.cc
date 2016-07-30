@@ -18,9 +18,9 @@
 
 #include <jni.h>
 
-#include "rgb-depth-sync/rgb_depth_sync_application.h"
+#include "tango-scene-reconstructor/tango_scene_reconstructor_application.h"
 
-static rgb_depth_sync::SynchronizationApplication app;
+static tango_scene_reconstructor::TangoSceneReconstructorApplication app;
 
 #ifdef __cplusplus
 extern "C" {

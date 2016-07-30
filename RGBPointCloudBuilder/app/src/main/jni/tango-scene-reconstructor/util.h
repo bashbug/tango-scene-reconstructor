@@ -22,7 +22,7 @@
 #include <tango-gl/util.h>
 #include <tango-gl/conversions.h>
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
   // Utility functioins for Synchronization application.
   namespace util {
     Eigen::Isometry3f GetIsometryFromTangoPose(const TangoPoseData* pose_data);

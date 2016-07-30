@@ -1,9 +1,9 @@
-#include "rgb-depth-sync/conversion.h"
+#include "tango-scene-reconstructor/conversion.h"
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   Conversion* Conversion::GetInstance() {
-    static Conversion* instance = new rgb_depth_sync::Conversion();
+    static Conversion* instance = new tango_scene_reconstructor::Conversion();
     static bool set = false;
     if (!set) {
       instance->SetMatrices();

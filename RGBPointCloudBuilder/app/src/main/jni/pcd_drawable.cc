@@ -17,7 +17,7 @@
 
 #include <sstream>
 
-#include "rgb-depth-sync/pcd_drawable.h"
+#include "tango-scene-reconstructor/pcd_drawable.h"
 
 namespace {
   const std::string kPointCloudVertexShader =
@@ -45,7 +45,7 @@ namespace {
                 -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 }  // namespace
 
-namespace rgb_depth_sync {
+namespace tango_scene_reconstructor {
 
   PCDDrawable::PCDDrawable() {
     shader_program_ = tango_gl::util::CreateProgram(
