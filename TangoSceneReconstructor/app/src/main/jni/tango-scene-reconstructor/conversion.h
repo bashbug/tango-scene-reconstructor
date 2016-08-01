@@ -12,12 +12,13 @@
 
 #include "tango-scene-reconstructor/util.h"
 
-#ifndef RGBPOINTCLOUDBUILDER_CONVERSION_H
-#define RGBPOINTCLOUDBUILDER_CONVERSION_H
+#ifndef TANGOSCENERECONSTRUCTOR_CONVERSION_H
+#define TANGOSCENERECONSTRUCTOR_CONVERSION_H
 
 namespace tango_scene_reconstructor {
 
   class Conversion {
+
     public:
       static Conversion* GetInstance();
       glm::mat4 XYZ_T_RGB(const double &rgb_timestamp, const double &xyz_timestamp);
@@ -35,6 +36,7 @@ namespace tango_scene_reconstructor {
       void operator = (Conversion const&) {};
       void SetMatrices();
   };
-}
 
-#endif //RGBPOINTCLOUDBUILDER_CONVERSION_H
+} // namespace tango_scene_reconstructor
+
+#endif //TANGOSCENERECONSTRUCTOR_CONVERSION_H

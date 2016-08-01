@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef TANGO_POINT_CLOUD_POSE_DATA_H_
-#define TANGO_POINT_CLOUD_POSE_DATA_H_
+#ifndef TANGOSCENERECONSTRUCTOR_POSE_DATA_H_
+#define TANGOSCENERECONSTRUCTOR_POSE_DATA_H_
 
 #include <jni.h>
 #include <mutex>
@@ -70,6 +70,7 @@ namespace tango_scene_reconstructor {
       std::string pose_string_;
       size_t pose_counter_;
   };
-}  // namespace tango_point_cloud
 
-#endif  // TANGO_POINT_CLOUD_POSE_DATA_H_
+}  // namespace tango_scene_reconstructor
+
+#endif  // TANGOSCENERECONSTRUCTOR_POSE_DATA_H_

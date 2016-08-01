@@ -24,7 +24,7 @@ namespace tango_scene_reconstructor {
     gesture_camera_ = new tango_gl::GestureCamera();
     axis_ = new tango_gl::Axis();
     grid_ = new tango_gl::Grid();
-    pcd_drawable_ = new tango_scene_reconstructor::PCDDrawable();
+    pcd_drawable_ = new tango_scene_reconstructor::PointCloudDrawable();
 
     grid_->SetColor(kGridColor_);
     grid_->SetPosition(-kHeightOffset_);

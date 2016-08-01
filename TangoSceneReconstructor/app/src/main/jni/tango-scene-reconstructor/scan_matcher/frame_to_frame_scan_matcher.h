@@ -92,8 +92,7 @@ namespace tango_scene_reconstructor {
       PointCloudManager* point_cloud_manager_;
       bool is_running_, first_pose_;
   };
-}
 
-
+} // namespace tango_scene_reconstructor
 
 #endif //RGBPOINTCLOUDBUILDER_SCANMATCHER_H

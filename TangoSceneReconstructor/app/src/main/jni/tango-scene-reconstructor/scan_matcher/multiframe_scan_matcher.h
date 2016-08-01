@@ -27,7 +27,6 @@
 namespace tango_scene_reconstructor {
 
   class MultiframeScanMatcher {
-
     public:
       MultiframeScanMatcher();
       ~MultiframeScanMatcher();
@@ -44,6 +43,7 @@ namespace tango_scene_reconstructor {
       int width_, height_;
       float fx_, fy_, cx_, cy_;
   };
-}
+
+}// namespace tango_scene_reconstructor
 
 #endif //RGBPOINTCLOUDBUILDER_MULTIFRAME_SCAN_MATCHER_H

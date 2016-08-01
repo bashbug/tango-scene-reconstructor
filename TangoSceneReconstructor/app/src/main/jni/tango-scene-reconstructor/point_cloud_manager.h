@@ -3,8 +3,8 @@
  * It will be reset if the scanning process (re)starts.
  */
 
-#ifndef RGB_DEPTH_SYNC_POINT_CLOUD_CONTAINER_H
-#define RGB_DEPTH_SYNC_POINT_CLOUD_CONTAINER_H
+#ifndef TANGOSCENERECONSTRUCTOR_POINT_CLOUD_MANAGER_H
+#define TANGOSCENERECONSTRUCTOR_POINT_CLOUD_MANAGER_H
 
 #include <memory> // shared pointer
 #include <mutex>
@@ -25,6 +25,7 @@
 #include "tango-scene-reconstructor/point_cloud_reconstructor.h"
 
 namespace tango_scene_reconstructor {
+
   class PointCloudManager {
     public:
       PointCloudManager(std::shared_ptr<std::mutex> xyz_mtx,
@@ -81,6 +82,7 @@ namespace tango_scene_reconstructor {
       bool is_running_;
       float range_;
   };
-} // namespace rgb_depth_sync
 
-#endif // RGB_DEPTH_SYNC_POINT_CLOUD_CONTAINER_H
+} // namespace tango_scene_reconstructor
+
+#endif // TANGOSCENERECONSTRUCTOR_POINT_CLOUD_MANAGER_H

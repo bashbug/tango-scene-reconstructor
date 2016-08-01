@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef TANGO_POINT_CLOUD_SCENE_H_
-#define TANGO_POINT_CLOUD_SCENE_H_
+#ifndef TANGOSCENERECONSTRUCTOR_SCENE_H_
+#define TANGOSCENERECONSTRUCTOR_SCENE_H_
 
 #include <tango_client_api.h>  // NOLINT
 #include <tango-gl/axis.h>
@@ -24,7 +24,7 @@
 #include <tango-gl/gesture_camera.h>
 #include <tango-gl/grid.h>
 
-#include "tango-scene-reconstructor/pcd_drawable.h"
+#include "tango-scene-reconstructor/point_cloud_drawable.h"
 
 namespace tango_scene_reconstructor {
 
@@ -49,11 +49,12 @@ namespace tango_scene_reconstructor {
       tango_gl::GestureCamera* gesture_camera_;
       tango_gl::Axis* axis_;
       tango_gl::Grid* grid_;
-      PCDDrawable* pcd_drawable_;
+      PointCloudDrawable* pcd_drawable_;
       glm::vec3 kHeightOffset_;
       bool backgroundColorBlack_;
       bool draw_grid_;
   };
-}
 
-#endif  // TANGO_POINT_CLOUD_SCENE_H_
+} // namespace tango_scene_reconstructor
+
+#endif  // TANGOSCENERECONSTRUCTOR_SCENE_H_

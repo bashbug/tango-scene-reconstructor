@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef RGB_DEPTH_SYNC_APPLICATION_H_
-#define RGB_DEPTH_SYNC_APPLICATION_H_
+#ifndef TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_APPLICATION_H_
+#define TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_APPLICATION_H_
 
-#include <tango_support_api.h>
 #include <mutex>
 #include <condition_variable>
 #include <thread>
 #include <mutex>
 #include <string>
 #include <memory>
-#include <boost/filesystem.hpp>
+
+#include "jni.h"
+
+#include <tango_support_api.h>
 #include <tango_client_api.h>
 #include <tango-gl/util.h>
 #include <tango-gl/axis.h>
@@ -35,7 +37,7 @@
 #include <tango-gl/frustum.h>
 #include <tango-gl/trace.h>
 #include <tango-gl/transform.h>
-#include "jni.h"
+
 #include "tango-scene-reconstructor/util.h"
 #include "tango-scene-reconstructor/pose_data.h"
 #include "tango-scene-reconstructor/point_cloud_manager.h"
@@ -111,6 +113,6 @@ namespace tango_scene_reconstructor {
       int optimizationMethods_;
   };
 
-} // namespace rgb_depth_sync
+} // namespace tango_scene_reconstructor
 
-#endif // RGB_DEPTH_SYNC_APPLICATION_H_
+#endif // TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_APPLICATION_H_

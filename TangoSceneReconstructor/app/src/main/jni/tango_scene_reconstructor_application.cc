@@ -216,31 +216,6 @@ namespace tango_scene_reconstructor {
     TangoPoseData pose_data;
     TangoCoordinateFramePair frame_pair;
 
-    // Get device with respect to imu transformation matrix.
-    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
-    frame_pair.target = TANGO_COORDINATE_FRAME_DEVICE;
-    ret = TangoService_getPoseAtTime(0.0, frame_pair, &pose_data);
-    if (ret != TANGO_SUCCESS) {
-      LOGE(
-          "PointCloudApp: Failed to get transform between the IMU frame and "
-              "device frames");
-      return ret;
-    }
-    pose_data_->SetImuTDevice(pose_data_->GetMatrixFromPose(pose_data));
-
-    // Get color camera with respect to imu transformation matrix.
-    frame_pair.base = TANGO_COORDINATE_FRAME_IMU;
-    frame_pair.target = TANGO_COORDINATE_FRAME_CAMERA_DEPTH;
-    ret = TangoService_getPoseAtTime(0.0, frame_pair, &pose_data);
-    if (ret != TANGO_SUCCESS) {
-      LOGE(
-          "PointCloudApp: Failed to get transform between the color camera frame "
-              "and device frames");
-      return ret;
-    }
-
-    pose_data_->SetImuTDepthCamera(pose_data_->GetMatrixFromPose(pose_data));
-
     TangoPoseData pose_imu_T_device;
     TangoPoseData pose_imu_T_color;
     TangoPoseData pose_imu_T_depth;
@@ -265,6 +240,8 @@ namespace tango_scene_reconstructor {
     glm::mat4 device_T_depth = glm::inverse(imu_T_device) * imu_T_depth;
     glm::mat4 color_T_device = glm::inverse(device_T_color);
 
+    pose_data_->SetImuTDevice(imu_T_device);
+    pose_data_->SetImuTDepthCamera(imu_T_depth);
     pose_data_->SetImuTColorCamera(imu_T_color);
     pose_data_->SetDeviceTColorCamera(device_T_color);
     pose_data_->SetDeviceTDepthCamera(device_T_depth);

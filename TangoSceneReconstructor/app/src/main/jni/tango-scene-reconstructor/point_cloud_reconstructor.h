@@ -1,5 +1,5 @@
 /*
- * Mesh class creates the RGB point cloud object model while scanning
+ * Reconstruction creates the RGB point cloud object model while scanning
  * process with Tango VIO poses. It uses this poses to transform the
  * RGB point clouds to the origin.
  * A voxel grid is used to downsample the RGB point cloud object model
@@ -9,8 +9,8 @@
  * remove outliers.
  */
 
-#ifndef RGBPOINTCLOUDBUILDER_MESH_H
-#define RGBPOINTCLOUDBUILDER_MESH_H
+#ifndef TANGOSCENERECONSTRUCTOR_POINT_CLOUD_RECONSTRUCTOR_H
+#define TANGOSCENERECONSTRUCTOR_POINT_CLOUD_RECONSTRUCTOR_H
 
 #include <mutex>
 #include <condition_variable>
@@ -88,6 +88,7 @@ namespace tango_scene_reconstructor {
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcd_mesh_;
       glm::vec4 centroid_;
   };
-}
 
-#endif //RGBPOINTCLOUDBUILDER_MESH_H
+} // namespace tango_scene_reconstructor
+
+#endif // TANGOSCENERECONSTRUCTOR_POINT_CLOUD_RECONSTRUCTOR_H

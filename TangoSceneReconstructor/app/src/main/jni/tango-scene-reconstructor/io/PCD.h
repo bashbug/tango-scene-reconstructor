@@ -21,6 +21,6 @@ namespace tango_scene_reconstructor {
       int optimization_methods_;
   };
 
-}
+} // namespace tango_scene_reconstructor
 
 #endif //RGBPOINTCLOUDBUILDER_PCD_H

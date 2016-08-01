@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef RGB_DEPTH_SYNC_UTIL_H_
-#define RGB_DEPTH_SYNC_UTIL_H_
+#ifndef RGB_DEPTH_SYNCTANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_UTIL_H_
+#define TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_UTIL_H_
 
 #include <Eigen/Geometry>
 #include <tango_client_api.h>  // NOLINT
@@ -23,13 +23,11 @@
 #include <tango-gl/conversions.h>
 
 namespace tango_scene_reconstructor {
-  // Utility functioins for Synchronization application.
+
   namespace util {
     Eigen::Isometry3f GetIsometryFromTangoPose(const TangoPoseData* pose_data);
     Eigen::Vector3f GetTranslationFromIsometry(const Eigen::Isometry3f& pose);
     Eigen::Quaternionf GetRotationFromIsometry(const Eigen::Isometry3f& pose);
-    // Returns a transformation matrix from a given TangoPoseData structure.
-    // - pose_data: The original pose is used for the conversion.
     glm::mat4 GetMatrixFromPose(const TangoPoseData* pose_data);
     glm::vec3 GetTranslationFromMatrix(const glm::mat4 transformation);
     glm::quat GetRotationFromMatrix(const glm::mat4 transformation);
@@ -40,7 +38,8 @@ namespace tango_scene_reconstructor {
     Eigen::Isometry3f ConvertGLMToEigenPose(const glm::mat4 glm_pose);
     glm::mat4 ConvertEigenToGLMPose(const Eigen::Isometry3f eigen_pose);
     float Deg2Rad(float alpha);
-    }  // namespace util
-  }  // namespace rgb_depth_sync
+  }  // namespace util
+
+}  // namespace tango_scene_reconstructor
 
 #endif  // RGB_DEPTH_SYNC_UTIL_H_
