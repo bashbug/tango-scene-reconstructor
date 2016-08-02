@@ -281,7 +281,7 @@ namespace tango_scene_reconstructor {
       curr_pose_ = pose_data_->GetLatestPoseMatrix();
       xyz_buffer_.clear();
       rgb_buffer_.clear();
-      xyz_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetXYZValues(curr_pose_);
+      xyz_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetXYZValues(glm::inverse(curr_pose_));
       rgb_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetRGBValues();
       centroid_matrix_ = point_cloud_manager_->GetCentroidMatrix();
       LOGE("XYZ size: %i", xyz_buffer_.size());
