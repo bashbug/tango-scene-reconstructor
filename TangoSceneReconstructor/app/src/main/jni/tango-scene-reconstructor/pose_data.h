@@ -50,6 +50,7 @@ namespace tango_scene_reconstructor {
       glm::mat4 GetColorCameraTDepthCamera(double color_timestamp, double depth_timestamp);
       glm::mat4 GetMatrixFromPose(const TangoPoseData& pose);
       glm::mat4 GetExtrinsicsAppliedOpenGLWorldFrame(const glm::mat4 pose_matrix);
+      glm::mat4 GetDeviceTColorCamera();
 
     private:
       PoseData() {};

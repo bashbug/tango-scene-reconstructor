@@ -12,7 +12,9 @@ namespace tango_scene_reconstructor {
 
     is_running_ = false;
 
-    mesh_ = new tango_scene_reconstructor::PointCloudReconstructor();
+    tango_mesh_reconstructor_ = new tango_scene_reconstructor::TangoMeshReconstructor(0.03f, 0.25f, 2.0f);
+
+    point_cloud_reconstructor_ = new tango_scene_reconstructor::PointCloudReconstructor();
     mesh_sm_filtered_ = new tango_scene_reconstructor::PointCloudReconstructor();
     mesh_msm_filtered_ = new tango_scene_reconstructor::PointCloudReconstructor();
     mesh_sm_downsampled_ = new tango_scene_reconstructor::PointCloudReconstructor();
@@ -20,7 +22,7 @@ namespace tango_scene_reconstructor {
   }
 
   PointCloudManager::~PointCloudManager(){
-    mesh_ = nullptr;
+    point_cloud_reconstructor_ = nullptr;
   }
 
   void PointCloudManager::SetManagers(TangoSupportPointCloudManager* xyz_manager,
@@ -64,6 +66,8 @@ namespace tango_scene_reconstructor {
           int ret = TangoSupport_getLatestImageBuffer(yuv_manager_, &yuv_buffer_);
           if (ret == TANGO_SUCCESS) {
 
+            //tango_mesh_reconstructor_->Update(xyz_buffer_, yuv_buffer_);
+
             PointCloud* pcd = new tango_scene_reconstructor::PointCloud();
             pcd->SetXYZ(xyz_buffer_);
             pcd->SetYUV(yuv_buffer_);
@@ -79,7 +83,7 @@ namespace tango_scene_reconstructor {
 
   void PointCloudManager::AddPCD(PointCloud *point_cloud) {
     point_cloud_container_.push_back(point_cloud);
-    mesh_->AddPointCloud(point_cloud);
+    point_cloud_reconstructor_->AddPointCloud(point_cloud);
   }
 
   PointCloud* PointCloudManager::GetLatestPCD() {
@@ -95,16 +99,15 @@ namespace tango_scene_reconstructor {
   }
 
   std::vector<float> PointCloudManager::GetXYZValues(glm::mat4 curr_pose) {
-    LOGE("Render PCD reconstruction");
-    return mesh_->GetXYZValues(curr_pose);
+    return point_cloud_reconstructor_->GetXYZValues(curr_pose);
   }
 
   std::vector<uint8_t> PointCloudManager::GetRGBValues() {
-    return mesh_->GetRGBValues();
+    return point_cloud_reconstructor_->GetRGBValues();
   }
 
   glm::mat4 PointCloudManager::GetCentroidMatrix() {
-    return mesh_->GetCentroidMatrix();
+    return point_cloud_reconstructor_->GetCentroidMatrix();
   }
 
   void PointCloudManager::OptimizeMesh() {
@@ -147,7 +150,7 @@ namespace tango_scene_reconstructor {
   }
 
   void PointCloudManager::ResetPCD() {
-    while(!mesh_->Reset() || !mesh_msm_downsampled_->Reset() || !mesh_msm_downsampled_->Reset()) {
+    while(!point_cloud_reconstructor_->Reset() || !mesh_msm_downsampled_->Reset() || !mesh_msm_downsampled_->Reset()) {
       LOGE("mesh is still running");
     }
     point_cloud_container_.clear();

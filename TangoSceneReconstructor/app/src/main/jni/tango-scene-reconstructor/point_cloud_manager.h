@@ -22,7 +22,8 @@
 #include <tango-gl/util.h>
 
 #include "tango-scene-reconstructor/point_cloud.h"
-#include "tango-scene-reconstructor/point_cloud_reconstructor.h"
+#include "tango-scene-reconstructor/reconstructor/point_cloud_reconstructor.h"
+#include "tango-scene-reconstructor/reconstructor/tango_mesh_reconstructor.h"
 
 namespace tango_scene_reconstructor {
 
@@ -53,8 +54,9 @@ namespace tango_scene_reconstructor {
       void Start();
       bool IsRunning();
       void SetRangeValue(float range);
+      TangoMeshReconstructor* tango_mesh_reconstructor_;
+      PointCloudReconstructor* point_cloud_reconstructor_;
     private:
-      PointCloudReconstructor* mesh_;
       PointCloudReconstructor* mesh_sm_filtered_;
       PointCloudReconstructor* mesh_msm_filtered_;
       PointCloudReconstructor* mesh_sm_downsampled_;

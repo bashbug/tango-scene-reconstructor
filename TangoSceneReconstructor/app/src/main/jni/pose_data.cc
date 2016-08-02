@@ -124,6 +124,10 @@ namespace tango_scene_reconstructor {
     return ss_T_device * device_T_depth_camera_;
   }
 
+  glm::mat4 PoseData::GetDeviceTColorCamera() {
+    return device_T_color_camera_;
+  }
+
   glm::mat4 PoseData::GetColorCameraTDepthCamera(double color_timestamp, double depth_timestamp) {
     glm::mat4 ss_T_device_color_timestamp = GetPoseAtTime(color_timestamp);
     glm::mat4 ss_T_device_depth_timestamp = GetPoseAtTime(depth_timestamp);

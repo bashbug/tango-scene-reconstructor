@@ -39,11 +39,17 @@ namespace tango_scene_reconstructor {
                   const glm::mat4& point_cloud_transformation,
                   const std::vector<float>& point_cloud_data,
                   const std::vector<uint8_t>& rgb_data);
+      void Render(const glm::mat4& tango_pose);
+      void Render(const glm::mat4& mesh_pose_transformation,
+                  const std::vector<float>& point_cloud_vertices,
+                  const std::vector<unsigned int>& point_cloud_indices,
+                  const std::vector<uint8_t>& point_cloud_colors);
       void SetCameraType(tango_gl::GestureCamera::CameraType camera_type);
       void OnTouchEvent(int touch_count, tango_gl::GestureCamera::TouchEvent event,
                         float x0, float y0, float x1, float y1);
       void SetBackgroundColor(bool on);
       void SetGridOn(bool on);
+      tango_gl::GestureCamera* GetGestureCamera();
 
     private:
       tango_gl::GestureCamera* gesture_camera_;

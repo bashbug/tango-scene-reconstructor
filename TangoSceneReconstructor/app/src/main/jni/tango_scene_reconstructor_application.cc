@@ -255,6 +255,8 @@ namespace tango_scene_reconstructor {
     pose_data_->SetColorCameraIntrinsics(color_camera_intrinsics);
     pose_data_->SetDepthCameraIntrinsics(depth_camera_intrinsics);
 
+    point_cloud_manager_->tango_mesh_reconstructor_->SetColorCamera3DRIntrinsics();
+
     return ret;
   }
 
@@ -278,11 +280,29 @@ namespace tango_scene_reconstructor {
     if (!optimize_) {
       curr_pose_ = pose_data_->GetLatestPoseMatrix();
       xyz_buffer_.clear();
-      xyz_buffer_ = point_cloud_manager_->GetXYZValues(glm::inverse(curr_pose_));
       rgb_buffer_.clear();
-      rgb_buffer_ = point_cloud_manager_->GetRGBValues();
+      xyz_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetXYZValues(curr_pose_);
+      rgb_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetRGBValues();
       centroid_matrix_ = point_cloud_manager_->GetCentroidMatrix();
-      scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_), xyz_buffer_, rgb_buffer_);
+      LOGE("XYZ size: %i", xyz_buffer_.size());
+      LOGE("RGB size: %i", rgb_buffer_.size());
+      scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_),
+                     pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_),
+                     xyz_buffer_,
+                     rgb_buffer_);
+      /*glm::mat4 pose = tango_gl::conversions::opengl_world_T_tango_world() *
+                       pose_data_->GetLatestPoseMatrix() * pose_data_->GetDeviceTColorCamera() *
+                       tango_gl::conversions::color_camera_T_opengl_camera();
+      //scene_->Render(pose);
+      xyz_buffer_.clear();
+      xyz_buffer_ = point_cloud_manager_->tango_mesh_reconstructor_->GetXYZ();
+      rgb_buffer_.clear();
+      rgb_buffer_ = point_cloud_manager_->tango_mesh_reconstructor_->GetRGB();
+      std::vector<unsigned int> indices = point_cloud_manager_->tango_mesh_reconstructor_->GetIndices();
+      /*point_cloud_manager_->tango_mesh_reconstructor_->Render(scene_->GetGestureCamera()->GetProjectionMatrix(),
+                                                              scene_->GetGestureCamera()->GetViewMatrix(),
+                                                              pose);
+      scene_->Render(pose, xyz_buffer_, indices, rgb_buffer_);*/
     } else {
       switch(pose_optimization_id_) {
         case 2:

@@ -199,8 +199,9 @@ LOCAL_SRC_FILES += conversion.cc \
                    point_cloud.cc \
                    point_cloud_drawable.cc \
                    point_cloud_manager.cc \
-                   point_cloud_reconstructor.cc \
                    pose_data.cc \
+                   reconstructor/point_cloud_reconstructor.cc \
+                   reconstructor/tango_mesh_reconstructor.cc \
                    tango_scene_reconstructor_application.cc \
                    scan_matcher/frame_to_frame_scan_matcher.cc \
                    scan_matcher/multiframe_scan_matcher.cc \

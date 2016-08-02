@@ -105,6 +105,101 @@ namespace tango_scene_reconstructor {
     }
   }
 
+  void Scene::Render(const glm::mat4& tango_pose) {
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    if (backgroundColorBlack_) {
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    } else {
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+    glm::vec3 position =
+        glm::vec3(tango_pose[3][0], tango_pose[3][1],
+                  tango_pose[3][2]);
+
+    if (gesture_camera_->GetCameraType() ==
+        tango_gl::GestureCamera::CameraType::kFirstPerson) {
+      // In first person mode, we directly control camera's motion.
+      gesture_camera_->SetTransformationMatrix(tango_pose);
+    } else {
+      // In third person or top down more, we follow the camera movement.
+      gesture_camera_->SetAnchorPosition(position);
+      if (draw_grid_) {
+        grid_->SetPosition(kHeightOffset_);
+      }
+      axis_->SetTransformationMatrix(tango_pose);
+      axis_->Render(gesture_camera_->GetProjectionMatrix(),
+                    gesture_camera_->GetViewMatrix());
+    }
+
+    if (draw_grid_) {
+      grid_->Render(gesture_camera_->GetProjectionMatrix(), gesture_camera_->GetViewMatrix());
+    }
+  }
+
+  void Scene::Render(const glm::mat4& mesh_pose_transformation,
+                   const std::vector<float>& point_cloud_vertices,
+                   const std::vector<unsigned int>& point_cloud_indices,
+                   const std::vector<uint8_t>& point_cloud_colors) {
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    if (backgroundColorBlack_) {
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    } else {
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    }
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+    glm::vec3 position =
+        glm::vec3(mesh_pose_transformation[3][0], mesh_pose_transformation[3][1],
+                  mesh_pose_transformation[3][2]);
+
+    if (gesture_camera_->GetCameraType() ==
+        tango_gl::GestureCamera::CameraType::kFirstPerson) {
+      // In first person mode, we directly control camera's motion.
+      gesture_camera_->SetTransformationMatrix(mesh_pose_transformation);
+    } else {
+      // In third person or top down more, we follow the camera movement.
+      if (draw_grid_) {
+        gesture_camera_->SetAnchorPosition(position);
+      }
+
+      axis_->SetTransformationMatrix(mesh_pose_transformation);
+      axis_->Render(gesture_camera_->GetProjectionMatrix(),
+                    gesture_camera_->GetViewMatrix());
+    }
+
+    grid_->Render(gesture_camera_->GetProjectionMatrix(),
+                  gesture_camera_->GetViewMatrix());
+
+    if (point_cloud_vertices.size() > 0 && point_cloud_indices.size() > 0 && point_cloud_colors.size() > 0) {
+
+      LOGE("Vertices size %i", point_cloud_vertices.size());
+      LOGE("Colors size %i", point_cloud_colors.size());
+      LOGE("Indices size %i", point_cloud_indices.size());
+
+      pcd_drawable_->Render(gesture_camera_->GetProjectionMatrix(),
+                           gesture_camera_->GetViewMatrix(),
+                           mesh_pose_transformation * glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
+                                                                0.0f, 0.0f, -1.0f, 0.0f,
+                                                                0.0f, 1.0f, 0.0f, 0.0f,
+                                                                0.0f, 0.0f, 0.0f, 1.0f),
+                           point_cloud_vertices,
+                           point_cloud_indices,
+                           point_cloud_colors);
+    }
+  }
+
+  tango_gl::GestureCamera* Scene::GetGestureCamera() {
+    return gesture_camera_;
+  }
+
   void Scene::SetCameraType(tango_gl::GestureCamera::CameraType camera_type) {
     gesture_camera_->SetCameraType(camera_type);
   }
