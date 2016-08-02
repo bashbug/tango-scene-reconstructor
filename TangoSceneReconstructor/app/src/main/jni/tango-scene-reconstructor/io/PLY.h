@@ -1,0 +1,16 @@
+//
+// Created by anastasia on 02.08.16.
+//
+
+#ifndef TANGOSCENERECONSTRUCTOR_PLY_H
+#define TANGOSCENERECONSTRUCTOR_PLY_H
+
+
+
+class PLY {
+
+};
+
+
+
+#endif //TANGOSCENERECONSTRUCTOR_PLY_H
