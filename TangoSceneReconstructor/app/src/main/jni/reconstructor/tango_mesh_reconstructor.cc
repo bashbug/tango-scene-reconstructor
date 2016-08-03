@@ -1,7 +1,3 @@
-//
-// Created by anastasia on 01.08.16.
-//
-
 #include "tango-scene-reconstructor/reconstructor/tango_mesh_reconstructor.h"
 
 namespace tango_scene_reconstructor {
@@ -176,7 +172,9 @@ namespace tango_scene_reconstructor {
   }
 
   void TangoMeshReconstructor::GenerateAndSaveMesh(std::vector<PointCloud*> point_cloud_container, std::string folder_name) {
-    std::vector<float> vertices_tmp;
+    LOGE("Function TangoMeshReconstructor::GenerateAndSaveMesh is not implemented yet");
+
+    /*std::vector<float> vertices_tmp;
     std::vector<unsigned int> indices_tmp;
     std::vector<uint8_t> colors_tmp;
     for (int i=0; i < point_cloud_container.size(); i++) {
@@ -252,7 +250,7 @@ namespace tango_scene_reconstructor {
       vertices.vertices.push_back(vertices_[indices_[k+2]]);
       k+=3;
       triangles.polygons[i] = vertices;
-    }
+    }*/
 
   }
 

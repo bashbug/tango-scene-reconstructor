@@ -1,7 +1,3 @@
-//
-// Created by anastasia on 03.08.16.
-//
-
 #include <string>
 #include <tango-scene-reconstructor/point_cloud_manager.h>
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#ifndef RGB_DEPTH_SYNCTANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_UTIL_H_
+#ifndef TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_UTIL_H_
 #define TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_UTIL_H_
 
 #include <Eigen/Geometry>
@@ -42,4 +42,4 @@ namespace tango_scene_reconstructor {
 
 }  // namespace tango_scene_reconstructor
 
-#endif  // RGB_DEPTH_SYNC_UTIL_H_
+#endif  // TANGOSCENERECONSTRUCTOR_TANGO_SCENE_RECONSTRUCTOR_UTIL_H_

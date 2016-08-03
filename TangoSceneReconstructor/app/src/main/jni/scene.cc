@@ -218,4 +218,4 @@ namespace tango_scene_reconstructor {
     draw_grid_ = on;
   }
 
-}  // namespace rgb_depth_sync
+}

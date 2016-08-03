@@ -288,18 +288,16 @@ namespace tango_scene_reconstructor {
                      pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_),
                      xyz_buffer_,
                      rgb_buffer_);
-      /*glm::mat4 pose = tango_gl::conversions::opengl_world_T_tango_world() *
+      /*
+      HOW-TO: Possibility to render the tango3DR reconstruction
+      glm::mat4 pose = tango_gl::conversions::opengl_world_T_tango_world() *
                        pose_data_->GetLatestPoseMatrix() * pose_data_->GetDeviceTColorCamera() *
                        tango_gl::conversions::color_camera_T_opengl_camera();
-      //scene_->Render(pose);
       xyz_buffer_.clear();
       xyz_buffer_ = point_cloud_manager_->tango_mesh_reconstructor_->GetXYZ();
       rgb_buffer_.clear();
       rgb_buffer_ = point_cloud_manager_->tango_mesh_reconstructor_->GetRGB();
       std::vector<unsigned int> indices = point_cloud_manager_->tango_mesh_reconstructor_->GetIndices();
-      /*point_cloud_manager_->tango_mesh_reconstructor_->Render(scene_->GetGestureCamera()->GetProjectionMatrix(),
-                                                              scene_->GetGestureCamera()->GetViewMatrix(),
-                                                              pose);
       scene_->Render(pose, xyz_buffer_, indices, rgb_buffer_);*/
     } else {
       switch(pose_optimization_id_) {

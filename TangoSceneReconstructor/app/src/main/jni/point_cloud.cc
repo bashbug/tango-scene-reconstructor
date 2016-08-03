@@ -256,4 +256,4 @@ namespace tango_scene_reconstructor {
     return cloud_;
   }
 
-} // namespace rgb_depth_sync
+}

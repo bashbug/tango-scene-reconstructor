@@ -94,27 +94,35 @@ public class SaveDialogFragment extends DialogFragment implements View.OnClickLi
     }
 
     private int GetSaveMode() {
+        // 0 0 0
         if (!mSavePCLMesh && !mSaveSinglePCDFiles && !mSaveMergedPCDFiles) {
             return 0;
         }
+        // 0 0 1
         if (!mSavePCLMesh && !mSaveSinglePCDFiles && mSaveMergedPCDFiles) {
             return 1;
         }
-        if (mSavePCLMesh && !mSaveSinglePCDFiles && mSaveMergedPCDFiles) {
+        // 0 1 0
+        if (!mSavePCLMesh && mSaveSinglePCDFiles && !mSaveMergedPCDFiles) {
             return 2;
         }
+        // 0 1 1
         if (!mSavePCLMesh && mSaveSinglePCDFiles && mSaveMergedPCDFiles) {
             return 3;
         }
+        // 1 0 0
         if (mSavePCLMesh && !mSaveSinglePCDFiles && !mSaveMergedPCDFiles) {
             return 4;
         }
-        if (!mSavePCLMesh && mSaveSinglePCDFiles && !mSaveMergedPCDFiles) {
+        // 1 0 1
+        if (mSavePCLMesh && !mSaveSinglePCDFiles && mSaveMergedPCDFiles) {
             return 5;
         }
+        // 1 1 0
         if (mSavePCLMesh && mSaveSinglePCDFiles && !mSaveMergedPCDFiles) {
             return 6;
         }
+        // 1 1 1
         if (mSavePCLMesh && mSaveSinglePCDFiles && mSaveMergedPCDFiles) {
             return 7;
         }

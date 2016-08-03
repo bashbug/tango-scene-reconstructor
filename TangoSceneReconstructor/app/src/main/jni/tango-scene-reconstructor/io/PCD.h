@@ -1,6 +1,3 @@
-//
-// Created by anastasia on 29.07.16.
-//
 #include <string>
 #include <boost/filesystem.hpp>
 #include <tango-scene-reconstructor/point_cloud_manager.h>

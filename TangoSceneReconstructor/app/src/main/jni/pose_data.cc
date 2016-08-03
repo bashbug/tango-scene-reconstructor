@@ -209,4 +209,4 @@ namespace tango_scene_reconstructor {
     string_stream.flush();
   }
 
-}  // namespace tango_point_cloud
+}

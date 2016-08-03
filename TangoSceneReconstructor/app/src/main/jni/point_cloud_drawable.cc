@@ -138,4 +138,4 @@ namespace tango_scene_reconstructor {
     tango_gl::util::CheckGlError("Pointcloud::Render()");
   }
 
-}  // namespace tango_point_cloud
+}

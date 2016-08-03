@@ -1,6 +1,3 @@
-//
-// Created by anastasia on 04.03.16.
-//
 #include "tango-scene-reconstructor/reconstructor/point_cloud_reconstructor.h"
 
 namespace tango_scene_reconstructor {

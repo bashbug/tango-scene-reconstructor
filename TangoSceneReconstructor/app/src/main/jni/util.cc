@@ -223,4 +223,4 @@ Eigen::Quaternionf util::GetRotationFromIsometry(const Eigen::Isometry3f& pose) 
   return rotation;
 }
 
-}  // namespace rgb_depth_sync
+}

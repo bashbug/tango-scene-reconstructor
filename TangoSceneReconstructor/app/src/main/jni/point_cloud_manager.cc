@@ -66,6 +66,9 @@ namespace tango_scene_reconstructor {
           int ret = TangoSupport_getLatestImageBuffer(yuv_manager_, &yuv_buffer_);
           if (ret == TANGO_SUCCESS) {
 
+            //This can be used to render a mesh instead of a point cloud. But it crashes after
+            //a few updates and rendering the full mesh. Seems to use too much memory and invokes a
+            //a heap memory leak
             //tango_mesh_reconstructor_->Update(xyz_buffer_, yuv_buffer_);
 
             PointCloud* pcd = new tango_scene_reconstructor::PointCloud(range_);
@@ -156,4 +159,5 @@ namespace tango_scene_reconstructor {
     point_cloud_container_.clear();
     LOGE("MESH abd CONATINER are reseted");
   }
-} // namespace rgb_depth_syn
+
+}
