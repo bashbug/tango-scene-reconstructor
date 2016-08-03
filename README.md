@@ -1,4 +1,4 @@
-# RGBPointCloudBuilder
+# TangoSceneReconstructor
 
 This project is based on the samples from the Google Tango API. You can find it at https://github.com/googlesamples/tango-examples-c
 
@@ -64,9 +64,9 @@ Also the MFSM aligns the RGB point clouds more accurately.
 
 **Store Point Clouds**
 - Store RGB point cloud as *.PCD binary file in 
-  _/Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/PCD
+  _/Documents/TangoSceneReconstructor/yyyyMMddHHmmss/PCD
 - Store EGB point cloud object models as FTFSM.PCD and MFSM.PCD binary file in 
-  _/Documents/RGBPointCloudBuilder/yyyyMMddHHmmss/Mesh/
+  _/Documents/TangoSceneReconstructor/yyyyMMddHHmmss/Mesh/
 
 **Zip&Share current scan**
 - Current stored RGB point clouds and object models are zipped and sharable to google drive or via other installed apps.
