@@ -21,11 +21,6 @@
         android:title="General Settings"
         android:key="general_pref">
         <CheckBoxPreference
-            android:key="pcd_files"
-            android:title="PCD files on"
-            android:summary="Store for each point cloud a single PCD file"
-            android:defaultValue="false" />
-        <CheckBoxPreference
             android:key="grid"
             android:title="Grid on"
             android:summary="Set the grid on or off"
