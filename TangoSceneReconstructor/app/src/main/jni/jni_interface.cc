@@ -154,10 +154,16 @@ app.ShowUnOPTMesh();
 }
 
 JNIEXPORT void JNICALL
-Java_bashbug_tangoscenereconstructor_JNIInterface_optimizeAndSaveToFolder(
-    JNIEnv* env, jobject, jstring folder_name) {
+Java_bashbug_tangoscenereconstructor_JNIInterface_optimize(
+    JNIEnv* env, jobject) {
+app.Optimize();
+}
+
+JNIEXPORT void JNICALL
+Java_bashbug_tangoscenereconstructor_JNIInterface_saveToFolder(
+    JNIEnv* env, jobject, jstring folder_name, int save_mode) {
 std::string folder_name_s = ConvertJString(env, folder_name);
-app.OptimizeAndSaveToFolder(folder_name_s);
+app.SaveToFolder(folder_name_s, save_mode);
 }
 
 JNIEXPORT void JNICALL

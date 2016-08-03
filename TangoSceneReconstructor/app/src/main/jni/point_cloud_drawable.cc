@@ -28,6 +28,7 @@ namespace {
           "uniform mat4 mvp;\n"
           "varying vec3 v_color;\n"
           "void main() {\n"
+          "  gl_PointSize = 4.0;\n"
           "  gl_Position = mvp*vertex;\n"
           "  v_color = color;\n"
           "}\n";

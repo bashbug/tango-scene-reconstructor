@@ -56,11 +56,11 @@ namespace tango_scene_reconstructor {
       void SetRangeValue(float range);
       TangoMeshReconstructor* tango_mesh_reconstructor_;
       PointCloudReconstructor* point_cloud_reconstructor_;
+      PointCloudReconstructor* point_cloud_reconstructor_ftfsm_downsampled_;
+      PointCloudReconstructor* point_cloud_reconstructor_mfsm_downsampled_;
     private:
-      PointCloudReconstructor* mesh_sm_filtered_;
-      PointCloudReconstructor* mesh_msm_filtered_;
-      PointCloudReconstructor* mesh_sm_downsampled_;
-      PointCloudReconstructor* mesh_msm_downsampled_;
+      PointCloudReconstructor* point_cloud_reconstructor_ftfsm_filtered_;
+      PointCloudReconstructor* point_cloud_reconstructor_mfsm_filtered_;
       std::shared_ptr<std::mutex> xyz_mtx_;
       std::shared_ptr<std::condition_variable> consume_xyz_;
       TangoSupportPointCloudManager* xyz_manager_;

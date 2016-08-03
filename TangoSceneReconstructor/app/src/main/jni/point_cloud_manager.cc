@@ -8,17 +8,17 @@ namespace tango_scene_reconstructor {
     consume_xyz_ = consume_xyz;
     write_pcd_data_ = false;
 
-    range_ = 5.0f;
+    range_ = 2.5f;
 
     is_running_ = false;
 
     tango_mesh_reconstructor_ = new tango_scene_reconstructor::TangoMeshReconstructor(0.03f, 0.25f, 2.0f);
 
     point_cloud_reconstructor_ = new tango_scene_reconstructor::PointCloudReconstructor();
-    mesh_sm_filtered_ = new tango_scene_reconstructor::PointCloudReconstructor();
-    mesh_msm_filtered_ = new tango_scene_reconstructor::PointCloudReconstructor();
-    mesh_sm_downsampled_ = new tango_scene_reconstructor::PointCloudReconstructor();
-    mesh_msm_downsampled_ = new tango_scene_reconstructor::PointCloudReconstructor();
+    point_cloud_reconstructor_ftfsm_filtered_= new tango_scene_reconstructor::PointCloudReconstructor();
+    point_cloud_reconstructor_mfsm_filtered_ = new tango_scene_reconstructor::PointCloudReconstructor();
+    point_cloud_reconstructor_ftfsm_downsampled_ = new tango_scene_reconstructor::PointCloudReconstructor();
+    point_cloud_reconstructor_mfsm_downsampled_ = new tango_scene_reconstructor::PointCloudReconstructor();
   }
 
   PointCloudManager::~PointCloudManager(){
@@ -68,11 +68,11 @@ namespace tango_scene_reconstructor {
 
             //tango_mesh_reconstructor_->Update(xyz_buffer_, yuv_buffer_);
 
-            PointCloud* pcd = new tango_scene_reconstructor::PointCloud();
+            PointCloud* pcd = new tango_scene_reconstructor::PointCloud(range_);
             pcd->SetXYZ(xyz_buffer_);
             pcd->SetYUV(yuv_buffer_);
             pcd->Update();
-            pcd->RemoveOutliers(range_);
+            pcd->RemoveOutliers(5.0f);
             AddPCD(pcd);
           }
           is_running_ = false;
@@ -112,45 +112,45 @@ namespace tango_scene_reconstructor {
 
   void PointCloudManager::OptimizeMesh() {
     for (int i = 0; i < point_cloud_container_.size(); i++) {
-      mesh_sm_downsampled_->AddPointCloudOptWithSM(point_cloud_container_[i]);
-      mesh_msm_downsampled_->AddPointCloudOptWithMSM(point_cloud_container_[i]);
-      mesh_sm_filtered_->AddPointCloudOptWithSM(point_cloud_container_[i]);
-      mesh_msm_filtered_->AddPointCloudOptWithMSM(point_cloud_container_[i]);
+      point_cloud_reconstructor_ftfsm_downsampled_->AddPointCloudOptWithSM(point_cloud_container_[i]);
+      point_cloud_reconstructor_mfsm_downsampled_->AddPointCloudOptWithMSM(point_cloud_container_[i]);
+      point_cloud_reconstructor_ftfsm_filtered_->AddPointCloudOptWithSM(point_cloud_container_[i]);
+      point_cloud_reconstructor_mfsm_filtered_->AddPointCloudOptWithMSM(point_cloud_container_[i]);
     }
 
-    mesh_sm_filtered_->FilterMesh();
-    mesh_msm_filtered_->FilterMesh();
+    point_cloud_reconstructor_ftfsm_filtered_->FilterPointCloud();
+    point_cloud_reconstructor_mfsm_filtered_->FilterPointCloud();
 
-    mesh_sm_downsampled_->DownsampleMesh();
-    mesh_msm_downsampled_->DownsampleMesh();
+    point_cloud_reconstructor_ftfsm_downsampled_->DownsamplePointCloud();
+    point_cloud_reconstructor_mfsm_downsampled_->DownsamplePointCloud();
   }
 
   std::vector<float> PointCloudManager::GetXYZValuesOptWithSM(glm::mat4 curr_pose) {
-    return mesh_sm_downsampled_->GetXYZValues(curr_pose);
+    return point_cloud_reconstructor_ftfsm_downsampled_->GetXYZValues(curr_pose);
   }
 
   std::vector<uint8_t> PointCloudManager::GetRGBOptWithSMValues() {
-    return mesh_sm_downsampled_->GetRGBValues();
+    return point_cloud_reconstructor_ftfsm_downsampled_->GetRGBValues();
   }
 
   std::vector<float> PointCloudManager::GetXYZValuesOptWithMSM(glm::mat4 curr_pose) {
-    return mesh_msm_downsampled_->GetXYZValues(curr_pose);
+    return point_cloud_reconstructor_mfsm_downsampled_->GetXYZValues(curr_pose);
   }
 
   std::vector<uint8_t> PointCloudManager::GetRGBOptWithMSMValues() {
-    return mesh_msm_downsampled_->GetRGBValues();
+    return point_cloud_reconstructor_mfsm_downsampled_->GetRGBValues();
   }
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudManager::GetFTFSMMeshPCDFile() {
-    return mesh_sm_filtered_->GetPCDFile();
+    return point_cloud_reconstructor_ftfsm_filtered_->GetPCDFile();
   }
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudManager::GetMFSMMeshPCDFile() {
-    return mesh_msm_filtered_->GetPCDFile();
+    return point_cloud_reconstructor_mfsm_filtered_->GetPCDFile();
   }
 
   void PointCloudManager::ResetPCD() {
-    while(!point_cloud_reconstructor_->Reset() || !mesh_msm_downsampled_->Reset() || !mesh_msm_downsampled_->Reset()) {
+    while(!point_cloud_reconstructor_->Reset() || !point_cloud_reconstructor_ftfsm_downsampled_->Reset() || !point_cloud_reconstructor_mfsm_downsampled_->Reset()) {
       LOGE("mesh is still running");
     }
     point_cloud_container_.clear();

@@ -76,7 +76,9 @@ public class JNIInterface {
 
     public static native void showUnOPTMesh();
 
-    public static native void optimizeAndSaveToFolder(String folder_name);
+    public static native void optimize();
+    
+    public static native void saveToFolder(String folder_name, int save_mode);
 
     public static native void setBackgroundColorBlack(boolean on);
 

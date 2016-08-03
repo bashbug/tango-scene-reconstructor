@@ -284,8 +284,6 @@ namespace tango_scene_reconstructor {
       xyz_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetXYZValues(glm::inverse(curr_pose_));
       rgb_buffer_ = point_cloud_manager_->point_cloud_reconstructor_->GetRGBValues();
       centroid_matrix_ = point_cloud_manager_->GetCentroidMatrix();
-      LOGE("XYZ size: %i", xyz_buffer_.size());
-      LOGE("RGB size: %i", rgb_buffer_.size());
       scene_->Render(pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_),
                      pose_data_->GetExtrinsicsAppliedOpenGLWorldFrame(curr_pose_),
                      xyz_buffer_,
@@ -332,55 +330,124 @@ namespace tango_scene_reconstructor {
     }
   }
 
-  void TangoSceneReconstructorApplication::OptimizeAndSaveToFolder(std::string folder_name) {
+  void TangoSceneReconstructorApplication::Optimize() {
     StopPCDWorker();
 
     optimize_ = true;
 
     FrameToFrameScanMatcher ftfsm;
     MultiframeScanMatcher mfsm;
+    int ftfsm_no_of_good_loop_closures = 0;
+    int ftfsm_no_of_matched_frames = 0;
+    int ftfsm_average_computation_time = 0;
+    int ftfsm_computation_time = 0;
+    int mfsm_average_computation_time = 0;
+    int mfsm_computation_time = 0;
 
     switch (optimizationMethods_) {
       case 0:
         ftfsm.Init(point_cloud_manager_);
         ftfsm.Optimize();
+        ftfsm_average_computation_time = ftfsm.GetAverageComputationTime();
+        ftfsm_computation_time = ftfsm.GetComputationTime();
+        ftfsm_no_of_good_loop_closures = ftfsm.GetNoOfLoopClosures();
+        ftfsm_no_of_matched_frames = ftfsm.GetNoOfMatchedFrames();
         break;
       case 1:
         mfsm.Init(point_cloud_manager_);
         mfsm.Optimize();
+        mfsm_average_computation_time = mfsm.GetAverageComputationTime();
+        mfsm_computation_time = mfsm.GetComputationTime();
         break;
       case 2:
         ftfsm.Init(point_cloud_manager_);
         ftfsm.Optimize();
         mfsm.Init(point_cloud_manager_);
         mfsm.Optimize();
+        ftfsm_average_computation_time = ftfsm.GetAverageComputationTime();
+        ftfsm_computation_time = ftfsm.GetComputationTime();
+        ftfsm_no_of_good_loop_closures = ftfsm.GetNoOfLoopClosures();
+        ftfsm_no_of_matched_frames = ftfsm.GetNoOfMatchedFrames();
+        mfsm_average_computation_time = mfsm.GetAverageComputationTime();
+        mfsm_computation_time = mfsm.GetComputationTime();
         break;
       default:
         break;
     }
 
-    PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
-    PCD->SavePointCloudContainer(point_cloud_manager_, folder_name);
-
-
     point_cloud_manager_->OptimizeMesh();
-
-    /*pcl::io::savePCDFile (folder_name + "Mesh/FTFSM.pcd", *point_cloud_manager_->GetFTFSMMeshPCDFile());
-    pcl::io::savePCDFile (folder_name + "Mesh/MFSM.pcd", *point_cloud_manager_->GetMFSMMeshPCDFile());*/
 
     jmethodID method = env_->GetMethodID(activity_class_, "setComputationTimes", "(IIII)V");
     env_->CallVoidMethod(caller_activity_, method,
-                         reinterpret_cast<jint>(ftfsm.GetAverageComputationTime()),
-                         reinterpret_cast<jint>(ftfsm.GetComputationTime()),
-                         reinterpret_cast<jint>(mfsm.GetAverageComputationTime()),
-                         reinterpret_cast<jint>(mfsm.GetComputationTime()));
+                         reinterpret_cast<jint>(ftfsm_average_computation_time),
+                         reinterpret_cast<jint>(ftfsm_computation_time),
+                         reinterpret_cast<jint>(mfsm_average_computation_time),
+                         reinterpret_cast<jint>(mfsm_computation_time));
 
     method = env_->GetMethodID(activity_class_, "setFTFInfo", "(III)V");
     env_->CallVoidMethod(caller_activity_, method,
-                         reinterpret_cast<jint>(ftfsm.GetNoOfLoopClosures()),
-                         reinterpret_cast<jint>(ftfsm.GetNoOfMatchedFrames()),
+                         reinterpret_cast<jint>(ftfsm_no_of_good_loop_closures),
+                         reinterpret_cast<jint>(ftfsm_no_of_matched_frames),
                          reinterpret_cast<jint>((int)point_cloud_manager_->point_cloud_container_.size()));
 
+  }
+
+  void TangoSceneReconstructorApplication::SaveToFolder(std::string folder_name, int save_mode) {
+    switch(save_mode) {
+      case 0:
+        break;
+      case 1:
+        {
+          PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+          PCD->SaveMergedPointClouds(point_cloud_manager_, folder_name);
+          break;
+        }
+      case 2:
+        {
+          PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+          PCD->SavePointCloudContainer(point_cloud_manager_, folder_name);
+          break;
+        }
+      case 3:
+        {
+          PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+          PCD->SavePointCloudContainer(point_cloud_manager_, folder_name);
+          PCD->SaveMergedPointClouds(point_cloud_manager_, folder_name);
+          break;
+        }
+      case 4:
+        {
+          VTK* VTK = new tango_scene_reconstructor::VTK(optimizationMethods_);
+          VTK->GenerateMeshesAndSave(point_cloud_manager_, folder_name);
+          break;
+        }
+      case 5:
+        {
+          PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+          PCD->SaveMergedPointClouds(point_cloud_manager_, folder_name);
+          VTK* VTK = new tango_scene_reconstructor::VTK(optimizationMethods_);
+          VTK->GenerateMeshesAndSave(point_cloud_manager_, folder_name);
+        }
+      case 6:
+        {
+          PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+          PCD->SavePointCloudContainer(point_cloud_manager_, folder_name);
+          VTK* VTK = new tango_scene_reconstructor::VTK(optimizationMethods_);
+          VTK->GenerateMeshesAndSave(point_cloud_manager_, folder_name);
+          break;
+        }
+      case 7:
+        {
+          PCD* PCD = new tango_scene_reconstructor::PCD(optimizationMethods_);
+          PCD->SavePointCloudContainer(point_cloud_manager_, folder_name);
+          PCD->SaveMergedPointClouds(point_cloud_manager_, folder_name);
+          VTK* VTK = new tango_scene_reconstructor::VTK(optimizationMethods_);
+          VTK->GenerateMeshesAndSave(point_cloud_manager_, folder_name);
+          break;
+        }
+      default:
+        break;
+    }
   }
 
   void TangoSceneReconstructorApplication::UpdatePCDs() {
@@ -450,4 +517,4 @@ namespace tango_scene_reconstructor {
     optimizationMethods_ = opt;
   }
 
-}  // namespace rgb_depth_sync
+}

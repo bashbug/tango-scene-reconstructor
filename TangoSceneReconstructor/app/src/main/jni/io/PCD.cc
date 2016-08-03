@@ -11,7 +11,6 @@ namespace tango_scene_reconstructor {
   }
 
   void PCD::SavePointCloudContainer(PointCloudManager* point_cloud_manager, std::string folder_name) {
-
     CreateSubFolders(folder_name);
 
     int lastIndex = point_cloud_manager->GetPCDContainerLastIndex();
@@ -19,12 +18,12 @@ namespace tango_scene_reconstructor {
     switch (optimization_methods_) {
       case 0:
         for (int i = 0; i <= lastIndex; i++) {
-          std::string dir_path = folder_name + "PCD/RAW/";
+          std::string dir_path = folder_name + "/PCD/RAW/";
           char filename_raw[1024];
           sprintf(filename_raw, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCD(filename_raw);
 
-          dir_path = folder_name + "PCD/FTFSM/";
+          dir_path = folder_name + "/PCD/FTFSM/";
           char filename_ftfsm[1024];
           sprintf(filename_ftfsm, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCDWithFTFSMPose(filename_ftfsm);
@@ -33,12 +32,12 @@ namespace tango_scene_reconstructor {
 
       case 1:
         for (int i = 0; i <= lastIndex; i++) {
-          std::string dir_path = folder_name + "PCD/RAW/";
+          std::string dir_path = folder_name + "/PCD/RAW/";
           char filename_raw[1024];
           sprintf(filename_raw, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCD(filename_raw);
 
-          dir_path = folder_name + "PCD/MFSM/";
+          dir_path = folder_name + "/PCD/MFSM/";
           char filename_mfsm[1024];
           sprintf(filename_mfsm, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCDWithMFSMPose(filename_mfsm);
@@ -47,17 +46,17 @@ namespace tango_scene_reconstructor {
 
       case 2:
         for (int i = 0; i <= lastIndex; i++) {
-          std::string dir_path = folder_name + "PCD/RAW/";
+          std::string dir_path = folder_name + "/PCD/RAW/";
           char filename_raw[1024];
           sprintf(filename_raw, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCD(filename_raw);
 
-          dir_path = folder_name + "PCD/FTFSM/";
+          dir_path = folder_name + "/PCD/FTFSM/";
           char filename_ftfsm[1024];
           sprintf(filename_ftfsm, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCDWithFTFSMPose(filename_ftfsm);
 
-          dir_path = folder_name + "PCD/MFSM/";
+          dir_path = folder_name + "/PCD/MFSM/";
           char filename_mfsm[1024];
           sprintf(filename_mfsm, "%s/%05d.pcd", dir_path.c_str(), i);
           point_cloud_manager->point_cloud_container_[i]->SaveAsPCDWithMFSMPose(filename_mfsm);
@@ -68,17 +67,48 @@ namespace tango_scene_reconstructor {
     }
   }
 
+  void PCD::SaveMergedPointClouds(PointCloudManager* point_cloud_manager, std::string folder_name) {
+    switch (optimization_methods_) {
+        case 0:
+          pcl::io::savePCDFile (folder_name + "/FTFSM.pcd", *point_cloud_manager->GetFTFSMMeshPCDFile());
+          break;
+        case 1:
+          pcl::io::savePCDFile (folder_name + "/MFSM.pcd", *point_cloud_manager->GetMFSMMeshPCDFile());
+          break;
+        case 2:
+          pcl::io::savePCDFile (folder_name + "/FTFSM.pcd", *point_cloud_manager->GetFTFSMMeshPCDFile());
+          pcl::io::savePCDFile (folder_name + "/MFSM.pcd", *point_cloud_manager->GetMFSMMeshPCDFile());
+          break;
+        default:
+          break;
+      }
+  }
+
   void PCD::CreateSubFolders(std::string folder_name) {
-    std::string dir_name = folder_name + "PCD/FTFSM";
+    std::string dir_name = folder_name + "/PCD/RAW";
     boost::filesystem::path dir = dir_name.c_str();
     boost::filesystem::create_directories(dir);
-
-    dir_name = folder_name + "PCD/MFSM";
-    dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
-
-    dir_name = folder_name + "PCD/RAW";
-    dir = dir_name.c_str();
-    boost::filesystem::create_directories(dir);
+    switch (optimization_methods_) {
+      case 0:
+        dir_name = folder_name + "/PCD/FTFSM";
+        dir = dir_name.c_str();
+        boost::filesystem::create_directories(dir);
+        break;
+      case 1:
+        dir_name = folder_name + "/PCD/MFSM";
+        dir = dir_name.c_str();
+        boost::filesystem::create_directories(dir);
+        break;
+      case 2:
+        dir_name = folder_name + "/PCD/FTFSM";
+        dir = dir_name.c_str();
+        boost::filesystem::create_directories(dir);
+        dir_name = folder_name + "/PCD/MFSM";
+        dir = dir_name.c_str();
+        boost::filesystem::create_directories(dir);
+        break;
+      default:
+        break;
+    }
   }
 }

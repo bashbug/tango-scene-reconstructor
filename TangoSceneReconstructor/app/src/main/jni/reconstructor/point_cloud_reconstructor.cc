@@ -115,7 +115,7 @@ namespace tango_scene_reconstructor {
     }
   }
 
-  void PointCloudReconstructor::DownsampleMesh() {
+  void PointCloudReconstructor::DownsamplePointCloud() {
     {
       std::lock_guard <std::mutex> lock(mesh_mtx_);
       is_running_ = true;
@@ -133,7 +133,7 @@ namespace tango_scene_reconstructor {
     }
   }
 
-  void PointCloudReconstructor::FilterMesh(float radius) {
+  void PointCloudReconstructor::FilterPointCloud(float radius) {
     pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZRGB>);
     pcl::StatisticalOutlierRemoval<pcl::PointXYZRGB> sor;
     sor.setInputCloud(pcd_mesh_);
@@ -167,5 +167,36 @@ namespace tango_scene_reconstructor {
 
   pcl::PointCloud<pcl::PointXYZRGB>::Ptr PointCloudReconstructor::GetPCDFile() {
     return pcd_mesh_;
+  }
+
+  void PointCloudReconstructor::GenerateAndSaveMesh(std::string folderAndFileName) {
+    // Normal Estimation
+    pcl::NormalEstimation<pcl::PointXYZRGB, pcl::PointXYZRGBNormal> n;
+    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr normals (new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+    pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree (new pcl::search::KdTree<pcl::PointXYZRGB>);
+    tree->setInputCloud (pcd_mesh_);
+    n.setInputCloud (pcd_mesh_);
+    n.setSearchMethod (tree);
+    n.setKSearch (10);
+    n.compute (*normals);
+    pcl::copyPointCloud(*pcd_mesh_, *normals);
+    // Greedy triangulation
+    pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2 (new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
+    tree2->setInputCloud (normals);
+    pcl::GreedyProjectionTriangulation<pcl::PointXYZRGBNormal> gp3;
+    pcl::PolygonMesh triangles;
+    gp3.setSearchRadius(0.05);
+    gp3.setMu(2.0);
+    gp3.setMaximumNearestNeighbors(100);
+    gp3.setMaximumSurfaceAngle(M_PI);
+    gp3.setMinimumAngle(M_PI / 10);
+    gp3.setMaximumAngle(2 * M_PI / 3.0);
+    gp3.setConsistentVertexOrdering(true);
+
+    // Get result
+    gp3.setInputCloud (normals);
+    gp3.setSearchMethod (tree2);
+    gp3.reconstruct (triangles);
+    pcl::io::saveVTKFile (folderAndFileName.c_str(), triangles);
   }
 }

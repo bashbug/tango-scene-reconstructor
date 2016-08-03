@@ -195,6 +195,7 @@ LOCAL_C_INCLUDES += $(PROJECT_ROOT)/tango-gl/include \
 
 LOCAL_SRC_FILES += conversion.cc \
                    io/PCD.cc \
+                   io/VTK.cc \
                    jni_interface.cc \
                    point_cloud.cc \
                    point_cloud_drawable.cc \

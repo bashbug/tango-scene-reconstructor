@@ -6,9 +6,11 @@
 #define TANGOSCENERECONSTRUCTOR_TANGO_MESH_RECONSTRUCTOR_H
 
 #include <mutex>
-
+#include <pcl/PolygonMesh.h>
+#include <pcl/Vertices.h>
 #include <tango_3d_reconstruction_api.h>
-#include <tango-scene-reconstructor/pose_data.h>
+#include "tango-scene-reconstructor/pose_data.h"
+#include "tango-scene-reconstructor/point_cloud.h"
 
 namespace tango_scene_reconstructor {
 
@@ -18,12 +20,10 @@ namespace tango_scene_reconstructor {
       ~TangoMeshReconstructor();
       void SetColorCamera3DRIntrinsics();
       void Update(TangoXYZij* xyz_ij, TangoImageBuffer* image_buffer);
-      void Render(glm::mat4 projection_mat,
-                  glm::mat4 view_mat,
-                  glm::mat4 model_mat);
       std::vector<float> GetXYZ();
       std::vector<uint8_t> GetRGB();
       std::vector<unsigned int> GetIndices();
+      void GenerateAndSaveMesh(std::vector<PointCloud*> point_cloud_container, std::string folder_name);
     private:
       Tango3DR_Pose ConvertPoseMatrixToPose3DR(glm::mat4 pose);
       Tango3DR_PointCloud ConvertPointCloudToPointCloud3DR(TangoXYZij* xyz_ij);
@@ -38,14 +38,6 @@ namespace tango_scene_reconstructor {
       std::vector<uint8_t> colors_;
       std::vector<unsigned int> indices_;
 
-      GLuint shader_program_;
-      GLuint vertex_buffer_;
-      GLuint vertices_handle_;
-      GLuint mvp_handle_;
-      GLuint color_handle_;
-      GLuint color_buffer_;
-      GLuint indices_handle_;
-      GLuint indices_buffer_;
       std::mutex render_mutex_;
   };
 

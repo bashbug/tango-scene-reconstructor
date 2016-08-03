@@ -27,6 +27,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
+#include <pcl/io/vtk_io.h>
 #include <pcl/common/common.h>
 #include <pcl/common/transforms.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -38,6 +39,9 @@
 #include <pcl/filters/statistical_outlier_removal.h>
 #include <pcl/filters/impl/statistical_outlier_removal.hpp>
 #include <pcl/console/print.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/surface/impl/gp3.hpp>
 
 #include "tango-scene-reconstructor/util.h"
 #include "tango-scene-reconstructor/point_cloud.h"
@@ -67,8 +71,9 @@ namespace tango_scene_reconstructor {
       void AddPointCloud(PointCloud* pcd);
       void AddPointCloudOptWithSM(PointCloud* pcd);
       void AddPointCloudOptWithMSM(PointCloud* pcd);
-      void DownsampleMesh();
-      void FilterMesh(float radius=10);
+      void DownsamplePointCloud();
+      void FilterPointCloud(float radius=10);
+      void GenerateAndSaveMesh(std::string folderAndFileName);
       bool Reset();
       bool IsRunning();
       glm::mat4 GetCentroidMatrix();

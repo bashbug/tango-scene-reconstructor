@@ -42,6 +42,7 @@
 #include "tango-scene-reconstructor/pose_data.h"
 #include "tango-scene-reconstructor/point_cloud_manager.h"
 #include "tango-scene-reconstructor/io/PCD.h"
+#include "tango-scene-reconstructor/io/VTK.h"
 #include "tango-scene-reconstructor/scan_matcher/frame_to_frame_scan_matcher.h"
 #include "tango-scene-reconstructor/scan_matcher/multiframe_scan_matcher.h"
 #include "tango-scene-reconstructor/scene.h"
@@ -71,7 +72,8 @@ namespace tango_scene_reconstructor {
       void ShowMSMMesh();
       void ShowUnOPTMesh();
       void SetRangeValue(float range);
-      void OptimizeAndSaveToFolder(std::string folder_name);
+      void Optimize();
+      void SaveToFolder(std::string folder_name, int save_mode);
       void OnTouchEvent(int touch_count, tango_gl::GestureCamera::TouchEvent event, float x0, float y0, float x1, float y1);
       void InitializeGLContent();
       void SetViewPort(int width, int height);

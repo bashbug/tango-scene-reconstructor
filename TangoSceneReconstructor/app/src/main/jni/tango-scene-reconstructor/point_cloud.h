@@ -36,10 +36,12 @@ namespace tango_scene_reconstructor {
   class PointCloud {
 
     public:
-      PointCloud();
+      PointCloud(float far_clipping=2.5f);
       ~PointCloud();
       void SetXYZ(TangoXYZij* XYZij);
       void SetYUV(TangoImageBuffer* YUV);
+      TangoXYZij* GetXYZ();
+      TangoImageBuffer* GetYUV();
       void SetNearClipping(float near_clipping);
       void SetFarClipping(float far_clipping);
       void SetTranslation(const glm::vec3& translation);
@@ -72,6 +74,9 @@ namespace tango_scene_reconstructor {
       std::vector<float> GetXYZValuesTSS();
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetPointCloud();
       pcl::PointCloud<pcl::PointXYZRGB>::Ptr GetPointCloudTransformed();
+
+      glm::mat4 yuv_pose_;
+      glm::mat4 xyz_pose_;
 
     private:
       void SetRGB();

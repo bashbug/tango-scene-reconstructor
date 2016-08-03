@@ -17,12 +17,15 @@
 package bashbug.tangoscenereconstructor;
 
 import android.app.Activity;
+import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
@@ -88,6 +91,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     String mFolderName;
 
     private boolean mIsConnectedService = false;
+    private boolean mFileAreSaved = false;
 
     private Button mOptimizeButton;
     private ToggleButton mStartAndStopButton;
@@ -99,7 +103,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     MenuItem mOptions;
     SettingsFragment mSettingFragment;
+    SaveDialogFragment mSaveDialogFragment;
     MenuItem mShareFiles;
+    MenuItem mSaveFiles;
     MenuItem mAnalytics;
     FrameLayout mAnalyticsFrameLayout;
 
@@ -186,13 +192,26 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     public void setCheckBoxesVisibleAndEnableButtons() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean value =  sharedPref.getBoolean("ftfsm", true);
+        boolean value2 = sharedPref.getBoolean("mfsm", true);
+
+        if (value && !value2) {
+            mSMMeshRadioButton.setVisibility(View.VISIBLE);
+        } else if (!value && value2) {
+            mMSMMeshRadioButton.setVisibility(View.VISIBLE);
+        } else {
+            mSMMeshRadioButton.setVisibility(View.VISIBLE);
+            mMSMMeshRadioButton.setVisibility(View.VISIBLE);
+        }
+
         mUnOPTMeshRadioButton.setVisibility(View.VISIBLE);
-        mSMMeshRadioButton.setVisibility(View.VISIBLE);
-        mMSMMeshRadioButton.setVisibility(View.VISIBLE);
         mShareFiles.setEnabled(true);
         mShareFiles.getIcon().setAlpha(255);
         mAnalytics.setEnabled(true);
         mAnalytics.getIcon().setAlpha(255);
+        mSaveFiles.setEnabled(true);
+        mSaveFiles.getIcon().setAlpha(255);
     }
 
     public void setCheckBoxesInVisibleAndDisableButtons() {
@@ -203,6 +222,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mShareFiles.getIcon().setAlpha(130);
         mAnalytics.setEnabled(false);
         mAnalytics.getIcon().setAlpha(130);
+        mSaveFiles.setEnabled(false);
+        mSaveFiles.getIcon().setAlpha(130);
     }
 
     public void toggleAnalytics() {
@@ -250,17 +271,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mRenderer = new GLSurfaceRenderer(this);
         mGLView.setRenderer(mRenderer);
 
-        // Buttons for selecting camera view and Set up button click listeners.
-        findViewById(R.id.first_person_button).setOnClickListener(this);
-        findViewById(R.id.third_person_button).setOnClickListener(this);
-        findViewById(R.id.third_person_button).setEnabled(false);
-
         mStartAndStopButton = (ToggleButton) findViewById(R.id.start_stop_button);
 
         mFTFSMAnalycticsTextView = (TextView) findViewById(R.id.ftfsm_analytics);
         mMFSMAnalycticsTextView = (TextView) findViewById(R.id.mfsm_analytics);
 
         mSettingFragment = new SettingsFragment();
+
+        mSaveDialogFragment = new SaveDialogFragment();
 
         mAnalyticsFrameLayout = (FrameLayout) findViewById(R.id.analytics);
         mAnalyticsFrameLayout.setVisibility(View.GONE);
@@ -275,12 +293,16 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         mSMMeshRadioButton = (RadioButton) findViewById(R.id.ftfsm_mesh_radio_button);
         mSMMeshRadioButton.setVisibility(View.GONE);
+        mSMMeshRadioButton.setBackgroundColor(Color.BLACK);
 
         mMSMMeshRadioButton = (RadioButton) findViewById(R.id.mfsm_mesh_radio_button);
         mMSMMeshRadioButton.setVisibility(View.GONE);
+        mMSMMeshRadioButton.setBackgroundColor(Color.BLACK);
 
         mUnOPTMeshRadioButton = (RadioButton) findViewById(R.id.tango_mesh_radio_button);
         mUnOPTMeshRadioButton.setVisibility(View.GONE);
+        mUnOPTMeshRadioButton.setBackgroundColor(Color.BLACK);
+
     }
 
     public void onRadioButtonClicked(View view) {
@@ -315,6 +337,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mAnalytics.setEnabled(false);
         mAnalytics.getIcon().setAlpha(130);
 
+        mSaveFiles = menu.findItem(R.id.ic_file_save);
+        mSaveFiles.setEnabled(false);
+        mSaveFiles.getIcon().setAlpha(130);
+
         mOptions = menu.findItem(R.id.ic_options);
         return true;
     }
@@ -323,8 +349,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.ic_file_upload:
-                ZipAndShare();
-                Toast.makeText(this, "ZIP file is also saved to Documents/RGBPointCloudBuilder", Toast.LENGTH_LONG).show();
+                if (!mFileAreSaved) {
+                    ShowDialog("Zip&Share reconstruction");
+                } else {
+                    ZipAndShare();
+                }
                 return true;
             case R.id.ic_poll:
                 toggleAnalytics();
@@ -343,6 +372,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
                             .commit();
                     mShowOptions = true;
                 }
+                return true;
+            case R.id.ic_file_save:
+                ShowDialog("Save reconstruction");
+                mFileAreSaved = true;
+                return true;
             default:
                 // If we got here, the user's action was not recognized.
                 // Invoke the superclass to handle it.
@@ -350,7 +384,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     }
 
-    private void ZipAndShare() {
+    public void SaveFiles(int modus) {
+        Log.e(TAG, "SAVE MODUS: " + modus);
+        JNIInterface.saveToFolder(mFolderName, modus);
+    }
+
+    private void ShowDialog(String title) {
+        FragmentManager manager = getFragmentManager();
+        SaveDialogFragment saveDialogFragment = new SaveDialogFragment();
+        saveDialogFragment.setTitle(title);
+        saveDialogFragment.show(manager, "SaveDialog");
+    }
+
+    public void ZipAndShare() {
         final Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("*/*");
         ZipFiles zipFiles = new ZipFiles();
@@ -373,7 +419,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             mStartAndStopButton.setAlpha(1.0f);
             mOptimizeButton.setEnabled(false);
             JNIInterface.setCamera(0);
-            findViewById(R.id.third_person_button).setEnabled(false);
             setCheckBoxesInVisibleAndDisableButtons();
             Log.e(TAG, "is checked");
             if (mTangoPausedResumedNewSurface) {
@@ -385,7 +430,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         } else {
             mStartAndStopButton.setAlpha(0.8f);
             mOptimizeButton.setEnabled(true);
-            findViewById(R.id.third_person_button).setEnabled(true);
             JNIInterface.stopPCDWorker();
             Log.e(TAG, "is NOT checked");
         }
@@ -395,25 +439,30 @@ public class MainActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
 
         switch (v.getId()) {
-            case R.id.first_person_button:
-                JNIInterface.setCamera(0);
-                break;
-            case R.id.third_person_button:
-                JNIInterface.setCamera(1);
-                break;
             case R.id.optimize_pose_graph_button:
                 JNIInterface.setCamera(1);
                 String date = new SimpleDateFormat("yyyyMMddHHmmss").format(Calendar.getInstance().getTime());
-                mFolderName = Environment.getExternalStorageDirectory().toString() + "/Documents/RGBPointCloudBuilder/" + date;
+                mFolderName = Environment.getExternalStorageDirectory().toString() + "/Documents/TangoSceneReconstructor/" + date;
+                createDirIfNotExists(mFolderName);
                 Log.e(TAG, mFolderName+"/");
-                JNIInterface.optimizeAndSaveToFolder(mFolderName + "/");
+                JNIInterface.optimize();
                 setCheckBoxesVisibleAndEnableButtons();
-                Toast.makeText(this, "PCD files are saved to Documents/RGBPointCloudBuilder", Toast.LENGTH_LONG).show();
                 break;
             default:
                 Log.w(TAG, "Unrecognized button click.");
                 return;
         }
+    }
+
+    private boolean createDirIfNotExists(String path) {
+        boolean ret = true;
+        File file = new File(path);
+        if (!file.exists()) {
+            if (!file.mkdirs()) {
+                ret = false;
+            }
+        }
+        return ret;
     }
 
     @Override

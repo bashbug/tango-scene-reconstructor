@@ -2,7 +2,7 @@
 
 namespace tango_scene_reconstructor {
 
-  PointCloud::PointCloud() {
+  PointCloud::PointCloud(float far_clipping) {
     cloud_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     cloud_transformed_ = pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>);
     pose_data_ = PoseData::GetInstance();
@@ -14,7 +14,7 @@ namespace tango_scene_reconstructor {
 
     // default frustum clipping
     near_clipping_ = 0.25;
-    far_clipping_ = 2.0;
+    far_clipping_ = far_clipping;
   }
 
   PointCloud::~PointCloud() { }
@@ -40,9 +40,19 @@ namespace tango_scene_reconstructor {
     cv::cvtColor(yuv_frame_, rgb_frame_, CV_YUV2RGB_NV21);
   }
 
+  TangoXYZij* PointCloud::GetXYZ() {
+    return &XYZij_;
+  }
+
+  TangoImageBuffer* PointCloud::GetYUV() {
+    return &YUV_;
+  }
+
   void PointCloud::Update() {
 
-    pose_ = pose_data_->GetSSTColorCamera(XYZij_.timestamp);  // ss_T_color
+    pose_ = pose_data_->GetSSTColorCamera(XYZij_.timestamp);  // TODO: could be a bug!
+    yuv_pose_ = pose_data_->GetSSTColorCamera(YUV_.timestamp);
+    xyz_pose_ = pose_data_->GetSSTDepthCamera(XYZij_.timestamp);
     TangoCameraIntrinsics color_camera_intrinsics = pose_data_->GetColorCameraIntrinsics();
     TangoCameraIntrinsics depth_camera_intrinsics = pose_data_->GetDepthCameraIntrinsics();
 

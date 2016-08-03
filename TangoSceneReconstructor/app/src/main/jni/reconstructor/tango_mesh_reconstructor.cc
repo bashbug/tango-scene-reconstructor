@@ -4,28 +4,6 @@
 
 #include "tango-scene-reconstructor/reconstructor/tango_mesh_reconstructor.h"
 
-namespace {
-  const std::string kPointCloudVertexShader =
-      "precision mediump float;\n"
-          "precision mediump int;\n"
-          "attribute vec4 vertex;\n"
-          "attribute vec3 color;\n"
-          "uniform mat4 mvp;\n"
-          "varying vec3 v_color;\n"
-          "void main() {\n"
-          "  gl_Position = mvp*vertex;\n"
-          "  v_color = color;\n"
-          "}\n";
-  const std::string kPointCloudFragmentShader =
-      "precision mediump float;\n"
-          "precision mediump int;\n"
-          "varying vec3 v_color;\n"
-          "void main() {\n"
-          "  gl_FragColor = vec4(vec3(v_color), 1.0);\n"
-          "}\n";
-
-}  // namespace
-
 namespace tango_scene_reconstructor {
 
   TangoMeshReconstructor::TangoMeshReconstructor(float resolution, float min_depth, float max_depth) {
@@ -44,17 +22,6 @@ namespace tango_scene_reconstructor {
     gridindexarray_ = new Tango3DR_GridIndexArray();
 
     pose_data_ = PoseData::GetInstance();
-
-    shader_program_ = tango_gl::util::CreateProgram(
-        kPointCloudVertexShader.c_str(), kPointCloudFragmentShader.c_str());
-
-    mvp_handle_ = glGetUniformLocation(shader_program_, "mvp");
-    vertices_handle_ = glGetAttribLocation(shader_program_, "vertex");
-    color_handle_ = glGetAttribLocation(shader_program_, "color");
-    glGenBuffers(1, &vertex_buffer_);
-    glGenBuffers(1, &color_buffer_);
-    glGenBuffers(1, &indices_buffer_);
-
   }
 
   TangoMeshReconstructor::~TangoMeshReconstructor(){}
@@ -79,30 +46,13 @@ namespace tango_scene_reconstructor {
     color_camera_.cy = color_camera_intrinsics.cy;
 
     color_camera_.calibration_type = (Tango3DR_TangoCalibrationType)color_camera_intrinsics.calibration_type;
-
-    LOGE("CAMERA INTRINSICS:");
-    LOGE("height: %i", color_camera_.height);
-    LOGE("width: %i", color_camera_.width);
-    LOGE("distortion: %f %f %f %f %f", color_camera_.distortion[0], color_camera_.distortion[1], color_camera_.distortion[2], color_camera_.distortion[3], color_camera_.distortion[4]);
-    LOGE("fx: %f fy: %f cx: %f cy: %f", color_camera_.fx, color_camera_.fy, color_camera_.cx, color_camera_.cy);
-    LOGE("calibration type: %i", color_camera_.calibration_type);
   }
 
   void TangoMeshReconstructor::Update(TangoXYZij* xyz_ij, TangoImageBuffer* image_buffer) {
     Tango3DR_ImageBuffer image_buffer_3dr = ConvertImageBufferToImage3DRBuffer(image_buffer);
-    //for(int i = 0; i < image_buffer->height * 3/2 * image_buffer->width; i++) {
-      //LOGE("COLOOOOR %i", image_buffer_3dr.data[i]);
-    //}
     Tango3DR_PointCloud xyz_ij_3dr = ConvertPointCloudToPointCloud3DR(xyz_ij);
     Tango3DR_Pose image_buffer_pose = ConvertPoseMatrixToPose3DR(pose_data_->GetSSTColorCamera(image_buffer_3dr.timestamp));
     Tango3DR_Pose xyz_ij_pose = ConvertPoseMatrixToPose3DR(pose_data_->GetSSTDepthCamera(xyz_ij_3dr.timestamp));
-
-    LOGE("CAMERA INTRINSICS:");
-    LOGE("height: %i", color_camera_.height);
-    LOGE("width: %i", color_camera_.width);
-    LOGE("distortion: %f %f %f %f %f", color_camera_.distortion[0], color_camera_.distortion[1], color_camera_.distortion[2], color_camera_.distortion[3], color_camera_.distortion[4]);
-    LOGE("fx: %f fy: %f cx: %f cy: %f", color_camera_.fx, color_camera_.fy, color_camera_.cx, color_camera_.cy);
-    LOGE("calibration type: %i", color_camera_.calibration_type);
 
     mesh_ = new Tango3DR_Mesh();
     Tango3DR_Status status = Tango3DR_update(context_, &xyz_ij_3dr, &xyz_ij_pose,
@@ -146,27 +96,14 @@ namespace tango_scene_reconstructor {
                 colors_tmp.push_back(mesh_->colors[i][0]);
                 colors_tmp.push_back(mesh_->colors[i][1]);
                 colors_tmp.push_back(mesh_->colors[i][2]);
-                //LOGE("r: %i, g: %i, b: %i", mesh_->colors[i][0], mesh_->colors[i][1], mesh_->colors[i][2]);
             }
-
-            LOGE("REC: Vertices size %i", vertices_tmp.size());
-            LOGE("REC: Colors size %i", colors_tmp.size());
 
             for (int i=0; i<mesh_->num_faces; i++) {
               indices_tmp.push_back((unsigned int)mesh_->faces[i][0]);
               indices_tmp.push_back((unsigned int)mesh_->faces[i][1]);
               indices_tmp.push_back((unsigned int)mesh_->faces[i][2]);
             }
-            LOGE("REC: Indices size %i", indices_tmp.size());
 
-            /*glm::mat4 cur_pose = tango_gl::conversions::opengl_world_T_tango_world() *
-                                 GetMatrixFromPose(current_pose);
-
-            glm::mat4 pose = tango_gl::conversions::opengl_world_T_tango_world() *
-                             GetMatrixFromPose(current_pose) * device_T_color_*
-                             tango_gl::conversions::color_camera_T_opengl_camera();
-
-            main_scene_.Render(GetMatrixFromPose(current_pose), pose, vertices, indices, colors);*/
             Tango3DR_Mesh_destroy(mesh_);
 
             {
@@ -177,60 +114,6 @@ namespace tango_scene_reconstructor {
             }
         }
       }
-    }
-  }
-
-  void TangoMeshReconstructor::Render(glm::mat4 projection_mat,
-                                      glm::mat4 view_mat,
-                                      glm::mat4 model_mat) {
-
-    if(vertices_.size() > 0 & colors_.size() > 0 && indices_.size() > 0) {
-      /*LOGE("Vertices size %i", vertices_.size());
-      LOGE("Colors size %i", colors_.size());
-      LOGE("Indices size %i", indices_.size());*/
-
-      glUseProgram(shader_program_);
-      mvp_handle_ = glGetUniformLocation(shader_program_, "mvp");
-      // Calculate model view projection matrix.
-      glm::mat4 mvp_mat = glm::mat4(1.0f, 0.0f, 0.0f, 0.0f,
-                                                                            0.0f, 0.0f, -1.0f, 0.0f,
-                                                                            0.0f, 1.0f, 0.0f, 0.0f,
-                                                                            0.0f, 0.0f, 0.0f, 1.0f);
-      glUniformMatrix4fv(mvp_handle_, 1, GL_FALSE, glm::value_ptr(mvp_mat));
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glUniformMatrix4fv(mvp_handle_, 1, GL_FALSE, glm::value_ptr(mvp_mat));");
-      /*glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_);");
-      glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices_.size(), vertices_.data(), GL_STATIC_DRAW);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vertices_.size(), vertices_.data(), GL_STATIC_DRAW);");
-      glEnableVertexAttribArray(vertices_handle_);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glEnableVertexAttribArray(vertices_handle_);");
-      glVertexAttribPointer(vertices_handle_, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glVertexAttribPointer(vertices_handle_, 3, GL_FLOAT, GL_FALSE, 0, nullptr);");
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBindBuffer(GL_ARRAY_BUFFER, 0);");
-      glBindBuffer(GL_ARRAY_BUFFER, color_buffer_);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBindBuffer(GL_ARRAY_BUFFER, color_buffer_);");
-      glBufferData(GL_ARRAY_BUFFER, colors_.size(), colors_.data(), GL_STATIC_DRAW);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBufferData(GL_ARRAY_BUFFER, colors_.size(), colors_.data(), GL_STATIC_DRAW);");
-      glEnableVertexAttribArray(color_handle_);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::EnableVertexAttribArray(color_handle_);");
-      // index, size, type, stride, normalized, pointer
-      glVertexAttribPointer(color_handle_, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, nullptr);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glVertexAttribPointer(color_handle_, 3, GL_UNSIGNED_BYTE, GL_TRUE, 0, nullptr);");
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBindBuffer(GL_ARRAY_BUFFER, 0);");
-      glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_buffer_);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indices_buffer_);");
-      glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GL_UNSIGNED_INT) * indices_.size(), &indices_[0], GL_STATIC_DRAW);
-      //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GL_UNSIGNED_INT) * indices_.size(), &indices_[0], GL_STATIC_DRAW);");
-      glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, (void*)0);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::glDrawElements(GL_TRIANGLES, indices_.size(), GL_UNSIGNED_INT, (void*)0);");
-      glUseProgram(0);
-      tango_gl::util::CheckGlError("TangoMeshReconstructor::Render()");*/
-    } else {
-      LOGE("NULL");
-      return;
     }
   }
 
@@ -257,10 +140,6 @@ namespace tango_scene_reconstructor {
     image_buffer_3dr.timestamp = image_buffer->timestamp;
     image_buffer_3dr.format = (Tango3DR_ImageFormatType)image_buffer->format;
     image_buffer_3dr.data = image_buffer->data;
-    /*for(int i = 0; i < image_buffer->height * 3/2 * image_buffer->width; i++) {
-      LOGE("COLOOOOR %i", image_buffer_3dr.data[i]);
-    }*/
-
     return image_buffer_3dr;
   }
 
@@ -296,5 +175,85 @@ namespace tango_scene_reconstructor {
     return indices_;
   }
 
+  void TangoMeshReconstructor::GenerateAndSaveMesh(std::vector<PointCloud*> point_cloud_container, std::string folder_name) {
+    std::vector<float> vertices_tmp;
+    std::vector<unsigned int> indices_tmp;
+    std::vector<uint8_t> colors_tmp;
+    for (int i=0; i < point_cloud_container.size(); i++) {
+      Tango3DR_ImageBuffer image_buffer_3dr = ConvertImageBufferToImage3DRBuffer(point_cloud_container[i]->GetYUV());
+      Tango3DR_PointCloud xyz_ij_3dr = ConvertPointCloudToPointCloud3DR(point_cloud_container[i]->GetXYZ());
+      Tango3DR_Pose image_buffer_pose = ConvertPoseMatrixToPose3DR(point_cloud_container[i]->yuv_pose_);
+      Tango3DR_Pose xyz_ij_pose = ConvertPoseMatrixToPose3DR(point_cloud_container[i]->xyz_pose_);
+
+      mesh_ = new Tango3DR_Mesh();
+      Tango3DR_Status status = Tango3DR_update(context_, &xyz_ij_3dr, &xyz_ij_pose,
+                                               &image_buffer_3dr, &image_buffer_pose, &color_camera_,
+                                               &gridindexarray_);
+
+      if (status == TANGO_3DR_ERROR) {
+        LOGE("UPDATE STATUS some sort of hard error occurred");
+      }
+      if (status == TANGO_3DR_INSUFFICIENT_SPACE) {
+        LOGE("UPDATE STATUS not enough space in a provided buffer");
+      }
+      if (status == TANGO_3DR_INVALID) {
+        LOGE("UPDATE STATUS input argument is invalid");
+      }
+      if (status == TANGO_3DR_SUCCESS) {
+        status = Tango3DR_extractFullMesh(context_, &mesh_);
+
+        if (status == TANGO_3DR_ERROR) {
+            LOGE("EXTRACT STATUS some sort of hard error occurred");
+        }
+
+        if (status == TANGO_3DR_INSUFFICIENT_SPACE) {
+            LOGE("EXTRACT STATUS not enough space in a provided buffer");
+        }
+
+        if (status == TANGO_3DR_INVALID) {
+            LOGE("EXTRACT STATUS input argument is invalid");
+        }
+
+        if (status == TANGO_3DR_SUCCESS) {
+
+          if (mesh_->num_faces > 0) {
+            for (int i=0; i<mesh_->num_vertices; i++) {
+                vertices_tmp.push_back(mesh_->vertices[i][0]);
+                vertices_tmp.push_back(mesh_->vertices[i][1]);
+                vertices_tmp.push_back(mesh_->vertices[i][2]);
+                colors_tmp.push_back(mesh_->colors[i][0]);
+                colors_tmp.push_back(mesh_->colors[i][1]);
+                colors_tmp.push_back(mesh_->colors[i][2]);
+            }
+
+            for (int i=0; i<mesh_->num_faces; i++) {
+              indices_tmp.push_back((unsigned int)mesh_->faces[i][0]);
+              indices_tmp.push_back((unsigned int)mesh_->faces[i][1]);
+              indices_tmp.push_back((unsigned int)mesh_->faces[i][2]);
+            }
+          }
+        }
+      }
+    }
+
+    Tango3DR_Mesh_destroy(mesh_);
+
+    vertices_ = vertices_tmp;
+    colors_ = colors_tmp;
+    indices_ = indices_tmp;
+
+    pcl::PolygonMesh triangles;
+    triangles.polygons.resize(indices_.size()/3);
+    int k = 0;
+    for (int i = 0; i < triangles.polygons.size(); i++) {
+      pcl::Vertices vertices;
+      vertices.vertices.push_back(vertices_[indices_[k]]);
+      vertices.vertices.push_back(vertices_[indices_[k+1]]);
+      vertices.vertices.push_back(vertices_[indices_[k+2]]);
+      k+=3;
+      triangles.polygons[i] = vertices;
+    }
+
+  }
 
 }
